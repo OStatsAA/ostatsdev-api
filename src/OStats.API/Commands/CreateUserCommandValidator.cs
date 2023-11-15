@@ -1,4 +1,5 @@
 using FluentValidation;
+using FluentValidation.Validators;
 using OStats.Domain.Aggregates.UserAggregate;
 
 namespace OStats.API.Commands;
@@ -13,6 +14,8 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
         RuleFor(c => c.Email).NotNull()
                              .NotEmpty()
                              .WithMessage("User email address not provided.");
+
+        RuleFor(c => c.Email).EmailAddress(EmailValidationMode.AspNetCoreCompatible);
 
         RuleFor(c => c.Name).NotNull()
                             .NotEmpty()
