@@ -14,7 +14,8 @@
 		"vscode": {
 			"extensions": [
 				"ms-dotnettools.csdevkit",
-				"ckolkman.vscode-postgres"
+				"ckolkman.vscode-postgres",
+				"github.vscode-github-actions"
 			]
 		}
 	},
