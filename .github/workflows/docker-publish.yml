@@ -23,6 +23,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: dotnet restore src/
+
+      - name: Build
+        run: dotnet build src/
+
+      - name: Test with the dotnet CLI
+        run: dotnet test src/
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3.0.0
