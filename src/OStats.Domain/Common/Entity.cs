@@ -15,6 +15,6 @@ public abstract class Entity
         }
     }
 
-    public DateTime CreatedAt { get; }
-    public DateTime LastUpdatedAt { get; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime LastUpdatedAt { get; set; }
 }

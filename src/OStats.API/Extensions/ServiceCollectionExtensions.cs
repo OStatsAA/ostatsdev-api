@@ -33,6 +33,8 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IValidator<CreateProjectCommand>, CreateProjectCommandValidator>();
         services.AddScoped<IValidator<CreateUserCommand>, CreateUserCommandValidator>();
+        services.AddScoped<IValidator<AddDatasetConfigurationCommand>, AddDatasetConfigurationCommandValidator>();
+        services.AddScoped<IValidator<RemoveDatasetConfigurationCommand>, RemoveDatasetConfigurationCommandValidator>();
 
         return services;
     }

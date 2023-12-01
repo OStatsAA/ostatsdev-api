@@ -1,6 +1,6 @@
 using OStats.Domain.Aggregates.ProjectAggregate;
 
-namespace OStats.Tests.Domain.Aggregates.ProjectAggregate;
+namespace OStats.Tests.UnitTests.Domain.Aggregates.ProjectAggregate;
 
 public class ProjectTest
 {

@@ -57,4 +57,58 @@ public class ProjectsController : ControllerBase
 
         return Ok(commandResult.Value);
     }
+
+    [Route("{projectId:Guid}/datasetconfiguration")]
+    [HttpGet]
+    [ProducesResponseType(typeof(List<DatasetConfiguration>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<List<DatasetConfiguration>>> GetProjectDatasetsConfigurations(Guid projectId)
+    {
+        return Ok(await _projectQueries.GetDatasetsConfigurationsByProjectIdAsync(projectId));
+    }
+
+    [Route("{projectId:Guid}/datasetconfiguration")]
+    [HttpPost]
+    [ProducesResponseType(typeof(DatasetConfiguration), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<DatasetConfiguration>> AddDatasetConfigurationToProject(Guid projectId,
+                                                                                           [FromBody] AddDatasetConfigurationCommandDto addDto)
+    {
+        var authIdentity = User.Identity?.Name;
+        if (authIdentity == null)
+        {
+            return BadRequest();
+        }
+
+        var command = new AddDatasetConfigurationCommand(authIdentity, projectId, addDto.Title, addDto.Source, addDto.Description);
+        var commandResult = await _mediator.Send(command);
+        if (!commandResult.Success)
+        {
+            return BadRequest(commandResult.ValidationFailures);
+        }
+
+        return Ok(commandResult.Value);
+    }
+
+    [Route("{projectId:Guid}/datasetconfiguration/{datasetConfigId:Guid}")]
+    [HttpDelete]
+    [ProducesResponseType(typeof(DatasetConfiguration), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<DatasetConfiguration>> DeleteDatasetConfigurationFromProject(Guid projectId, Guid datasetConfigId)
+    {
+        var authIdentity = User.Identity?.Name;
+        if (authIdentity == null)
+        {
+            return BadRequest();
+        }
+
+        var command = new RemoveDatasetConfigurationCommand(authIdentity, projectId, datasetConfigId);
+        var commandResult = await _mediator.Send(command);
+        if (!commandResult.Success)
+        {
+            return BadRequest(commandResult.ValidationFailures);
+        }
+
+        return Ok(commandResult.Value);
+    }
 }

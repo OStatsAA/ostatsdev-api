@@ -41,4 +41,11 @@ public class ProjectQueries : IProjectQueries
         return await _projects.Include(includeClause)
                               .ToListAsync();
     }
+
+    public async Task<IReadOnlyCollection<DatasetConfiguration>?> GetDatasetsConfigurationsByProjectIdAsync(Guid projectId)
+    {
+        return await _projects.Where(project => project.Id == projectId)
+                              .SelectMany(project => project.DatasetsConfigs)
+                              .ToListAsync();
+    }
 }

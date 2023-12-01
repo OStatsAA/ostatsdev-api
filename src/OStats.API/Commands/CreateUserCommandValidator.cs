@@ -26,7 +26,7 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
                                     .WithMessage("User AuthIdentity not provided.");
 
         RuleFor(c => c.AuthIdentity)
-            .MustAsync(async (authId, cancellation) => await _userRepository.ExistsByAuthIdentityAsync(authId))
+            .MustAsync(async (authId, cancellation) => !await _userRepository.ExistsByAuthIdentityAsync(authId))
             .WithMessage("User cannot be registered.");
     }
 }
