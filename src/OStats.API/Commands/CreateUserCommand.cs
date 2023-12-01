@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using MediatR;
 using OStats.API.Common;
 using OStats.Domain.Aggregates.UserAggregate;
@@ -15,4 +16,12 @@ public class CreateUserCommand : IRequest<ICommandResult<User>>
         Email = email;
         AuthIdentity = authId;
     }
+}
+
+public struct CreateUserCommandDto
+{
+    [Required]
+    public string Name { get; set; }
+    [Required]
+    public string Email { get; set; }
 }
