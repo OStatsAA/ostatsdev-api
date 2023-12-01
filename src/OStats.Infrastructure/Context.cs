@@ -11,22 +11,29 @@ public class Context : DbContext, IUnitOfWork
     // ProjectAggregates db sets
     public DbSet<Project> Projects { get; set; }
     public DbSet<Role> Roles { get; set; }
+    public DbSet<DatasetConfiguration> DatasetsConfigurations { get; set; }
 
     // UserAggregates db sets
     public DbSet<User> Users { get; set; }
 
+    public Context() { }
+
+    public Context(DbContextOptions options) : base(options) { }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseNpgsql(BuildConnectionString());
+        if (!optionsBuilder.IsConfigured)
+        {
+            optionsBuilder.UseNpgsql(BuildConnectionString());
+        }
     }
 
     private static string BuildConnectionString()
     {
-        var envVariables = Environment.GetEnvironmentVariables();
-        var host = envVariables["POSTGRES_HOST"];
-        var database = envVariables["POSTGRES_DB"];
-        var user = envVariables["POSTGRES_USER"];
-        var password = envVariables["POSTGRES_PASSWORD"];
+        var host = Environment.GetEnvironmentVariable("POSTGRES_HOST");
+        var database = Environment.GetEnvironmentVariable("POSTGRES_DB");
+        var user = Environment.GetEnvironmentVariable("POSTGRES_USER");
+        var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
         return @$"Host={host};Username={user};Password={password};Database={database}";
     }
 
@@ -35,6 +42,7 @@ public class Context : DbContext, IUnitOfWork
         // ProjectAggregate entities configuration
         modelBuilder.ApplyConfiguration(new ProjectEntityConfiguration());
         modelBuilder.ApplyConfiguration(new RoleEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new DatasetConfigurationEntityConfiguration());
 
         // UserAggregate entities configuration
         modelBuilder.ApplyConfiguration(new UserEntityConfiguration());
@@ -42,7 +50,23 @@ public class Context : DbContext, IUnitOfWork
 
     public async Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = default)
     {
-        //var changedEntries = this.ChangeTracker.Entries<Entity>().Where(entry => entry.State != EntityState.Unchanged);
-        return 1 == (await base.SaveChangesAsync(cancellationToken));
+
+        foreach (var entityEntry in ChangeTracker.Entries<Entity>().Where(entry => entry.State != EntityState.Unchanged))
+        {
+            if (entityEntry.State == EntityState.Added)
+            {
+                entityEntry.Entity.CreatedAt = DateTime.UtcNow;
+                entityEntry.Entity.LastUpdatedAt = DateTime.UtcNow;
+                continue;
+            }
+            if (entityEntry.State == EntityState.Modified || entityEntry.State == EntityState.Deleted)
+            {
+                entityEntry.Entity.LastUpdatedAt = DateTime.UtcNow;
+                continue;
+            }
+        }
+
+        await base.SaveChangesAsync(cancellationToken);
+        return true;
     }
 }

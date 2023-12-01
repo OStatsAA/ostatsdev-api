@@ -2,9 +2,9 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/dotnet
 {
 	"name": "C# (.NET)",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/dotnet:8.0",
-	// Features to add to the dev container. More info: https://containers.dev/features.
+	"dockerComposeFile": "docker-compose.yml",
+    "service": "app",
+    "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 	"features": {
 		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {},
 		"ghcr.io/devcontainers-contrib/features/digitalocean-cli:1": {},
@@ -20,14 +20,14 @@
 		}
 	},
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [5000, 5001],
+	"forwardPorts": [5432],
 	// "portsAttributes": {
 	//		"5001": {
 	//			"protocol": "https"
 	//		}
 	// }
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "dotnet dev-certs https --trust; dotnet tool install --global dotnet-ef"
+	"postCreateCommand": "dotnet dev-certs https --trust; dotnet tool install --global dotnet-ef; dotnet tool install --global dotnet-reportgenerator-globaltool"
 	// Configure tool-specific properties.
 	// "customizations": {},
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.

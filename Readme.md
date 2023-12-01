@@ -9,7 +9,12 @@ dotnet test src/ --collect:"XPlat Code Coverage" --results-directory:".coverage_
 
 Generate report
 ```
-reportgenerator -reports:"OStats.Tests/TestResults/{Guid}/coverage.cobertura.xml" -targetdir:"../.coverage_report" -reporttypes:Html
+reportgenerator -reports:/workspaces/ostatsdev-api/.coverage_report/{Guid}/coverage.cobertura.xml -targetdir:/workspaces/ostatsdev-api/.coverage_report/{Guid} -reporttypes:Html
+```
+
+Server HTML report
+```
+python3 -m http.server --directory .coverage_report/{Guid}/
 ```
 
 ## Database migration

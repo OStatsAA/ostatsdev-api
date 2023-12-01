@@ -8,4 +8,5 @@ public interface IProjectQueries
     Task<Project?> GetProjectByTitleAsync(string title);
     Task<Project?> GetProjectByDescriptionAsync(string description);
     Task<List<Project>?> GetProjectsOwnedByUserAsync(Guid userId);
+    Task<IReadOnlyCollection<DatasetConfiguration>?> GetDatasetsConfigurationsByProjectIdAsync(Guid projectId);
 }

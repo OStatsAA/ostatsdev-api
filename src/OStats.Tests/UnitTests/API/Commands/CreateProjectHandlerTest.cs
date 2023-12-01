@@ -4,7 +4,7 @@ using OStats.API.Commands;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.UserAggregate;
 
-namespace OStats.Tests.API.Commands;
+namespace OStats.Tests.UnitTests.API.Commands;
 
 public class CreateProjectHandlerTest
 {

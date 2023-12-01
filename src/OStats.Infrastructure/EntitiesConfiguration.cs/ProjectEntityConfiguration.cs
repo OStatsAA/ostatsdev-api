@@ -20,5 +20,10 @@ class ProjectEntityConfiguration : EntityConfiguration<Project>, IEntityTypeConf
                      .WithOne()
                      .HasForeignKey(role => role.ProjectId)
                      .IsRequired();
+
+              builder.HasMany(project => project.DatasetsConfigs)
+                     .WithOne()
+                     .HasForeignKey(datasetConfig => datasetConfig.ProjectId)
+                     .IsRequired();
        }
 }

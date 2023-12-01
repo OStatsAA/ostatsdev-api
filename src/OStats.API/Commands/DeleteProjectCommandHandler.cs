@@ -1,5 +1,6 @@
 using MediatR;
 using OStats.Domain.Aggregates.ProjectAggregate;
+using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
 
 namespace OStats.API.Commands;
 
@@ -20,8 +21,8 @@ public class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand,
             return false;
         }
 
-        var userRole = project.GetUserRole(request.UserId);
-        if (userRole == null || userRole.AccessLevel != AccessLevel.Owner)
+        var isUserOwner = project.Roles.IsUser(request.UserId, AccessLevel.Owner);
+        if (!isUserOwner)
         {
             return false;
         }
