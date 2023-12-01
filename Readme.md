@@ -33,5 +33,5 @@ Database port-forward
 ```
 doctl auth init
 doctl kubernetes cluster kubeconfig save 2d90a1ff-1ea2-4c58-b8a7-5f6e66fac1ec
-kubectl port-forward service/database 5432:5432 --namespace=ostats
+kubectl port-forward service/database 5431:5432 --namespace=ostats
 ```
