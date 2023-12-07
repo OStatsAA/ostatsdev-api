@@ -24,6 +24,8 @@ public class ProjectQueries : IProjectQueries
     public async Task<Project?> GetProjectByIdAsync(Guid id)
     {
         return await _projects.Where(project => project.Id == id)
+                              .Include(project => project.Roles)
+                              .Include(project => project.DatasetsConfigs)
                               .SingleOrDefaultAsync();
     }
 
