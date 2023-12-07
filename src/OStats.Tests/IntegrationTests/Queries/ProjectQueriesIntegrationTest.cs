@@ -1,6 +1,5 @@
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
-using OStats.API.Commands;
 using OStats.Domain.Aggregates.ProjectAggregate;
 
 namespace OStats.Tests.IntegrationTests.Queries;
@@ -28,6 +27,7 @@ public class ProjectQueriesIntegrationTest : BaseIntegrationTest
         using (new AssertionScope())
         {
             queriedProject.Should().NotBeNull();
+            queriedProject.Should().BeEquivalentTo(project);
         }
     }
 }
