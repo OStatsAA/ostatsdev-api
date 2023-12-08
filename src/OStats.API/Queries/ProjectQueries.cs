@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using OStats.API.Dtos;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Infrastructure;
 
@@ -49,5 +50,13 @@ public class ProjectQueries : IProjectQueries
         return await _projects.Where(project => project.Id == projectId)
                               .SelectMany(project => project.DatasetsConfigs)
                               .ToListAsync();
+    }
+
+    public async Task<List<ProjectUserAndRoleDto>> GetProjectUsersAndRoles(Guid projectId)
+    {
+        return await _context.Roles.AsNoTracking()
+                                   .Where(role => role.ProjectId == projectId)
+                                   .Join(_context.Users, role => role.UserId, user => user.Id, (role, user) => new ProjectUserAndRoleDto(user, role))
+                                   .ToListAsync();
     }
 }
