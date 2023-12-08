@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OStats.API.Commands;
+using OStats.API.Dtos;
 using OStats.API.Queries;
 using OStats.Domain.Aggregates.ProjectAggregate;
 
@@ -58,6 +59,15 @@ public class ProjectsController : ControllerBase
         return Ok(commandResult.Value);
     }
 
+    [Route("{projectId:Guid}/usersroles")]
+    [HttpGet]
+    [ProducesResponseType(typeof(List<ProjectUserAndRoleDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<List<ProjectUserAndRoleDto>>> GetProjectUsersAndRoles(Guid projectId)
+    {
+        return Ok(await _projectQueries.GetProjectUsersAndRoles(projectId));
+    }
+
     [Route("{projectId:Guid}/datasetconfiguration")]
     [HttpGet]
     [ProducesResponseType(typeof(List<DatasetConfiguration>), StatusCodes.Status200OK)]
@@ -111,4 +121,5 @@ public class ProjectsController : ControllerBase
 
         return Ok(commandResult.Value);
     }
+
 }

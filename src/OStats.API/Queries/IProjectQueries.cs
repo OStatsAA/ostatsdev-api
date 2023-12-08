@@ -1,3 +1,4 @@
+using OStats.API.Dtos;
 using OStats.Domain.Aggregates.ProjectAggregate;
 
 namespace OStats.API.Queries;
@@ -9,4 +10,5 @@ public interface IProjectQueries
     Task<Project?> GetProjectByDescriptionAsync(string description);
     Task<List<Project>?> GetProjectsOwnedByUserAsync(Guid userId);
     Task<IReadOnlyCollection<DatasetConfiguration>?> GetDatasetsConfigurationsByProjectIdAsync(Guid projectId);
+    Task<List<ProjectUserAndRoleDto>> GetProjectUsersAndRoles(Guid projectId);
 }
