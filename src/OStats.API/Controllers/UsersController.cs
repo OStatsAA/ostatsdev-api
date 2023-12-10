@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OStats.API.Commands;
+using OStats.API.Dtos;
 using OStats.API.Queries;
 using OStats.Domain.Aggregates.UserAggregate;
 
@@ -56,5 +57,13 @@ public class UsersController : ControllerBase
         }
 
         return Ok(commandResult.Value);
+    }
+
+    [Route("{userId:Guid}/projects")]
+    [HttpGet]
+    [ProducesResponseType(typeof(List<UserProjectDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<UserProjectDto>>> GetProjectsByUserIdAsync(Guid userId)
+    {
+        return Ok(await _userQueries.GetProjectsByUserIdAsync(userId));
     }
 }
