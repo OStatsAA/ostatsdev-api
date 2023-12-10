@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OStats.API.Dtos;
 using OStats.Domain.Aggregates.UserAggregate;
 using OStats.Infrastructure;
 
@@ -36,5 +37,13 @@ public class UserQueries : IUserQueries
     {
         return await _users.Where(user => user.AuthIdentity == authIdentity)
                            .SingleOrDefaultAsync();
+    }
+
+    public async Task<List<UserProjectDto>> GetProjectsByUserIdAsync(Guid userId)
+    {
+        return await _context.Roles.AsNoTracking()
+                                   .Where(role => role.UserId == userId)
+                                   .Join(_context.Projects, role => role.ProjectId, project => project.Id, (role, project) => new UserProjectDto(project, role))
+                                   .ToListAsync();
     }
 }
