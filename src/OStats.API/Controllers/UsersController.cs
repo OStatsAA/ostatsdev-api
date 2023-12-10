@@ -41,12 +41,18 @@ public class UsersController : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(User), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<User>> CreateProject([FromBody] CreateUserCommandDto createDto)
+    public async Task<ActionResult<User>> CreateUser([FromBody] CreateUserCommandDto createDto)
     {
         var authIdentity = User.Identity?.Name;
         if (authIdentity == null)
         {
             return BadRequest();
+        }
+
+        var registeredUser = await _userQueries.GetUserByAuthIdentity(authIdentity);
+        if (registeredUser is not null)
+        {
+            return Ok(registeredUser);
         }
 
         var command = new CreateUserCommand(createDto.Name, createDto.Email, authIdentity);
