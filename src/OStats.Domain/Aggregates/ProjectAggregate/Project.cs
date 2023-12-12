@@ -5,8 +5,8 @@ namespace OStats.Domain.Aggregates.ProjectAggregate;
 
 public class Project : Entity, IAggregateRoot
 {
-    public string Title { get; }
-    public string? Description { get; }
+    public string Title { get; set; }
+    public string? Description { get; set; }
     private readonly List<Role> _roles = new List<Role>();
     public IReadOnlyCollection<Role> Roles => _roles;
     private readonly List<DatasetConfiguration> _datasetsConfigs = new List<DatasetConfiguration>();
@@ -17,7 +17,7 @@ public class Project : Entity, IAggregateRoot
         Title = title;
         Description = description;
     }
-    
+
     public Project(Guid ownerId, string title, string? description)
     {
         Title = title;

@@ -30,7 +30,7 @@ public class ProjectsController : ControllerBase
     {
         var project = await _projectQueries.GetProjectByIdAsync(projectId);
 
-        if (project == null)
+        if (project is null)
         {
             return NotFound();
         }
@@ -44,12 +44,33 @@ public class ProjectsController : ControllerBase
     public async Task<ActionResult<Project>> CreateProject([FromBody] CreateProjectCommandDto createDto)
     {
         var authIdentity = User.Identity?.Name;
-        if (authIdentity == null)
+        if (authIdentity is null)
         {
             return BadRequest();
         }
 
         var command = new CreateProjectCommand(authIdentity, createDto.Title, createDto.Description);
+        var commandResult = await _mediator.Send(command);
+        if (!commandResult.Success)
+        {
+            return BadRequest(commandResult.ValidationFailures);
+        }
+
+        return Ok(commandResult.Value);
+    }
+
+    [HttpPut("{projectId:Guid}")]
+    [ProducesResponseType(typeof(Project), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<Project>> UpdateProject(Guid projectId, [FromBody] UpdateProjectCommandDto updateDto)
+    {
+        var authIdentity = User.Identity?.Name;
+        if (authIdentity is null)
+        {
+            return BadRequest();
+        }
+
+        var command = new UpdateProjectCommand(projectId, authIdentity, updateDto.Title, updateDto.LastUpdatedAt, updateDto.Description);
         var commandResult = await _mediator.Send(command);
         if (!commandResult.Success)
         {
@@ -85,7 +106,7 @@ public class ProjectsController : ControllerBase
                                                                                            [FromBody] AddDatasetConfigurationCommandDto addDto)
     {
         var authIdentity = User.Identity?.Name;
-        if (authIdentity == null)
+        if (authIdentity is null)
         {
             return BadRequest();
         }
@@ -107,7 +128,7 @@ public class ProjectsController : ControllerBase
     public async Task<ActionResult<DatasetConfiguration>> DeleteDatasetConfigurationFromProject(Guid projectId, Guid datasetConfigId)
     {
         var authIdentity = User.Identity?.Name;
-        if (authIdentity == null)
+        if (authIdentity is null)
         {
             return BadRequest();
         }
