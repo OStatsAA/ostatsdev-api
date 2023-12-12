@@ -2,6 +2,7 @@ using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Commands;
 using OStats.Domain.Aggregates.ProjectAggregate;
+using OStats.Domain.Aggregates.UserAggregate;
 
 namespace OStats.Tests.IntegrationTests.Commands;
 
@@ -15,12 +16,17 @@ public class DeleteProjectIntegrationTest : BaseIntegrationTest
     public async Task Should_Fail_If_User_Is_Not_Owner()
     {
         var project = await context.Projects.FirstAsync();
-        var command = new DeleteProjectCommand(project.Id, Guid.NewGuid());
+        var user = new User("Test User", "test@test.com", "test_user_authid");
+        await context.AddAsync(user);
+        project.AddOrUpdateUserRole(user.Id, AccessLevel.Editor);
+        await context.SaveChangesAsync();
+        var command = new DeleteProjectCommand(user.AuthIdentity, project.Id);
         var result = await sender.Send(command);
 
         using (new AssertionScope())
         {
-            result.Should().BeFalse();
+            result.Success.Should().BeFalse();
+            result.ValidationFailures.Should().NotBeEmpty();
         }
     }
 
@@ -32,12 +38,13 @@ public class DeleteProjectIntegrationTest : BaseIntegrationTest
         context.Projects.Add(project);
         context.SaveChanges();
 
-        var command = new DeleteProjectCommand(project.Id, existingUser.Id);
+        var command = new DeleteProjectCommand(existingUser.AuthIdentity, project.Id);
         var result = await sender.Send(command);
 
         using (new AssertionScope())
         {
-            result.Should().BeTrue();
+            result.Success.Should().BeTrue();
+            result.ValidationFailures.Should().BeNull();
             context.Users.Any(u => u.Id == existingUser.Id).Should().BeTrue();
             context.Projects.Any(p => p.Id == project.Id).Should().BeFalse();
             context.Roles.Any(r => r.ProjectId == project.Id).Should().BeFalse();
