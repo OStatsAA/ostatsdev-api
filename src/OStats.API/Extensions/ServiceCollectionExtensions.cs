@@ -32,6 +32,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddValidators(this IServiceCollection services)
     {
         services.AddScoped<IValidator<CreateProjectCommand>, CreateProjectCommandValidator>();
+        services.AddScoped<IValidator<DeleteProjectCommand>, DeleteProjectCommandValidator>();
         services.AddScoped<IValidator<UpdateProjectCommand>, UpdateProjectCommandValidator>();
         services.AddScoped<IValidator<CreateUserCommand>, CreateUserCommandValidator>();
         services.AddScoped<IValidator<AddDatasetConfigurationCommand>, AddDatasetConfigurationCommandValidator>();

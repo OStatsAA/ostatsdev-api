@@ -80,6 +80,28 @@ public class ProjectsController : ControllerBase
         return Ok(commandResult.Value);
     }
 
+    [Route("{projectId:Guid}")]
+    [HttpDelete]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<bool>> DeleteProject(Guid projectId)
+    {
+        var authIdentity = User.Identity?.Name;
+        if (authIdentity is null)
+        {
+            return BadRequest();
+        }
+
+        var command = new DeleteProjectCommand(authIdentity, projectId);
+        var commandResult = await _mediator.Send(command);
+        if (!commandResult.Success)
+        {
+            return BadRequest(commandResult.ValidationFailures);
+        }
+
+        return Ok(commandResult.Value);
+    }
+
     [Route("{projectId:Guid}/usersroles")]
     [HttpGet]
     [ProducesResponseType(typeof(List<ProjectUserAndRoleDto>), StatusCodes.Status200OK)]

@@ -1,15 +1,16 @@
 using MediatR;
+using OStats.API.Common;
 
 namespace OStats.API.Commands;
 
-public class DeleteProjectCommand : IRequest<bool>
+public class DeleteProjectCommand : IRequest<ICommandResult<bool>>
 {
-    public Guid ProjectId { get; set; }
-    public Guid UserId { get; set; }
+    public string UserAuthId { get; }
+    public Guid ProjectId { get; }
 
-    public DeleteProjectCommand(Guid projectId, Guid userId)
+    public DeleteProjectCommand(string userAuthId, Guid projectId)
     {
+        UserAuthId = userAuthId;
         ProjectId = projectId;
-        UserId = userId;
     }
 }
