@@ -1,7 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using OStats.API.Queries;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.UserAggregate;
 using OStats.Infrastructure;
@@ -12,19 +11,12 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
 {
     private readonly IServiceScope _scope;
     protected readonly ISender sender;
-    protected readonly IProjectQueries projectQueries;
-    protected readonly IUserQueries userQueries;
     protected readonly Context context;
 
     protected BaseIntegrationTest(IntegrationTestWebAppFactory factory)
     {
         _scope = factory.Services.CreateScope();
-
         sender = _scope.ServiceProvider.GetRequiredService<ISender>();
-
-        projectQueries = _scope.ServiceProvider.GetRequiredService<IProjectQueries>();
-        userQueries = _scope.ServiceProvider.GetRequiredService<IUserQueries>();
-
         context = _scope.ServiceProvider.GetRequiredService<Context>();
 
         SetDatabaseInitialState();

@@ -2,18 +2,18 @@ using FluentValidation;
 using MediatR;
 using OStats.API.Common;
 using OStats.Domain.Aggregates.UserAggregate;
+using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
 public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, ICommandResult<User>>
 {
-    private readonly IUserRepository _userRepository;
+    private readonly Context _context;
     private readonly IValidator<CreateUserCommand> _validator;
 
-    public CreateUserCommandHandler(IValidator<CreateUserCommand> validator,
-                                    IUserRepository userRepository)
+    public CreateUserCommandHandler(Context context, IValidator<CreateUserCommand> validator)
     {
-        _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+        _context = context ?? throw new ArgumentNullException(nameof(context));
         _validator = validator ?? throw new ArgumentNullException(nameof(validator));
     }
 
@@ -26,8 +26,9 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, IComm
         }
 
         var user = new User(command.Name, command.Email, command.AuthIdentity);
-        _userRepository.Add(user);
-        await _userRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
+
+        await _context.AddAsync(user);
+        await _context.SaveChangesAsync(cancellationToken);
 
         return new CommandResult<User>(user);
     }

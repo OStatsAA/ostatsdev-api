@@ -17,7 +17,7 @@ public class UpdateProjectIntegrationTest : BaseIntegrationTest
         var user = await context.Users.FirstAsync();
         var project = new Project(user.Id, "Test Should_Update_Project", "Description");
         await context.AddAsync(project);
-        await context.SaveEntitiesAsync();
+        await context.SaveChangesAsync();
         var previousCreatedAtDatetime = project.CreatedAt;
         var previousLastUpdatedAtDatetime = project.LastUpdatedAt;
         var editedTitle = "Edited Title";
@@ -46,12 +46,12 @@ public class UpdateProjectIntegrationTest : BaseIntegrationTest
         var user = await context.Users.FirstAsync();
         var project = new Project(user.Id, "Test Should_Fail_If_LastUpdatedAt_Does_Not_Match_Project", "Description");
         await context.AddAsync(project);
-        await context.SaveEntitiesAsync();
+        await context.SaveChangesAsync();
         var previousLastUpdatedAtDatetime = project.LastUpdatedAt;
         var editedTitle = "Edited Title";
         var editedDescription = "Edited description";
         project.Title = "Bypassed edition";
-        await context.SaveEntitiesAsync();
+        await context.SaveChangesAsync();
         var command = new UpdateProjectCommand(project.Id, user.AuthIdentity, editedTitle, previousLastUpdatedAtDatetime, editedDescription);
         var result = await sender.Send(command);
 

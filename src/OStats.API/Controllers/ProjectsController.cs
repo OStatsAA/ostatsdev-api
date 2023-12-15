@@ -14,12 +14,10 @@ namespace OStats.API.Controllers;
 public class ProjectsController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly IProjectQueries _projectQueries;
 
-    public ProjectsController(IMediator mediator, IProjectQueries projectQueries)
+    public ProjectsController(IMediator mediator)
     {
         _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-        _projectQueries = projectQueries ?? throw new ArgumentNullException(nameof(projectQueries));
     }
 
     [Route("{projectId:Guid}")]
@@ -28,14 +26,21 @@ public class ProjectsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Project>> GetProjectByIdAsync(Guid projectId)
     {
-        var project = await _projectQueries.GetProjectByIdAsync(projectId);
-
-        if (project is null)
+        var authIdentity = User.Identity?.Name;
+        if (authIdentity is null)
         {
-            return NotFound();
+            return BadRequest();
         }
 
-        return Ok(project);
+        var query = new ProjectByIdQuery(authIdentity, projectId);
+        var queryResult = await _mediator.Send(query);
+
+        if (!queryResult.Success)
+        {
+            return BadRequest(queryResult.ValidationFailures);
+        }
+
+        return Ok(queryResult.Value);
     }
 
     [HttpPost]
@@ -108,16 +113,21 @@ public class ProjectsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<List<ProjectUserAndRoleDto>>> GetProjectUsersAndRoles(Guid projectId)
     {
-        return Ok(await _projectQueries.GetProjectUsersAndRoles(projectId));
-    }
+        var authIdentity = User.Identity?.Name;
+        if (authIdentity == null)
+        {
+            return BadRequest();
+        }
 
-    [Route("{projectId:Guid}/datasetconfiguration")]
-    [HttpGet]
-    [ProducesResponseType(typeof(List<DatasetConfiguration>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<List<DatasetConfiguration>>> GetProjectDatasetsConfigurations(Guid projectId)
-    {
-        return Ok(await _projectQueries.GetDatasetsConfigurationsByProjectIdAsync(projectId));
+        var query = new ProjectUsersAndRolesQuery(authIdentity, projectId);
+        var queryResult = await _mediator.Send(query);
+
+        if (!queryResult.Success)
+        {
+            return BadRequest(queryResult.ValidationFailures);
+        }
+
+        return Ok(queryResult.Value);
     }
 
     [Route("{projectId:Guid}/datasetconfiguration")]

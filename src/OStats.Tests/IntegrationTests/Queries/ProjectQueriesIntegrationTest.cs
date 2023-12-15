@@ -1,6 +1,7 @@
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Dtos;
+using OStats.API.Queries;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.UserAggregate;
 
@@ -15,21 +16,23 @@ public class ProjectQueriesIntegrationTest : BaseIntegrationTest
     [Fact]
     public async Task Should_Get_Project_By_Id()
     {
-        var existingUser = await context.Users.FirstAsync();
-        var project = new Project(existingUser.Id, "Test", "Test description");
+        var user = await context.Users.FirstAsync();
+        var project = new Project(user.Id, "Test", "Test description");
         var datasetConfig = new DatasetConfiguration("Test DatasetConfiguration",
             "Test source",
             "Test description");
         project.AddDatasetConfiguration(datasetConfig);
-        context.Projects.Add(project);
-        context.SaveChanges();
+        await context.Projects.AddAsync(project);
+        await context.SaveChangesAsync();
 
-        var queriedProject = await projectQueries.GetProjectByIdAsync(project.Id);
+        var query = new ProjectByIdQuery(user.AuthIdentity, project.Id);
+        var queryResult = await sender.Send(query);
 
         using (new AssertionScope())
         {
-            queriedProject.Should().NotBeNull();
-            queriedProject.Should().BeEquivalentTo(project);
+            queryResult.Should().NotBeNull();
+            queryResult.Success.Should().BeTrue();
+            queryResult.ValidationFailures.Should().BeNullOrEmpty();
         }
     }
 
@@ -60,12 +63,13 @@ public class ProjectQueriesIntegrationTest : BaseIntegrationTest
 
         await context.SaveChangesAsync();
 
-        var result = await projectQueries.GetProjectUsersAndRoles(project.Id);
+        var query = new ProjectUsersAndRolesQuery(owner.AuthIdentity, project.Id);
+        var result = await sender.Send(query);
 
         using (new AssertionScope())
         {
-            result.Should().AllBeOfType<ProjectUserAndRoleDto>();
-            result.Should().HaveCount(1 + editors.Length + readers.Length);
+            result.Value.Should().AllBeOfType<ProjectUserAndRoleDto>();
+            result.Value.Should().HaveCount(1 + editors.Length + readers.Length);
         }
     }
 }
