@@ -6,7 +6,7 @@ using OStats.Infrastructure.EntitiesConfiguration;
 
 namespace OStats.Infrastructure;
 
-public class Context : DbContext, IUnitOfWork
+public class Context : DbContext
 {
     // ProjectAggregates db sets
     public DbSet<Project> Projects { get; set; }
@@ -48,9 +48,20 @@ public class Context : DbContext, IUnitOfWork
         modelBuilder.ApplyConfiguration(new UserEntityConfiguration());
     }
 
-    public async Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = default)
+    public override int SaveChanges()
     {
+        AddTimeStamps();
+        return base.SaveChanges();
+    }
 
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        AddTimeStamps();
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+
+    private void AddTimeStamps()
+    {
         foreach (var entityEntry in ChangeTracker.Entries<Entity>().Where(entry => entry.State != EntityState.Unchanged))
         {
             if (entityEntry.State == EntityState.Added)
@@ -65,8 +76,5 @@ public class Context : DbContext, IUnitOfWork
                 continue;
             }
         }
-
-        await base.SaveChangesAsync(cancellationToken);
-        return true;
     }
 }

@@ -14,12 +14,10 @@ namespace OStats.API.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly IUserQueries _userQueries;
 
-    public UsersController(IMediator mediator, IUserQueries userQueries)
+    public UsersController(IMediator mediator)
     {
         _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-        _userQueries = userQueries ?? throw new ArgumentNullException(nameof(userQueries));
     }
 
     [Route("{userId:Guid}")]
@@ -28,14 +26,21 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<User>> GetUserByIdAsync(Guid userId)
     {
-        var project = await _userQueries.GetUserByIdAsync(userId);
-
-        if (project == null)
+        var authIdentity = User.Identity?.Name;
+        if (authIdentity == null)
         {
-            return NotFound();
+            return BadRequest();
         }
 
-        return Ok(project);
+        var query = new UserByIdQuery(authIdentity, userId);
+        var queryResult = await _mediator.Send(query);
+
+        if (!queryResult.Success)
+        {
+            return BadRequest(queryResult.ValidationFailures);
+        }
+
+        return Ok(queryResult.Value);
     }
 
     [HttpPost]
@@ -49,10 +54,11 @@ public class UsersController : ControllerBase
             return BadRequest();
         }
 
-        var registeredUser = await _userQueries.GetUserByAuthIdentity(authIdentity);
-        if (registeredUser is not null)
+        var query = new UserByAuthIdQuery(authIdentity);
+        var queryResult = await _mediator.Send(query);
+        if (queryResult.Success)
         {
-            return Ok(registeredUser);
+            return Ok(queryResult.Value);
         }
 
         var command = new CreateUserCommand(createDto.Name, createDto.Email, authIdentity);
@@ -70,6 +76,20 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(List<UserProjectDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<UserProjectDto>>> GetProjectsByUserIdAsync(Guid userId)
     {
-        return Ok(await _userQueries.GetProjectsByUserIdAsync(userId));
+        var authIdentity = User.Identity?.Name;
+        if (authIdentity == null)
+        {
+            return BadRequest();
+        }
+
+        var query = new UserProjectsWithRoleQuery(authIdentity, userId);
+        var queryResult = await _mediator.Send(query);
+
+        if (!queryResult.Success)
+        {
+            return BadRequest(queryResult.ValidationFailures);
+        }
+
+        return Ok(queryResult.Value);
     }
 }

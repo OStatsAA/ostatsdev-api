@@ -1,45 +1,35 @@
 using FluentValidation;
-using FluentValidation.Results;
 using MediatR;
 using OStats.API.Common;
 using OStats.Domain.Aggregates.ProjectAggregate;
-using OStats.Domain.Aggregates.UserAggregate;
+using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
 public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand, ICommandResult<Project>>
 {
-    private readonly IProjectRepository _projectRepository;
-    private readonly IUserRepository _usersRepository;
+    private readonly Context _context;
     private readonly IValidator<CreateProjectCommand> _validator;
 
-    public CreateProjectCommandHandler(IValidator<CreateProjectCommand> validator,
-                                       IProjectRepository projectRepository,
-                                       IUserRepository userRepository)
+    public CreateProjectCommandHandler(Context context, IValidator<CreateProjectCommand> validator)
     {
-        _projectRepository = projectRepository ?? throw new ArgumentNullException(nameof(projectRepository));
-        _usersRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+        _context = context ?? throw new ArgumentNullException(nameof(context));
         _validator = validator ?? throw new ArgumentNullException(nameof(validator));
     }
 
     public async Task<ICommandResult<Project>> Handle(CreateProjectCommand command, CancellationToken cancellationToken)
     {
-        var validation = await _validator.ValidateAsync(command);
+        var validation = await _validator.ValidateAsync(command, cancellationToken);
         if (!validation.IsValid)
         {
             return new CommandResult<Project>(validation.Errors);
         }
 
-        var user = await _usersRepository.FindUserByAuthIdentityAsync(command.UserAuthId);
-        if (user == null)
-        {
-            var error = new ValidationFailure("UserAuthId", "User not found.");
-            return new CommandResult<Project>(error);
-        }
-
+        var user = _context.Users.Local.Where(user => user.AuthIdentity == command.UserAuthId).Single();
         var project = new Project(user.Id, command.Title, command.Description);
-        _projectRepository.Add(project);
-        await _projectRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
+
+        await _context.AddAsync(project);
+        await _context.SaveChangesAsync(cancellationToken);
 
         return new CommandResult<Project>(project);
     }

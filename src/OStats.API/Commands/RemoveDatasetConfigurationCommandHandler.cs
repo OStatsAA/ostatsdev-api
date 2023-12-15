@@ -4,22 +4,18 @@ using MediatR;
 using OStats.API.Common;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
-using OStats.Domain.Aggregates.UserAggregate;
+using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
 public class RemoveDatasetConfigurationCommandHandler : IRequestHandler<RemoveDatasetConfigurationCommand, ICommandResult<bool>>
 {
-    private readonly IProjectRepository _projectRepository;
-    private readonly IUserRepository _usersRepository;
+    private readonly Context _context;
     private readonly IValidator<RemoveDatasetConfigurationCommand> _validator;
 
-    public RemoveDatasetConfigurationCommandHandler(IValidator<RemoveDatasetConfigurationCommand> validator,
-                                                 IProjectRepository projectRepository,
-                                                 IUserRepository userRepository)
+    public RemoveDatasetConfigurationCommandHandler(Context context, IValidator<RemoveDatasetConfigurationCommand> validator)
     {
-        _projectRepository = projectRepository ?? throw new ArgumentNullException(nameof(projectRepository));
-        _usersRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+        _context = context ?? throw new ArgumentNullException(nameof(context));
         _validator = validator ?? throw new ArgumentNullException(nameof(validator));
     }
 
@@ -31,24 +27,13 @@ public class RemoveDatasetConfigurationCommandHandler : IRequestHandler<RemoveDa
             return new CommandResult<bool>(validation.Errors);
         }
 
-        var user = await _usersRepository.FindUserByAuthIdentityAsync(command.UserAuthId);
-        if (user is null)
-        {
-            var error = new ValidationFailure("UserAuthId", "User not found.");
-            return new CommandResult<bool>(error);
-        }
-
-        var project = await _projectRepository.FindByIdAsync(command.ProjectId);
-        if (project is null)
-        {
-            var error = new ValidationFailure("ProjectId", "Project not found.");
-            return new CommandResult<bool>(error);
-        }
+        var user = _context.Users.Local.Where(user => user.AuthIdentity == command.UserAuthId).Single();
+        var project = _context.Projects.Local.Where(project => project.Id == command.ProjectId).Single();
 
         var doesDatasetConfigExists = project.DatasetsConfigs.Any(datasetConfig => datasetConfig.Id == command.DatasetConfigurationId);
         if (!doesDatasetConfigExists)
         {
-            var error = new ValidationFailure("DatasetConfigurationid", $"Dataset configuration not found.");
+            var error = new ValidationFailure("DatasetConfigurationid", $"Dataset configuration not linked to project.");
             return new CommandResult<bool>(error);
         }
 
@@ -61,7 +46,7 @@ public class RemoveDatasetConfigurationCommandHandler : IRequestHandler<RemoveDa
 
         project.RemoveDatasetConfiguration(command.DatasetConfigurationId);
 
-        await _projectRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
 
         return new CommandResult<bool>(true);
     }

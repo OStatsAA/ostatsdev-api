@@ -3,41 +3,15 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using OStats.API.Commands;
 using OStats.API.Queries;
-using OStats.Domain.Aggregates.ProjectAggregate;
-using OStats.Domain.Aggregates.UserAggregate;
-using OStats.Infrastructure.Repositories;
 
 namespace OStats.API.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddRepositories(this IServiceCollection services)
-    {
-        services.AddScoped<IProjectRepository, ProjectRepository>();
-        services.AddScoped<IUserRepository, UserRepository>();
-
-        return services;
-    }
-
-    public static IServiceCollection AddQueries(this IServiceCollection services)
-    {
-        services.AddScoped<IProjectQueries, ProjectQueries>();
-        services.AddScoped<IUserQueries, UserQueries>();
-
-        return services;
-    }
-
     public static IServiceCollection AddValidators(this IServiceCollection services)
     {
-        services.AddScoped<IValidator<CreateProjectCommand>, CreateProjectCommandValidator>();
-        services.AddScoped<IValidator<DeleteProjectCommand>, DeleteProjectCommandValidator>();
-        services.AddScoped<IValidator<UpdateProjectCommand>, UpdateProjectCommandValidator>();
-        services.AddScoped<IValidator<CreateUserCommand>, CreateUserCommandValidator>();
-        services.AddScoped<IValidator<AddDatasetConfigurationCommand>, AddDatasetConfigurationCommandValidator>();
-        services.AddScoped<IValidator<RemoveDatasetConfigurationCommand>, RemoveDatasetConfigurationCommandValidator>();
-
+        services.AddValidatorsFromAssembly(typeof(Program).Assembly);
         return services;
     }
 

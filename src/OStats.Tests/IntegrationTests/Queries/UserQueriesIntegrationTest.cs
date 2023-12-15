@@ -1,6 +1,7 @@
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Dtos;
+using OStats.API.Queries;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.UserAggregate;
 
@@ -35,16 +36,20 @@ public class UserQueriesIntegrationTest : BaseIntegrationTest
 
         await context.SaveChangesAsync();
 
-        var result = await userQueries.GetProjectsByUserIdAsync(user.Id);
+        var query = new UserProjectsWithRoleQuery(user.AuthIdentity, user.Id);
+        var result = await sender.Send(query);
 
         using (new AssertionScope())
         {
-            result.Should().AllBeOfType<UserProjectDto>();
-            result.Should().HaveCount(2);
-            result.Select(userProjectDto => userProjectDto.Id)
-                  .Should()
-                  .BeEquivalentTo(userProjectsIds);
-
+            result.Value.Should().NotBeNullOrEmpty();
+            if (result.Value is not null)
+            {
+                result.Value.Should().AllBeOfType<UserProjectDto>();
+                result.Value.Should().HaveCount(2);
+                result.Value.Select(userProjectDto => userProjectDto.Id)
+                      .Should()
+                      .BeEquivalentTo(userProjectsIds);
+            }
         }
     }
 }

@@ -4,22 +4,18 @@ using MediatR;
 using OStats.API.Common;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
-using OStats.Domain.Aggregates.UserAggregate;
+using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
 public class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand, ICommandResult<bool>>
 {
-    private readonly IProjectRepository _projectRepository;
-    private readonly IUserRepository _usersRepository;
+    private readonly Context _context;
     private readonly IValidator<DeleteProjectCommand> _validator;
 
-    public DeleteProjectCommandHandler(IProjectRepository projectRepository,
-                                       IUserRepository userRepository,
-                                       IValidator<DeleteProjectCommand> validator)
+    public DeleteProjectCommandHandler(Context context, IValidator<DeleteProjectCommand> validator)
     {
-        _projectRepository = projectRepository ?? throw new ArgumentNullException(nameof(projectRepository));
-        _usersRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+        _context = context ?? throw new ArgumentNullException(nameof(context));
         _validator = validator ?? throw new ArgumentNullException(nameof(validator));
     }
 
@@ -31,19 +27,8 @@ public class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand,
             return new CommandResult<bool>(validation.Errors);
         }
 
-        var user = await _usersRepository.FindUserByAuthIdentityAsync(command.UserAuthId);
-        if (user is null)
-        {
-            var error = new ValidationFailure("UserAuthId", "User not found.");
-            return new CommandResult<bool>(error);
-        }
-
-        var project = await _projectRepository.FindByIdAsync(command.ProjectId);
-        if (project is null)
-        {
-            var error = new ValidationFailure("ProjectId", "Project not found.");
-            return new CommandResult<bool>(error);
-        }
+        var user = _context.Users.Local.Where(user => user.AuthIdentity == command.UserAuthId).Single();
+        var project = _context.Projects.Local.Where(project => project.Id == command.ProjectId).Single();
 
         var isUserOwner = project.Roles.IsUser(user.Id, AccessLevel.Owner);
         if (!isUserOwner)
@@ -52,8 +37,9 @@ public class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand,
             return new CommandResult<bool>(error);
         }
 
-        _projectRepository.Delete(project);
-        await _projectRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
+        _context.Remove(project);
+        await _context.SaveChangesAsync(cancellationToken);
+
         return new CommandResult<bool>(true);
     }
 }
