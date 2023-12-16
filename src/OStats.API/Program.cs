@@ -1,3 +1,4 @@
+using OStats.API;
 using OStats.API.Extensions;
 using OStats.Infrastructure;
 
@@ -5,10 +6,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddJwtBearerAuthentication();
+builder.Services.AddAuthorization();
 builder.Services.AddDbContext<Context>();
 builder.Services.AddValidators();
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwagger();
 builder.Services.AddMediatR(cfg => {
     cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
@@ -20,11 +21,11 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapGroup("/v1/users").WithTags(["Users"]).MapUsersApi().RequireAuthorization();
+app.MapGroup("/v1/projects").WithTags(["Projects"]).MapProjectsApi().RequireAuthorization();
 
 app.Run();
 
