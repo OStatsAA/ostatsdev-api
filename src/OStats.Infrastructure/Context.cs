@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.UserAggregate;
 using OStats.Domain.Common;
@@ -8,12 +9,16 @@ namespace OStats.Infrastructure;
 
 public class Context : DbContext
 {
-    // ProjectAggregates db sets
+    // DatasetAggregate db sets
+    public DbSet<Dataset> Datasets { get; set; }
+    public DbSet<DatasetUserAccessLevel> DatasetsUsersAccessLevels { get; set; }
+
+    // ProjectAggregate db sets
     public DbSet<Project> Projects { get; set; }
     public DbSet<Role> Roles { get; set; }
-    public DbSet<DatasetConfiguration> DatasetsConfigurations { get; set; }
+    public DbSet<DatasetProjectLink> DatasetsProjectsLinks { get; set; }
 
-    // UserAggregates db sets
+    // UserAggregate db sets
     public DbSet<User> Users { get; set; }
 
     public Context() { }
@@ -39,10 +44,14 @@ public class Context : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // DatasetAggregate entities configuration
+        modelBuilder.ApplyConfiguration(new DatasetEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new DatasetUserAccessLevelEntityConfiguration());
+
         // ProjectAggregate entities configuration
         modelBuilder.ApplyConfiguration(new ProjectEntityConfiguration());
         modelBuilder.ApplyConfiguration(new RoleEntityConfiguration());
-        modelBuilder.ApplyConfiguration(new DatasetConfigurationEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new DatasetProjectLinkConfiguration());
 
         // UserAggregate entities configuration
         modelBuilder.ApplyConfiguration(new UserEntityConfiguration());

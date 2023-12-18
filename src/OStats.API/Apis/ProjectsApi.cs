@@ -17,8 +17,8 @@ public static class ProjectsApi
         app.MapGet("/{projectId:Guid}", GetProjectByIdAsync);
         app.MapPut("/{projectId:Guid}", UpdateProjectAsync);
         app.MapDelete("/{projectId:Guid}", DeleteProjectAsync);
-        app.MapPost("/{projectId:Guid}/datasetconfiguration", AddDatasetConfigurationToProjectAsync);
-        app.MapPost("/{projectId:Guid}/datasetconfiguration/{datasetConfigId:Guid}", DeleteDatasetConfigurationFromProjectAsync);
+        app.MapPost("/{projectId:Guid}/linkdataset/{datasetId:Guid}", LinkProjectToDatasetHandler);
+        app.MapDelete("/{projectId:Guid}/linkdataset/{datasetId:Guid}", UnlinkProjectToDatasetHandler);
         app.MapGet("/{projectId:Guid}/usersroles", GetProjectUsersAndRolesAsync);
 
         return app;
@@ -90,41 +90,7 @@ public static class ProjectsApi
         return TypedResults.Ok(commandResult.Value);
     }
 
-    public static async Task<Results<Ok<DatasetConfiguration>, BadRequest<List<ValidationFailure>>>> AddDatasetConfigurationToProjectAsync(
-        Guid projectId,
-        [FromBody] AddDatasetConfigurationCommandDto addDto,
-        HttpContext context,
-        [FromServices] IMediator mediator)
-    {
-        var userAuthId = GetUserAuthId(context);
-        var command = new AddDatasetConfigurationCommand(userAuthId, projectId, addDto.Title, addDto.Source, addDto.Description);
-        var commandResult = await mediator.Send(command);
-        if (!commandResult.Success)
-        {
-            return TypedResults.BadRequest(commandResult.ValidationFailures);
-        }
-
-        return TypedResults.Ok(commandResult.Value);
-    }
-
-    public static async Task<Results<Ok<bool>, BadRequest<List<ValidationFailure>>>> DeleteDatasetConfigurationFromProjectAsync(
-        Guid projectId,
-        Guid datasetConfigId,
-        HttpContext context,
-        [FromServices] IMediator mediator)
-    {
-        var userAuthId = GetUserAuthId(context);
-        var command = new RemoveDatasetConfigurationCommand(userAuthId, projectId, datasetConfigId);
-        var commandResult = await mediator.Send(command);
-        if (!commandResult.Success)
-        {
-            return TypedResults.BadRequest(commandResult.ValidationFailures);
-        }
-
-        return TypedResults.Ok(commandResult.Value);
-    }
-
-    public static async Task<Results<Ok<List<ProjectUserAndRoleDto>>, UnauthorizedHttpResult, BadRequest<List<ValidationFailure>>>> GetProjectUsersAndRolesAsync(
+    public static async Task<Results<Ok<List<ProjectUserAndRoleDto>>, BadRequest<List<ValidationFailure>>>> GetProjectUsersAndRolesAsync(
         Guid projectId,
         HttpContext context,
         [FromServices] IMediator mediator)
@@ -139,6 +105,40 @@ public static class ProjectsApi
         }
 
         return TypedResults.Ok(queryResult.Value);
+    }
+
+    public static async Task<Results<Ok<bool>, BadRequest<List<ValidationFailure>>>> LinkProjectToDatasetHandler(
+        Guid projectId,
+        Guid datasetId,
+        HttpContext context,
+        [FromServices] IMediator mediator)
+    {
+        var userAuthId = GetUserAuthId(context);
+        var command = new LinkProjectToDatasetCommand(userAuthId, datasetId, projectId);
+        var commandResult = await mediator.Send(command);
+        if (!commandResult.Success)
+        {
+            return TypedResults.BadRequest(commandResult.ValidationFailures);
+        }
+
+        return TypedResults.Ok(commandResult.Value);
+    }
+
+    public static async Task<Results<Ok<bool>, BadRequest<List<ValidationFailure>>>> UnlinkProjectToDatasetHandler(
+        Guid projectId,
+        Guid datasetId,
+        HttpContext context,
+        [FromServices] IMediator mediator)
+    {
+        var userAuthId = GetUserAuthId(context);
+        var command = new UnlinkProjectToDatasetCommand(userAuthId, datasetId, projectId);
+        var commandResult = await mediator.Send(command);
+        if (!commandResult.Success)
+        {
+            return TypedResults.BadRequest(commandResult.ValidationFailures);
+        }
+
+        return TypedResults.Ok(commandResult.Value);
     }
 
     private static string GetUserAuthId(HttpContext context)

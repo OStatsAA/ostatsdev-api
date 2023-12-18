@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.UserAggregate;
 
@@ -20,6 +21,11 @@ class UserEntityConfiguration : EntityConfiguration<User>, IEntityTypeConfigurat
         builder.HasMany<Role>()
                .WithOne()
                .HasForeignKey(role => role.UserId)
+               .IsRequired();
+
+        builder.HasMany<DatasetUserAccessLevel>()
+               .WithOne()
+               .HasForeignKey(datasetAccess => datasetAccess.UserId)
                .IsRequired();
     }
 }

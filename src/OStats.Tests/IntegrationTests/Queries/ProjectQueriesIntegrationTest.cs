@@ -18,10 +18,6 @@ public class ProjectQueriesIntegrationTest : BaseIntegrationTest
     {
         var user = await context.Users.FirstAsync();
         var project = new Project(user.Id, "Test", "Test description");
-        var datasetConfig = new DatasetConfiguration("Test DatasetConfiguration",
-            "Test source",
-            "Test description");
-        project.AddDatasetConfiguration(datasetConfig);
         await context.Projects.AddAsync(project);
         await context.SaveChangesAsync();
 

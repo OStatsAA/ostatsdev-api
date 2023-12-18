@@ -11,7 +11,8 @@ builder.Services.AddDbContext<Context>();
 builder.Services.AddValidators();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwagger();
-builder.Services.AddMediatR(cfg => {
+builder.Services.AddMediatR(cfg =>
+{
     cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
 });
 
@@ -24,8 +25,9 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGroup("/v1/users").WithTags(["Users"]).MapUsersApi().RequireAuthorization();
+app.MapGroup("/v1/datasets").WithTags(["Datasets"]).MapDatasetsApi().RequireAuthorization();
 app.MapGroup("/v1/projects").WithTags(["Projects"]).MapProjectsApi().RequireAuthorization();
+app.MapGroup("/v1/users").WithTags(["Users"]).MapUsersApi().RequireAuthorization();
 
 app.Run();
 
