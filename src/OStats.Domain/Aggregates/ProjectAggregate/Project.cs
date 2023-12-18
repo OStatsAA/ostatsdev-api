@@ -9,8 +9,8 @@ public class Project : Entity, IAggregateRoot
     public string? Description { get; set; }
     private readonly List<Role> _roles = new List<Role>();
     public IReadOnlyCollection<Role> Roles => _roles;
-    private readonly List<DatasetConfiguration> _datasetsConfigs = new List<DatasetConfiguration>();
-    public IReadOnlyCollection<DatasetConfiguration> DatasetsConfigs => _datasetsConfigs;
+    private readonly HashSet<DatasetProjectLink> _linkedDatasets = new HashSet<DatasetProjectLink>();
+    public IReadOnlyCollection<DatasetProjectLink> LinkedDatasets => _linkedDatasets;
 
     private Project(string title, string? description)
     {
@@ -52,28 +52,14 @@ public class Project : Entity, IAggregateRoot
         return _roles.Find(role => role.UserId == userId);
     }
 
-    public void AddDatasetConfiguration(DatasetConfiguration datasetConfiguration)
+    public bool LinkDataset(Guid datasetId)
     {
-        if (_datasetsConfigs.Any(config => config.Title == datasetConfiguration.Title))
-        {
-            throw new ArgumentException("Cannot add another dataset with same name to project.");
-        }
-
-        _datasetsConfigs.Add(datasetConfiguration);
+        return _linkedDatasets.Add(new DatasetProjectLink(datasetId, Id));
     }
 
-    public void UpdateDatasetConfiguration(DatasetConfiguration datasetConfiguration)
+    public bool UnlinkDataset(Guid datasetId)
     {
-        var currentDatasetConfig = _datasetsConfigs.SingleOrDefault(config => config.Id == datasetConfiguration.Id);
-        currentDatasetConfig = datasetConfiguration;
-    }
-
-    public void RemoveDatasetConfiguration(Guid datasetConfigId)
-    {
-        var datasetConfig = _datasetsConfigs.SingleOrDefault(config => config.Id == datasetConfigId);
-        if (datasetConfig != null)
-        {
-            _datasetsConfigs.Remove(datasetConfig);
-        }
+        var link = _linkedDatasets.Single(link => link.DatasetId == datasetId);
+        return _linkedDatasets.Remove(link);
     }
 }

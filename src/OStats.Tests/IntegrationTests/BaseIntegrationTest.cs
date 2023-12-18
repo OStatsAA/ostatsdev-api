@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.UserAggregate;
 using OStats.Infrastructure;
@@ -34,9 +35,16 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
         context.Add(user);
 
         var project = new Project(user.Id, "Test", "Test");
-        var datasetConfig = new DatasetConfiguration("Test", "Test", "Test");
-        project.AddDatasetConfiguration(datasetConfig);
         context.Add(project);
+        var dataset = new Dataset(user.Id, "Test", "Test", "Test");
+        context.Add(dataset);
+        project.LinkDataset(dataset.Id);
+
+        foreach (var change in context.ChangeTracker.Entries())
+        {
+            Console.WriteLine(change.Entity.ToString());
+        } 
+    
 
         context.SaveChanges();
     }

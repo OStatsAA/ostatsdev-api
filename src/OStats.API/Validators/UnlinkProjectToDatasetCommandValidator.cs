@@ -5,10 +5,10 @@ using OStats.Infrastructure.Extensions;
 
 namespace OStats.API.Validators;
 
-public class AddDatasetConfigurationCommandValidator : AbstractValidator<AddDatasetConfigurationCommand>
+public class UnlinkProjectToDatasetCommandValidator : AbstractValidator<UnlinkProjectToDatasetCommand>
 {
     private readonly Context _context;
-    public AddDatasetConfigurationCommandValidator(Context context)
+    public UnlinkProjectToDatasetCommandValidator(Context context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         RuleLevelCascadeMode = CascadeMode.Stop;
@@ -21,13 +21,19 @@ public class AddDatasetConfigurationCommandValidator : AbstractValidator<AddData
             .NotEmpty().WithMessage("Invalid project id.")
             .MustAsync(FindProjectById).WithMessage("Project not found.");
 
-        RuleFor(command => command.Source)
-            .NotEmpty().WithMessage("Source for dataset must be provided.");
+        RuleFor(command => command.DatasetId)
+            .NotEmpty().WithMessage("Dataset id must be provided.")
+            .MustAsync(FindDatasetById).WithMessage("Dataset not found.");
     }
 
     private async Task<bool> FindUserByAuthId(string authId, CancellationToken cancellationToken)
     {
         return await _context.Users.FindByAuthIdentityAsync(authId, cancellationToken) is not null;
+    }
+
+    private async Task<bool> FindDatasetById(Guid id, CancellationToken cancellationToken)
+    {
+        return await _context.Datasets.FindAsync(id, cancellationToken) is not null;
     }
 
     private async Task<bool> FindProjectById(Guid id, CancellationToken cancellationToken)
