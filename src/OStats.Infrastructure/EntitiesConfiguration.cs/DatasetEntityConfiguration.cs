@@ -24,5 +24,7 @@ class DatasetEntityConfiguration : EntityConfiguration<Dataset>, IEntityTypeConf
                      .WithOne()
                      .HasForeignKey(link => link.DatasetId)
                      .IsRequired();
+
+              builder.Navigation(dataset => dataset.DatasetUserAccessLevels).AutoInclude();
        }
 }

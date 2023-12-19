@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using OStats.API.Common;
 using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Infrastructure;
-using OStats.Infrastructure.Extensions;
 
 namespace OStats.API.Queries;
 
@@ -19,16 +18,21 @@ public class DatasetByIdQueryHandler : IRequestHandler<DatasetByIdQuery, IComman
 
     public async Task<ICommandResult<Dataset>> Handle(DatasetByIdQuery request, CancellationToken cancellationToken)
     {
-        var user = await _context.Users.FindByAuthIdentityAsync(request.UserAuthId, cancellationToken);
-        if (user is null)
-        {
-            var error = new ValidationFailure("UserAuthId", "User not found.");
-            return new CommandResult<Dataset>(error);
-        }
-
-        var dataset = await _context.Datasets
-            .Include(dataset => dataset.DatasetUserAccessLevels)
-            .Where(dataset => dataset.Id == request.DatasetId && dataset.DatasetUserAccessLevels.Any(userAccess => userAccess.UserId == user.Id))
+        var dataset = await _context.DatasetsUsersAccessLevels
+            .Join(
+                _context.Datasets,
+                userAccess => userAccess.DatasetId,
+                dataset => dataset.Id,
+                (userAccess, dataset) => new { dataset, userAccess.UserId })
+            .Join(
+                _context.Users,
+                datasetAndUserId => datasetAndUserId.UserId,
+                user => user.Id,
+                (datasetAndUserId, user) => new { datasetAndUserId, user })
+            .Where(joined => joined.datasetAndUserId.dataset.Id == request.DatasetId &&
+                             joined.user.AuthIdentity == request.UserAuthId)
+            .Select(joined => joined.datasetAndUserId.dataset)
+            .AsNoTracking()
             .SingleOrDefaultAsync(cancellationToken);
 
         if (dataset is null)

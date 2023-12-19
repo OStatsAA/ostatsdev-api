@@ -7,29 +7,10 @@ using OStats.Domain.Aggregates.UserAggregate;
 
 namespace OStats.Tests.IntegrationTests.Queries;
 
-public class ProjectQueriesIntegrationTest : BaseIntegrationTest
+public class ProjectUsersAndRolesQueryIntegrationTest : BaseIntegrationTest
 {
-    public ProjectQueriesIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
+    public ProjectUsersAndRolesQueryIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
     {
-    }
-
-    [Fact]
-    public async Task Should_Get_Project_By_Id()
-    {
-        var user = await context.Users.FirstAsync();
-        var project = new Project(user.Id, "Test", "Test description");
-        await context.Projects.AddAsync(project);
-        await context.SaveChangesAsync();
-
-        var query = new ProjectByIdQuery(user.AuthIdentity, project.Id);
-        var queryResult = await sender.Send(query);
-
-        using (new AssertionScope())
-        {
-            queryResult.Should().NotBeNull();
-            queryResult.Success.Should().BeTrue();
-            queryResult.ValidationFailures.Should().BeNullOrEmpty();
-        }
     }
 
     [Fact]

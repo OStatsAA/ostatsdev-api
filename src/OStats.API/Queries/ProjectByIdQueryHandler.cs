@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using OStats.API.Common;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Infrastructure;
-using OStats.Infrastructure.Extensions;
 
 namespace OStats.API.Queries;
 
@@ -19,17 +18,20 @@ public class ProjectByIdQueryHandler : IRequestHandler<ProjectByIdQuery, IComman
 
     public async Task<ICommandResult<Project>> Handle(ProjectByIdQuery request, CancellationToken cancellationToken)
     {
-        var user = await _context.Users.FindByAuthIdentityAsync(request.UserAuthId, cancellationToken);
-        if (user is null)
-        {
-            var error = new ValidationFailure("UserAuthId", "User not found.");
-            return new CommandResult<Project>(error);
-        }
-
-        var project = await _context.Roles
+        var project = await _context.Projects
+            .Join(
+                _context.Roles,
+                project => project.Id,
+                roles => roles.ProjectId,
+                (project, role) => new { project, role.UserId })
+            .Join(
+                _context.Users,
+                projectAndUserId => projectAndUserId.UserId,
+                user => user.Id,
+                (projectAndUserId, user) => new { projectAndUserId.project, user.AuthIdentity })
+            .Where(join => join.project.Id == request.ProjectId && join.AuthIdentity == request.UserAuthId)
+            .Select(join => join.project)
             .AsNoTracking()
-            .Where(role => role.ProjectId == request.ProjectId && role.UserId == user.Id)
-            .Join(_context.Projects, role => role.ProjectId, project => project.Id, (role, project) => project)
             .SingleOrDefaultAsync(cancellationToken);
 
         if (project is null)

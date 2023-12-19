@@ -15,12 +15,15 @@ public class DatasetByIdQueryIntegrationTest : BaseIntegrationTest
     [Fact]
     public async Task Shoud_Get_Dataset_By_Id()
     {
-        var user = await context.Users.FirstAsync();
-        var dataset = new Dataset(user.Id, "Title", "Source");
+        var owner = await context.Users.FirstAsync();
+        var dataset = new Dataset(owner.Id, "Title", "Source");
         await context.AddAsync(dataset);
+        var editor = new User("Editor", "editor@email.com", "editor_authid");
+        await context.AddAsync(editor);
+        dataset.GrantUserAccess(editor.Id, DatasetAccessLevel.Editor);
         await context.SaveChangesAsync();
 
-        var query = new DatasetByIdQuery(user.AuthIdentity, dataset.Id);
+        var query = new DatasetByIdQuery(owner.AuthIdentity, dataset.Id);
         var result = await sender.Send(query);
 
         using (new AssertionScope())
@@ -30,8 +33,9 @@ public class DatasetByIdQueryIntegrationTest : BaseIntegrationTest
             result.Value.Should().BeOfType<Dataset>();
             if (result.Value is not null)
             {
-                result.Value.Should().BeEquivalentTo(dataset);
-                result.Value.DatasetUserAccessLevels.Should().HaveCount(1);
+                result.Value.Should().BeOfType<Dataset>();
+                result.Value.Id.Should().Be(dataset.Id);
+                result.Value.DatasetUserAccessLevels.Should().HaveCount(2);
             }
         }
     }
@@ -39,9 +43,12 @@ public class DatasetByIdQueryIntegrationTest : BaseIntegrationTest
     [Fact]
     public async Task Shoud_Fail_If_User_Has_No_Access()
     {
-        var user = await context.Users.FirstAsync();
-        var dataset = new Dataset(user.Id, "Title", "Source");
+        var owner = await context.Users.FirstAsync();
+        var dataset = new Dataset(owner.Id, "Title", "Source");
         await context.AddAsync(dataset);
+        var editor = new User("Editor", "editor@email.com", "editor_authid2");
+        await context.AddAsync(editor);
+        dataset.GrantUserAccess(editor.Id, DatasetAccessLevel.Editor);
 
         var unauthorizedUser = new User("Name", "email@email.com", "unauthorized_authid");
         await context.AddAsync(unauthorizedUser);

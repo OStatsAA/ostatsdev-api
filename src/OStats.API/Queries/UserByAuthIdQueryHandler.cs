@@ -19,8 +19,8 @@ public class UserByAuthIdQueryHandler : IRequestHandler<UserByAuthIdQuery, IComm
     public async Task<ICommandResult<User>> Handle(UserByAuthIdQuery request, CancellationToken cancellationToken)
     {
         var user = await _context.Users
-            .AsNoTracking()
             .Where(user => user.AuthIdentity == request.UserAuthId)
+            .AsNoTracking()
             .SingleOrDefaultAsync(cancellationToken);
 
         if (user is null)
