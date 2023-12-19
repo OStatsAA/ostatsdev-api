@@ -7,9 +7,9 @@ using OStats.Domain.Aggregates.UserAggregate;
 
 namespace OStats.Tests.IntegrationTests.Queries;
 
-public class UserQueriesIntegrationTest : BaseIntegrationTest
+public class UserProjectsWithRoleQueryIntegrationTest : BaseIntegrationTest
 {
-    public UserQueriesIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
+    public UserProjectsWithRoleQueryIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
     {
     }
 

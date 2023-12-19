@@ -1,10 +1,8 @@
-using FluentValidation.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Common;
 using OStats.API.Dtos;
 using OStats.Infrastructure;
-using OStats.Infrastructure.Extensions;
 
 namespace OStats.API.Queries;
 
@@ -19,26 +17,20 @@ public class UserProjectsWithRoleQueryHandler : IRequestHandler<UserProjectsWith
 
     public async Task<ICommandResult<List<UserProjectDto>>> Handle(UserProjectsWithRoleQuery request, CancellationToken cancellationToken)
     {
-        var user = await _context.Users.FindByAuthIdentityAsync(request.UserAuthId, cancellationToken);
-        if (user is null)
-        {
-            var error = new ValidationFailure("UserAuthId", "User not found.");
-            return new CommandResult<List<UserProjectDto>>(error);
-        }
-
-        if (user.Id != request.UserId)
-        {
-            var error = new ValidationFailure("UserId", "User is not requestor.");
-            return new CommandResult<List<UserProjectDto>>(error);
-        }
-
         var userProjects = await _context.Roles
-            .AsNoTracking()
-            .Where(role => role.UserId == user.Id)
-            .Join(_context.Projects,
-                role => role.ProjectId,
+            .Join(
+                _context.Users,
+                role => role.UserId,
+                user => user.Id,
+                (role, user) => new { role, user })
+            .Join(
+                _context.Projects,
+                roleAndUser => roleAndUser.role.ProjectId,
                 project => project.Id,
-                (role, project) => new UserProjectDto(project, role))
+                (roleAndUser, project) => new { project, roleAndUser })
+            .Where(join => join.roleAndUser.user.AuthIdentity == request.UserAuthId && join.roleAndUser.user.Id == request.UserId)
+            .Select(join => new UserProjectDto(join.project, join.roleAndUser.role))
+            .AsNoTracking()
             .ToListAsync(cancellationToken);
 
         return new CommandResult<List<UserProjectDto>>(userProjects);

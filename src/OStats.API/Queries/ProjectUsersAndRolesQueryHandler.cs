@@ -26,20 +26,22 @@ public class ProjectUsersAndRolesQueryHandler : IRequestHandler<ProjectUsersAndR
             return new CommandResult<List<ProjectUserAndRoleDto>>(error);
         }
 
-        var projectUsersAndRoles = await _context.Roles
-            .AsNoTracking()
-            .Where(role => role.ProjectId == request.ProjectId)
-            .Join(_context.Users,
-                role => role.UserId,
+        var projectUsersAndRoles = await _context.Projects
+            .Join(
+                _context.Roles,
+                project => project.Id,
+                role => role.ProjectId,
+                (project, role) => new { project, role })
+            .Join(
+                _context.Users,
+                projectAndRole => projectAndRole.role.UserId,
                 user => user.Id,
-                (role, user) => new ProjectUserAndRoleDto(user, role))
+                (projectAndRole, user) => new { projectAndRole.project, projectAndRole.role, user })
+            .Where(join => join.project.Id == request.ProjectId &&
+                           join.project.Roles.Any(role => role.UserId == user.Id))
+            .Select(join => new ProjectUserAndRoleDto(join.user, join.role))
+            .AsNoTracking()
             .ToListAsync(cancellationToken);
-
-        if (!projectUsersAndRoles.Any(ur => ur.User.Id == user.Id))
-        {
-            var error = new ValidationFailure("UserAuthId", "Unauthorized.");
-            return new CommandResult<List<ProjectUserAndRoleDto>>(error);
-        }
 
         return new CommandResult<List<ProjectUserAndRoleDto>>(projectUsersAndRoles);
     }
