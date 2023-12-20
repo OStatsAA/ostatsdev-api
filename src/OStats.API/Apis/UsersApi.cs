@@ -16,6 +16,7 @@ public static class UsersApi
         app.MapPost("/", CreateUserAsync);
         app.MapGet("/{userId:Guid}", GetUserByIdAsync);
         app.MapGet("/{userId:Guid}/projects", GetUserProjectsAsync);
+        app.MapGet("/{userId:Guid}/datasets", GetUserDatasetsHandler);
 
         return app;
     }
@@ -67,6 +68,23 @@ public static class UsersApi
     {
         var userAuthId = GetUserAuthId(context);
         var query = new UserProjectsWithRoleQuery(userAuthId, userId);
+        var queryResult = await mediator.Send(query);
+
+        if (!queryResult.Success)
+        {
+            return TypedResults.BadRequest(queryResult.ValidationFailures);
+        }
+
+        return TypedResults.Ok(queryResult.Value);
+    }
+
+    public static async Task<Results<Ok<List<UserDatasetDto>>, BadRequest<List<ValidationFailure>>>> GetUserDatasetsHandler(
+        [FromRoute] Guid userId,
+        HttpContext context,
+        [FromServices] IMediator mediator)
+    {
+        var userAuthId = GetUserAuthId(context);
+        var query = new UserDatasetsWithAccessQuery(userAuthId, userId);
         var queryResult = await mediator.Send(query);
 
         if (!queryResult.Success)
