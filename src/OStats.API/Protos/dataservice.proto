@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option csharp_namespace = "DataServiceGrpc";
+
+// DataService
+service DataService {
+    // Ingest raw data from raw-datasets-uploads bucket and transforms them to parquet in datasets bucket
+    rpc IngestData(IngestDataRequest) returns (IngestDataResponse) {}
+}
+
+message IngestDataRequest {
+    string datasetId = 1;
+    string bucket = 2;
+    string fileName = 3;
+}
+
+message IngestDataResponse {
+    bool success = 1;
+}
