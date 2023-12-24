@@ -17,6 +17,7 @@ public static class DatasetsApi
         app.MapGet("/{datasetId:Guid}", GetDatasetByIdHandler);
         app.MapDelete("/{datasetId:Guid}", DeleteDatasetHandler);
         app.MapPut("/{datasetId:Guid}", UpdateDatasetHandler);
+        app.MapPost("/{datasetId:Guid}/ingestdata", IngestDataHandler);
 
         return app;
     }
@@ -54,9 +55,9 @@ public static class DatasetsApi
     }
 
     public static async Task<Results<Ok<bool>, BadRequest<List<ValidationFailure>>>> DeleteDatasetHandler(
-    Guid datasetId,
-    HttpContext context,
-    [FromServices] IMediator mediator)
+        Guid datasetId,
+        HttpContext context,
+        [FromServices] IMediator mediator)
     {
         var userAuthId = GetUserAuthId(context);
         var command = new DeleteDatasetCommand(userAuthId, datasetId);
@@ -84,6 +85,23 @@ public static class DatasetsApi
         }
 
         return TypedResults.Ok(commandResult.Value);
+    }
+
+    public static async Task<Results<Ok<bool>, BadRequest>> IngestDataHandler(
+        Guid datasetId,
+        [FromBody] IngestDataDto ingestDataDto,
+        HttpContext context,
+        [FromServices] IMediator mediator)
+    {
+        var userAuthId = GetUserAuthId(context);
+        var command = new IngestDataCommand(userAuthId, datasetId, ingestDataDto.Bucket, ingestDataDto.FileName);
+        var commandResult = await mediator.Send(command);
+        if (!commandResult.Success)
+        {
+            return TypedResults.BadRequest();
+        }
+
+        return TypedResults.Ok(commandResult.Success);
     }
 
     private static string GetUserAuthId(HttpContext context)

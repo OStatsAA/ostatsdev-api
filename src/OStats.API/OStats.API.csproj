@@ -9,6 +9,13 @@
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="11.8.1" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.25.1" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.59.0" />
+    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.59.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.60.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="MediatR" Version="12.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.0" />
@@ -19,6 +26,10 @@
   <ItemGroup>
     <ProjectReference Include="..\OStats.Domain\OStats.Domain.csproj" />
     <ProjectReference Include="..\OStats.Infrastructure\OStats.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\dataservice.proto" GrpcServices="Client" />
   </ItemGroup>
 
 </Project>
