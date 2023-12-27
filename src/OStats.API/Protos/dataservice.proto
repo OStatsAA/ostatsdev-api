@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package dataservice;
+
 option csharp_namespace = "DataServiceGrpc";
 
 // DataService
