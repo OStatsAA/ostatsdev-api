@@ -11,7 +11,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddDbContext<Context>();
 builder.Services.AddValidators();
 builder.Services.AddGrpcClient<DataService.DataServiceClient>( o => {
-    o.Address = new Uri("http://localhost:50051");
+    o.Address = new Uri("http://dataservice:50051");
 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwagger();
