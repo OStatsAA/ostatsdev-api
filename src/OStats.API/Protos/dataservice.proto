@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "google/protobuf/struct.proto";
+
 package dataservice;
 
 option csharp_namespace = "DataServiceGrpc";
@@ -8,6 +10,7 @@ option csharp_namespace = "DataServiceGrpc";
 service DataService {
     // Ingest raw data from raw-datasets-uploads bucket and transforms them to parquet in datasets bucket
     rpc IngestData(IngestDataRequest) returns (IngestDataResponse) {}
+    rpc GetData(GetDataRequest) returns (stream DataResponse) {}
 }
 
 message IngestDataRequest {
@@ -18,4 +21,13 @@ message IngestDataRequest {
 
 message IngestDataResponse {
     bool success = 1;
+}
+
+message GetDataRequest {
+    string datasetId = 1;
+    string query = 2;
+}
+
+message DataResponse {
+    string body = 1;
 }

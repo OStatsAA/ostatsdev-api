@@ -1,11 +1,17 @@
+using System.Text.Json;
+using DataServiceGrpc;
 using FluentValidation.Results;
+using Grpc.Core;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OStats.API.Commands;
 using OStats.API.Dtos;
 using OStats.API.Queries;
 using OStats.Domain.Aggregates.DatasetAggregate;
+using OStats.Infrastructure;
+using OStats.Infrastructure.Extensions;
 
 namespace OStats.API;
 
@@ -18,6 +24,7 @@ public static class DatasetsApi
         app.MapDelete("/{datasetId:Guid}", DeleteDatasetHandler);
         app.MapPut("/{datasetId:Guid}", UpdateDatasetHandler);
         app.MapPost("/{datasetId:Guid}/ingestdata", IngestDataHandler);
+        app.MapGet("/{datasetId:Guid}/getdata", GetDataHandler);
 
         return app;
     }
@@ -102,6 +109,43 @@ public static class DatasetsApi
         }
 
         return TypedResults.Ok(commandResult.Success);
+    }
+
+    public static async IAsyncEnumerable<dynamic> GetDataHandler(
+        Guid datasetId,
+        HttpContext context,
+        Context dbContext,
+        [FromServices] DataService.DataServiceClient _dataServiceClient,
+        CancellationToken cancellationToken)
+    {
+        var user = await dbContext.Users.FindByAuthIdentityAsync(GetUserAuthId(context), cancellationToken);
+        if (user is null)
+        {
+            context.Response.StatusCode = TypedResults.BadRequest().StatusCode;
+            yield break;
+        }
+
+        if (!await dbContext.DatasetsUsersAccessLevels.AnyAsync(accesses => accesses.UserId == user.Id && accesses.DatasetId == datasetId))
+        {
+            context.Response.StatusCode = TypedResults.Unauthorized().StatusCode;
+            yield break;
+        }
+
+        var queryRequest = new GetDataRequest()
+        {
+            DatasetId = datasetId.ToString(),
+            Query = "SELECT * FROM data"
+        };
+        context.Response.ContentType = "application/stream+json";
+        var call = _dataServiceClient.GetData(queryRequest, cancellationToken: cancellationToken);
+        await foreach (var response in call.ResponseStream.ReadAllAsync(cancellationToken))
+        {
+            var json = JsonSerializer.Deserialize<dynamic>(response.Body);
+            if (json is not null)
+            {
+                yield return json;
+            }
+        }
     }
 
     private static string GetUserAuthId(HttpContext context)
