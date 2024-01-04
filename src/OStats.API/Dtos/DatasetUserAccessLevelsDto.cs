@@ -1,0 +1,17 @@
+using OStats.Domain.Aggregates.DatasetAggregate;
+using OStats.Domain.Aggregates.UserAggregate;
+
+namespace OStats.API.Dtos;
+
+public class DatasetUserAccessLevelsDto
+{
+    public Guid Id { get; }
+    public BaseUserDto User { get; }
+    public DatasetAccessLevel DatasetAccessLevel { get; }
+    public DatasetUserAccessLevelsDto(User user, DatasetUserAccessLevel datasetUserAccessLevel)
+    {
+        Id = datasetUserAccessLevel.Id;
+        DatasetAccessLevel = datasetUserAccessLevel.AccessLevel;
+        User = new BaseUserDto(user);
+    }
+}

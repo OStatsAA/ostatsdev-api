@@ -2,12 +2,12 @@ using FluentValidation.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Common;
-using OStats.Domain.Aggregates.DatasetAggregate;
+using OStats.API.Dtos;
 using OStats.Infrastructure;
 
 namespace OStats.API.Queries;
 
-public class DatasetByIdQueryHandler : IRequestHandler<DatasetByIdQuery, ICommandResult<Dataset>>
+public class DatasetByIdQueryHandler : IRequestHandler<DatasetByIdQuery, ICommandResult<DatasetWithUsersDto>>
 {
     private readonly Context _context;
 
@@ -16,7 +16,7 @@ public class DatasetByIdQueryHandler : IRequestHandler<DatasetByIdQuery, IComman
         _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    public async Task<ICommandResult<Dataset>> Handle(DatasetByIdQuery request, CancellationToken cancellationToken)
+    public async Task<ICommandResult<DatasetWithUsersDto>> Handle(DatasetByIdQuery request, CancellationToken cancellationToken)
     {
         var dataset = await _context.DatasetsUsersAccessLevels
             .Join(
@@ -38,9 +38,21 @@ public class DatasetByIdQueryHandler : IRequestHandler<DatasetByIdQuery, IComman
         if (dataset is null)
         {
             var error = new ValidationFailure("DatasetId", "Dataset not found.");
-            return new CommandResult<Dataset>(error);
+            return new CommandResult<DatasetWithUsersDto>(error);
         }
 
-        return new CommandResult<Dataset>(dataset);
+        var people = await _context.DatasetsUsersAccessLevels
+            .Where(datasetAccess => datasetAccess.DatasetId == dataset.Id)
+            .Join(
+                _context.Users,
+                datasetAndUserId => datasetAndUserId.UserId,
+                user => user.Id,
+                (datasetAndUserId, user) => user )
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+        
+        var datasetWithUsersDto = new DatasetWithUsersDto(dataset, people);
+
+        return new CommandResult<DatasetWithUsersDto>(datasetWithUsersDto);
     }
 }
