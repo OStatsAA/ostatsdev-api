@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using OStats.API.Commands;
 using OStats.API.Dtos;
+using OStats.API.Extensions;
 using OStats.API.Queries;
 using OStats.Domain.Aggregates.UserAggregate;
 
@@ -26,7 +27,7 @@ public static class UsersApi
         HttpContext context,
         [FromServices] IMediator mediator)
     {
-        var userAuthId = GetUserAuthId(context);
+        var userAuthId = context.User.GetAuthId();
         var query = new UserByAuthIdQuery(userAuthId);
         var queryResult = await mediator.Send(query);
         if (queryResult.Success)
@@ -49,7 +50,7 @@ public static class UsersApi
         HttpContext context,
         [FromServices] IMediator mediator)
     {
-        var userAuthId = GetUserAuthId(context);
+        var userAuthId = context.User.GetAuthId();
         var query = new UserByIdQuery(userAuthId, userId);
         var queryResult = await mediator.Send(query);
 
@@ -66,7 +67,7 @@ public static class UsersApi
         HttpContext context,
         [FromServices] IMediator mediator)
     {
-        var userAuthId = GetUserAuthId(context);
+        var userAuthId = context.User.GetAuthId();
         var query = new UserProjectsWithRoleQuery(userAuthId, userId);
         var queryResult = await mediator.Send(query);
 
@@ -83,7 +84,7 @@ public static class UsersApi
         HttpContext context,
         [FromServices] IMediator mediator)
     {
-        var userAuthId = GetUserAuthId(context);
+        var userAuthId = context.User.GetAuthId();
         var query = new UserDatasetsWithAccessQuery(userAuthId, userId);
         var queryResult = await mediator.Send(query);
 
@@ -93,10 +94,5 @@ public static class UsersApi
         }
 
         return TypedResults.Ok(queryResult.Value);
-    }
-
-    private static string GetUserAuthId(HttpContext context)
-    {
-        return context.User.Identity?.Name ?? throw new ArgumentNullException(nameof(context.User.Identity));
     }
 }

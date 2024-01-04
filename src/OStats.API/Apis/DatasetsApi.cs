@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Commands;
 using OStats.API.Dtos;
+using OStats.API.Extensions;
 using OStats.API.Queries;
 using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Infrastructure;
@@ -34,7 +35,7 @@ public static class DatasetsApi
         HttpContext context,
         [FromServices] IMediator mediator)
     {
-        var userAuthId = GetUserAuthId(context);
+        var userAuthId = context.User.GetAuthId();
         var command = new CreateDatasetCommand(userAuthId, createDto.Title, createDto.Source, createDto.Description);
         var commandResult = await mediator.Send(command);
         if (!commandResult.Success)
@@ -50,7 +51,7 @@ public static class DatasetsApi
         HttpContext context,
         [FromServices] IMediator mediator)
     {
-        var userAuthId = GetUserAuthId(context);
+        var userAuthId = context.User.GetAuthId();
         var command = new DatasetByIdQuery(userAuthId, datasetId);
         var commandResult = await mediator.Send(command);
         if (!commandResult.Success)
@@ -66,7 +67,7 @@ public static class DatasetsApi
         HttpContext context,
         [FromServices] IMediator mediator)
     {
-        var userAuthId = GetUserAuthId(context);
+        var userAuthId = context.User.GetAuthId();
         var command = new DeleteDatasetCommand(userAuthId, datasetId);
         var commandResult = await mediator.Send(command);
         if (!commandResult.Success)
@@ -83,7 +84,7 @@ public static class DatasetsApi
         HttpContext context,
         [FromServices] IMediator mediator)
     {
-        var userAuthId = GetUserAuthId(context);
+        var userAuthId = context.User.GetAuthId();
         var command = new UpdateDatasetCommand(datasetId, userAuthId, updateDto.Title, updateDto.Source, updateDto.LastUpdatedAt, updateDto.Description);
         var commandResult = await mediator.Send(command);
         if (!commandResult.Success)
@@ -100,7 +101,7 @@ public static class DatasetsApi
         HttpContext context,
         [FromServices] IMediator mediator)
     {
-        var userAuthId = GetUserAuthId(context);
+        var userAuthId = context.User.GetAuthId();
         var command = new IngestDataCommand(userAuthId, datasetId, ingestDataDto.Bucket, ingestDataDto.FileName);
         var commandResult = await mediator.Send(command);
         if (!commandResult.Success)
@@ -118,7 +119,7 @@ public static class DatasetsApi
         [FromServices] DataService.DataServiceClient _dataServiceClient,
         CancellationToken cancellationToken)
     {
-        var user = await dbContext.Users.FindByAuthIdentityAsync(GetUserAuthId(context), cancellationToken);
+        var user = await dbContext.Users.FindByAuthIdentityAsync(context.User.GetAuthId(), cancellationToken);
         if (user is null)
         {
             context.Response.StatusCode = TypedResults.BadRequest().StatusCode;
@@ -146,10 +147,5 @@ public static class DatasetsApi
                 yield return json;
             }
         }
-    }
-
-    private static string GetUserAuthId(HttpContext context)
-    {
-        return context.User.Identity?.Name ?? throw new ArgumentNullException(nameof(context.User.Identity));
     }
 }
