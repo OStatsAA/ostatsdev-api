@@ -1,6 +1,6 @@
 namespace OStats.API.Dtos;
 
-public record UpdateProjectCommandDto : CreateProjectCommandDto
+public record UpdateProjectDto : CreateProjectDto
 {
     public required DateTime LastUpdatedAt { get; init; }
 }

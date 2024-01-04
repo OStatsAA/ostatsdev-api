@@ -3,9 +3,9 @@ using OStats.Domain.Aggregates.UserAggregate;
 
 namespace OStats.API.Dtos;
 
-public class BaseProjectWithOwnersDto : BaseProjectDto
+public record BaseProjectWithOwnersDto : BaseProjectDto
 {
-    public List<BaseUserDto> Owners { get; }
+    public required IReadOnlyCollection<BaseUserDto> Owners { get; init; }
 
     public BaseProjectWithOwnersDto(Project project, List<User> owners) : base(project)
     {

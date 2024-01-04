@@ -3,14 +3,12 @@ using OStats.Domain.Aggregates.UserAggregate;
 
 namespace OStats.API.Dtos;
 
-public class DatasetUserAccessLevelsDto
+public record DatasetUserAccessLevelsDto : BaseEntityDto
 {
-    public Guid Id { get; }
     public BaseUserDto User { get; }
     public DatasetAccessLevel DatasetAccessLevel { get; }
-    public DatasetUserAccessLevelsDto(User user, DatasetUserAccessLevel datasetUserAccessLevel)
+    public DatasetUserAccessLevelsDto(User user, DatasetUserAccessLevel datasetUserAccessLevel) : base(datasetUserAccessLevel)
     {
-        Id = datasetUserAccessLevel.Id;
         DatasetAccessLevel = datasetUserAccessLevel.AccessLevel;
         User = new BaseUserDto(user);
     }

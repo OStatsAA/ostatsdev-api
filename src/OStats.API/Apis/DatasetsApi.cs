@@ -31,7 +31,7 @@ public static class DatasetsApi
     }
 
     public static async Task<Results<Ok<Dataset>, BadRequest<List<ValidationFailure>>>> CreateDatasetHandler(
-        [FromBody] CreateDatasetCommandDto createDto,
+        [FromBody] CreateDatasetDto createDto,
         HttpContext context,
         [FromServices] IMediator mediator)
     {
@@ -80,7 +80,7 @@ public static class DatasetsApi
 
     public static async Task<Results<Ok<Dataset>, BadRequest<List<ValidationFailure>>>> UpdateDatasetHandler(
         Guid datasetId,
-        [FromBody] UpdateDatasetCommand updateDto,
+        [FromBody] UpdateDatasetDto updateDto,
         HttpContext context,
         [FromServices] IMediator mediator)
     {
