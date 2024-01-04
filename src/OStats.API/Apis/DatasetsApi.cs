@@ -45,7 +45,7 @@ public static class DatasetsApi
         return TypedResults.Ok(commandResult.Value);
     }
 
-    public static async Task<Results<Ok<Dataset>, BadRequest<List<ValidationFailure>>>> GetDatasetByIdHandler(
+    public static async Task<Results<Ok<DatasetWithUsersDto>, BadRequest<List<ValidationFailure>>>> GetDatasetByIdHandler(
         Guid datasetId,
         HttpContext context,
         [FromServices] IMediator mediator)

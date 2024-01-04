@@ -1,5 +1,6 @@
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
+using OStats.API.Dtos;
 using OStats.API.Queries;
 using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Domain.Aggregates.UserAggregate;
@@ -30,10 +31,10 @@ public class DatasetByIdQueryIntegrationTest : BaseIntegrationTest
         {
             result.Success.Should().BeTrue();
             result.ValidationFailures.Should().BeNullOrEmpty();
-            result.Value.Should().BeOfType<Dataset>();
+            result.Value.Should().BeOfType<DatasetWithUsersDto>();
             if (result.Value is not null)
             {
-                result.Value.Should().BeOfType<Dataset>();
+                result.Value.Should().BeOfType<DatasetWithUsersDto>();
                 result.Value.Id.Should().Be(dataset.Id);
                 result.Value.DatasetUserAccessLevels.Should().HaveCount(2);
             }
