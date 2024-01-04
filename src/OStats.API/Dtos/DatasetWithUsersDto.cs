@@ -3,7 +3,7 @@ using OStats.Domain.Aggregates.UserAggregate;
 
 namespace OStats.API.Dtos;
 
-public class DatasetWithUsersDto : BaseDatasetDto
+public record DatasetWithUsersDto : BaseDatasetDto
 {
     public List<DatasetUserAccessLevelsDto> DatasetUserAccessLevels { get; }
     public DatasetWithUsersDto(Dataset dataset, List<User> users) : base(dataset)

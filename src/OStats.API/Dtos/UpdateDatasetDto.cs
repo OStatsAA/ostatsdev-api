@@ -1,6 +1,6 @@
 namespace OStats.API.Dtos;
 
-public record UpdateDatasetCommandDto : CreateDatasetCommandDto
+public record UpdateDatasetDto : CreateDatasetDto
 {
     public required DateTime LastUpdatedAt { get; init; }
 }

@@ -2,7 +2,7 @@ using OStats.Domain.Aggregates.ProjectAggregate;
 
 namespace OStats.API.Dtos;
 
-public class UserProjectDto : BaseProjectDto
+public record UserProjectDto : BaseProjectDto
 {
     public Role UserRole { get; }
 

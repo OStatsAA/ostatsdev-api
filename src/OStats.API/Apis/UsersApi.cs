@@ -23,7 +23,7 @@ public static class UsersApi
     }
 
     public static async Task<Results<Ok<User>, BadRequest<List<ValidationFailure>>>> CreateUserAsync(
-        [FromBody] CreateUserCommandDto createDto,
+        [FromBody] CreateUserDto createDto,
         HttpContext context,
         [FromServices] IMediator mediator)
     {

@@ -26,11 +26,11 @@ public static class ProjectsApi
     }
 
     public static async Task<Results<Ok<Project>, BadRequest<List<ValidationFailure>>>> CreateProjectAsync(
-        [FromBody] CreateProjectCommandDto createDto,
+        [FromBody] CreateProjectDto createDto,
         HttpContext context,
         [FromServices] IMediator mediator)
     {
-        var userAuthId = GetUserAuthId(context);
+        var userAuthId = context.User.GetAuthId();
         var command = new CreateProjectCommand(userAuthId, createDto.Title, createDto.Description);
         var commandResult = await mediator.Send(command);
         if (!commandResult.Success)
@@ -60,7 +60,7 @@ public static class ProjectsApi
 
     public static async Task<Results<Ok<Project>, BadRequest<List<ValidationFailure>>>> UpdateProjectAsync(
         Guid projectId,
-        [FromBody] UpdateProjectCommandDto updateDto,
+        [FromBody] UpdateProjectDto updateDto,
         HttpContext context,
         [FromServices] IMediator mediator)
     {
