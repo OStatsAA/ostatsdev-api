@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using OStats.API.Commands;
 using OStats.API.Dtos;
+using OStats.API.Extensions;
 using OStats.API.Queries;
 using OStats.Domain.Aggregates.ProjectAggregate;
 
@@ -45,7 +46,7 @@ public static class ProjectsApi
         HttpContext context,
         [FromServices] IMediator mediator)
     {
-        var userAuthId = GetUserAuthId(context);
+        var userAuthId = context.User.GetAuthId();
         var query = new ProjectByIdQuery(userAuthId, projectId);
         var queryResult = await mediator.Send(query);
 
@@ -63,7 +64,7 @@ public static class ProjectsApi
         HttpContext context,
         [FromServices] IMediator mediator)
     {
-        var userAuthId = GetUserAuthId(context);
+        var userAuthId = context.User.GetAuthId();
         var command = new UpdateProjectCommand(projectId, userAuthId, updateDto.Title, updateDto.LastUpdatedAt, updateDto.Description);
         var commandResult = await mediator.Send(command);
         if (!commandResult.Success)
@@ -79,7 +80,7 @@ public static class ProjectsApi
         HttpContext context,
         [FromServices] IMediator mediator)
     {
-        var userAuthId = GetUserAuthId(context);
+        var userAuthId = context.User.GetAuthId();
         var command = new DeleteProjectCommand(userAuthId, projectId);
         var commandResult = await mediator.Send(command);
         if (!commandResult.Success)
@@ -95,7 +96,7 @@ public static class ProjectsApi
         HttpContext context,
         [FromServices] IMediator mediator)
     {
-        var userAuthId = GetUserAuthId(context);
+        var userAuthId = context.User.GetAuthId();
         var query = new ProjectUsersAndRolesQuery(userAuthId, projectId);
         var queryResult = await mediator.Send(query);
 
@@ -113,7 +114,7 @@ public static class ProjectsApi
         HttpContext context,
         [FromServices] IMediator mediator)
     {
-        var userAuthId = GetUserAuthId(context);
+        var userAuthId = context.User.GetAuthId();
         var command = new LinkProjectToDatasetCommand(userAuthId, datasetId, projectId);
         var commandResult = await mediator.Send(command);
         if (!commandResult.Success)
@@ -130,7 +131,7 @@ public static class ProjectsApi
         HttpContext context,
         [FromServices] IMediator mediator)
     {
-        var userAuthId = GetUserAuthId(context);
+        var userAuthId = context.User.GetAuthId();
         var command = new UnlinkProjectToDatasetCommand(userAuthId, datasetId, projectId);
         var commandResult = await mediator.Send(command);
         if (!commandResult.Success)
@@ -139,10 +140,5 @@ public static class ProjectsApi
         }
 
         return TypedResults.Ok(commandResult.Value);
-    }
-
-    private static string GetUserAuthId(HttpContext context)
-    {
-        return context.User.Identity?.Name ?? throw new ArgumentNullException(nameof(context.User.Identity));
     }
 }
