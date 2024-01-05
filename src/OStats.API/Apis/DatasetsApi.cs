@@ -24,8 +24,9 @@ public static class DatasetsApi
         app.MapGet("/{datasetId:Guid}", GetDatasetByIdHandler);
         app.MapDelete("/{datasetId:Guid}", DeleteDatasetHandler);
         app.MapPut("/{datasetId:Guid}", UpdateDatasetHandler);
-        app.MapPost("/{datasetId:Guid}/ingestdata", IngestDataHandler);
         app.MapGet("/{datasetId:Guid}/getdata", GetDataHandler);
+        app.MapPost("/{datasetId:Guid}/ingestdata", IngestDataHandler);
+        app.MapGet("/{datasetId:Guid}/linkedprojects", GetLinkedProjectsHandler);
 
         return app;
     }
@@ -147,5 +148,21 @@ public static class DatasetsApi
                 yield return json;
             }
         }
+    }
+
+    private static async Task<Results<Ok<List<DatasetProjectLinkDto>>, BadRequest<List<ValidationFailure>>>> GetLinkedProjectsHandler(
+        Guid datasetId,
+        HttpContext context,
+        [FromServices] IMediator mediator)
+    {
+        var userAuthId = context.User.GetAuthId();
+        var command = new DatasetLinkedProjectsQuery(userAuthId, datasetId);
+        var commandResult = await mediator.Send(command);
+        if (!commandResult.Success)
+        {
+            return TypedResults.BadRequest(commandResult.ValidationFailures);
+        }
+
+        return TypedResults.Ok(commandResult.Value);
     }
 }
