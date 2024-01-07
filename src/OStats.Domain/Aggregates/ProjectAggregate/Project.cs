@@ -54,6 +54,10 @@ public class Project : Entity, IAggregateRoot
 
     public bool LinkDataset(Guid datasetId)
     {
+        if (_linkedDatasets.Any(link => link.DatasetId == datasetId))
+        {
+            return false;
+        }
         return _linkedDatasets.Add(new DatasetProjectLink(datasetId, Id));
     }
 

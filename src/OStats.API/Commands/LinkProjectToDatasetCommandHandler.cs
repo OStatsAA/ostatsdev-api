@@ -1,4 +1,5 @@
 using FluentValidation;
+using FluentValidation.Results;
 using MediatR;
 using OStats.API.Common;
 using OStats.Domain.Aggregates.ProjectAggregate;
@@ -30,13 +31,20 @@ public class LinkProjectToDatasetCommandHandler : IRequestHandler<LinkProjectToD
         var project = _context.Projects.Local.Where(project => project.Id == command.ProjectId).Single();
         var dataset = _context.Datasets.Local.Where(dataset => dataset.Id == command.DatasetId).Single();
 
-        if(project.Roles.IsUserAtLeast(user.Id, AccessLevel.Editor))
+        if (!project.Roles.IsUserAtLeast(user.Id, AccessLevel.Editor))
         {
-            project.LinkDataset(dataset.Id);
+            var error = new ValidationFailure("UserAuthId", "User cannot link project and dataset.");
+            return new CommandResult<bool>(error);
+        }
+
+        var couldLink = project.LinkDataset(dataset.Id);
+        if (!couldLink)
+        {
+            var error = new ValidationFailure("DatasetId", "Dataset cannot be linked to project.");
+            return new CommandResult<bool>(error);
         }
 
         await _context.SaveChangesAsync(cancellationToken);
-
         return new CommandResult<bool>(true);
     }
 
