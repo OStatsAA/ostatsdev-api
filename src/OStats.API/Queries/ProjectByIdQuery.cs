@@ -1,10 +1,10 @@
 using MediatR;
 using OStats.API.Common;
-using OStats.Domain.Aggregates.ProjectAggregate;
+using OStats.API.Dtos;
 
 namespace OStats.API.Queries;
 
-public class ProjectByIdQuery : IRequest<ICommandResult<Project>>
+public class ProjectByIdQuery : IRequest<ICommandResult<ProjectDto>>
 {
     public string UserAuthId { get; }
     public Guid ProjectId { get; }
