@@ -2,12 +2,12 @@ using FluentValidation.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Common;
-using OStats.Domain.Aggregates.UserAggregate;
+using OStats.API.Dtos;
 using OStats.Infrastructure;
 
 namespace OStats.API.Queries;
 
-public class UserByAuthIdQueryHandler : IRequestHandler<UserByAuthIdQuery, ICommandResult<User>>
+public class UserByAuthIdQueryHandler : IRequestHandler<UserByAuthIdQuery, ICommandResult<BaseUserDto>>
 {
     private readonly Context _context;
 
@@ -16,7 +16,7 @@ public class UserByAuthIdQueryHandler : IRequestHandler<UserByAuthIdQuery, IComm
         _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    public async Task<ICommandResult<User>> Handle(UserByAuthIdQuery request, CancellationToken cancellationToken)
+    public async Task<ICommandResult<BaseUserDto>> Handle(UserByAuthIdQuery request, CancellationToken cancellationToken)
     {
         var user = await _context.Users
             .Where(user => user.AuthIdentity == request.UserAuthId)
@@ -26,9 +26,9 @@ public class UserByAuthIdQueryHandler : IRequestHandler<UserByAuthIdQuery, IComm
         if (user is null)
         {
             var error = new ValidationFailure("UserId", "User not found.");
-            return new CommandResult<User>(error);
+            return new CommandResult<BaseUserDto>(error);
         }
 
-        return new CommandResult<User>(user);
+        return new CommandResult<BaseUserDto>(new BaseUserDto(user));
     }
 }

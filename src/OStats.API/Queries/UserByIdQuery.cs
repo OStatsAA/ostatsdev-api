@@ -1,10 +1,10 @@
 using MediatR;
 using OStats.API.Common;
-using OStats.Domain.Aggregates.UserAggregate;
+using OStats.API.Dtos;
 
 namespace OStats.API.Queries;
 
-public class UserByIdQuery : IRequest<ICommandResult<User>>
+public class UserByIdQuery : IRequest<ICommandResult<BaseUserDto>>
 {
     public string UserAuthId { get; }
     public Guid UserId { get; }
