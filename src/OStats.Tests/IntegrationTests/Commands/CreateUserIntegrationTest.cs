@@ -2,7 +2,7 @@ using FluentAssertions.Execution;
 using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Commands;
-using OStats.Domain.Aggregates.UserAggregate;
+using OStats.API.Dtos;
 
 namespace OStats.Tests.IntegrationTests.Commands;
 
@@ -24,7 +24,7 @@ public class CreateUserIntegrationTest : BaseIntegrationTest
         {
             result.Success.Should().BeTrue();
             result.ValidationFailures.Should().BeNull();
-            result.Value.Should().NotBeNull().And.BeOfType<User>();
+            result.Value.Should().NotBeNull().And.BeOfType<BaseUserDto>();
             result.Value?.CreatedAt.Should().BeAfter(beforeCommandTime).And.BeBefore(afterCommandTime);
             result.Value?.LastUpdatedAt.Should().BeAfter(beforeCommandTime).And.BeBefore(afterCommandTime);
         }

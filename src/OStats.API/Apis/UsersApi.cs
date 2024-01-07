@@ -6,7 +6,6 @@ using OStats.API.Commands;
 using OStats.API.Dtos;
 using OStats.API.Extensions;
 using OStats.API.Queries;
-using OStats.Domain.Aggregates.UserAggregate;
 
 namespace OStats.API;
 
@@ -22,7 +21,7 @@ public static class UsersApi
         return app;
     }
 
-    public static async Task<Results<Ok<User>, BadRequest<List<ValidationFailure>>>> CreateUserAsync(
+    public static async Task<Results<Ok<BaseUserDto>, BadRequest<List<ValidationFailure>>>> CreateUserAsync(
         [FromBody] CreateUserDto createDto,
         HttpContext context,
         [FromServices] IMediator mediator)
@@ -45,7 +44,7 @@ public static class UsersApi
         return TypedResults.Ok(commandResult.Value);
     }
 
-    public static async Task<Results<Ok<User>, BadRequest<List<ValidationFailure>>>> GetUserByIdAsync(
+    public static async Task<Results<Ok<BaseUserDto>, BadRequest<List<ValidationFailure>>>> GetUserByIdAsync(
         [FromRoute] Guid userId,
         HttpContext context,
         [FromServices] IMediator mediator)
