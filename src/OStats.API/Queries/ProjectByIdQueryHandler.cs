@@ -2,12 +2,12 @@ using FluentValidation.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Common;
-using OStats.Domain.Aggregates.ProjectAggregate;
+using OStats.API.Dtos;
 using OStats.Infrastructure;
 
 namespace OStats.API.Queries;
 
-public class ProjectByIdQueryHandler : IRequestHandler<ProjectByIdQuery, ICommandResult<Project>>
+public class ProjectByIdQueryHandler : IRequestHandler<ProjectByIdQuery, ICommandResult<ProjectDto>>
 {
     private readonly Context _context;
 
@@ -16,7 +16,7 @@ public class ProjectByIdQueryHandler : IRequestHandler<ProjectByIdQuery, IComman
         _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    public async Task<ICommandResult<Project>> Handle(ProjectByIdQuery request, CancellationToken cancellationToken)
+    public async Task<ICommandResult<ProjectDto>> Handle(ProjectByIdQuery request, CancellationToken cancellationToken)
     {
         var project = await _context.Projects
             .Join(
@@ -37,9 +37,21 @@ public class ProjectByIdQueryHandler : IRequestHandler<ProjectByIdQuery, IComman
         if (project is null)
         {
             var error = new ValidationFailure("ProjectId", "Project not found.");
-            return new CommandResult<Project>(error);
+            return new CommandResult<ProjectDto>(error);
         }
 
-        return new CommandResult<Project>(project);
+        var linkedDatasets = await _context.DatasetsProjectsLinks
+            .Join(
+                _context.Datasets.IgnoreAutoIncludes(),
+                link => link.DatasetId,
+                dataset => dataset.Id,
+                (link, dataset) => new { link, dataset })
+            .Where(join => join.link.ProjectId == project.Id)
+            .Select(join => join.dataset)
+            .ToListAsync(cancellationToken);
+
+        var projectDto = new ProjectDto(project, linkedDatasets);
+
+        return new CommandResult<ProjectDto>(projectDto);
     }
 }

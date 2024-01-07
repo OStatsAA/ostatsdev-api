@@ -40,8 +40,13 @@ public class DatasetLinkedProjectsQueryHandler : IRequestHandler<DatasetLinkedPr
                 link => link.ProjectId,
                 project => project.Id,
                 (link, project) => new { link, project })
+            .Join(
+                _context.Datasets.IgnoreAutoIncludes(),
+                linkProjectJoin => linkProjectJoin.link.DatasetId,
+                dataset => dataset.Id,
+                (linkProjectJoin, dataset) => new { linkProjectJoin.link, linkProjectJoin.project, dataset })
             .Where(join => join.link.DatasetId == request.DatasetId)
-            .Select(join => new DatasetProjectLinkDto(join.link, join.project))
+            .Select(join => new DatasetProjectLinkDto(join.link, join.dataset, join.project))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 

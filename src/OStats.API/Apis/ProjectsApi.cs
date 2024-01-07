@@ -41,7 +41,7 @@ public static class ProjectsApi
         return TypedResults.Ok(commandResult.Value);
     }
 
-    public static async Task<Results<Ok<Project>, BadRequest<List<ValidationFailure>>>> GetProjectByIdAsync(
+    public static async Task<Results<Ok<ProjectDto>, BadRequest<List<ValidationFailure>>>> GetProjectByIdAsync(
         Guid projectId,
         HttpContext context,
         [FromServices] IMediator mediator)
