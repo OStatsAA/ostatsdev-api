@@ -13,12 +13,30 @@ public static class UsersApi
 {
     public static RouteGroupBuilder MapUsersApi(this RouteGroupBuilder app)
     {
+        app.MapGet("/", PeopleSearchHandler);
         app.MapPost("/", CreateUserAsync);
         app.MapGet("/{userId:Guid}", GetUserByIdAsync);
         app.MapGet("/{userId:Guid}/projects", GetUserProjectsAsync);
         app.MapGet("/{userId:Guid}/datasets", GetUserDatasetsHandler);
 
         return app;
+    }
+
+    public static async Task<Results<Ok<List<BaseUserDto>>, BadRequest<List<ValidationFailure>>>> PeopleSearchHandler(
+        [FromQuery] string search,
+        HttpContext context,
+        [FromServices] IMediator mediator)
+    {
+        var userAuthId = context.User.GetAuthId();
+        var query = new PeopleSearchQuery(userAuthId, search);
+        var queryResult = await mediator.Send(query);
+
+        if (!queryResult.Success)
+        {
+            return TypedResults.BadRequest(queryResult.ValidationFailures);
+        }
+
+        return TypedResults.Ok(queryResult.Value);
     }
 
     public static async Task<Results<Ok<BaseUserDto>, BadRequest<List<ValidationFailure>>>> CreateUserAsync(
