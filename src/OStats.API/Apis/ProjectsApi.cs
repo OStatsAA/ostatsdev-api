@@ -20,7 +20,9 @@ public static class ProjectsApi
         app.MapDelete("/{projectId:Guid}", DeleteProjectAsync);
         app.MapPost("/{projectId:Guid}/linkdataset/{datasetId:Guid}", LinkProjectToDatasetHandler);
         app.MapDelete("/{projectId:Guid}/linkdataset/{datasetId:Guid}", UnlinkProjectToDatasetHandler);
-        app.MapGet("/{projectId:Guid}/usersroles", GetProjectUsersAndRolesAsync);
+        app.MapGet("/{projectId:Guid}/users", GetProjectUsersAndRolesAsync);
+        app.MapPost("/{projectId:Guid}/users", AddUserToProjectHandler);
+        app.MapDelete("/{projectId:Guid}/users/{userId:Guid}", RemoveUserFromProjectHandler);
 
         return app;
     }
@@ -106,6 +108,39 @@ public static class ProjectsApi
         }
 
         return TypedResults.Ok(queryResult.Value);
+    }
+
+    private static async Task<Results<Ok<bool>, BadRequest<List<ValidationFailure>>>> AddUserToProjectHandler(
+        Guid projectId,
+        [FromBody] AddUserToProjectDto addUserToProjectDto,
+        HttpContext context,
+        [FromServices] IMediator mediator)
+    {
+        var userAuthId = context.User.GetAuthId();
+        var command = new AddUserToProjectCommand(userAuthId, projectId, addUserToProjectDto.UserId, addUserToProjectDto.AccessLevel);
+        var commandResult = await mediator.Send(command);
+        if (!commandResult.Success)
+        {
+            return TypedResults.BadRequest(commandResult.ValidationFailures);
+        }
+
+        return TypedResults.Ok(commandResult.Value);
+    }
+    private static async Task<Results<Ok<bool>, BadRequest<List<ValidationFailure>>>> RemoveUserFromProjectHandler(
+        Guid projectId,
+        Guid userId,
+        HttpContext context,
+        [FromServices] IMediator mediator)
+    {
+        var userAuthId = context.User.GetAuthId();
+        var command = new RemoveUserFromProjectCommand(userAuthId, projectId, userId);
+        var commandResult = await mediator.Send(command);
+        if (!commandResult.Success)
+        {
+            return TypedResults.BadRequest(commandResult.ValidationFailures);
+        }
+
+        return TypedResults.Ok(commandResult.Value);
     }
 
     public static async Task<Results<Ok<bool>, BadRequest<List<ValidationFailure>>>> LinkProjectToDatasetHandler(
