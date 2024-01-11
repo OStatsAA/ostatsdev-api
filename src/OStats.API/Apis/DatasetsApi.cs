@@ -27,6 +27,8 @@ public static class DatasetsApi
         app.MapGet("/{datasetId:Guid}/getdata", GetDataHandler);
         app.MapPost("/{datasetId:Guid}/ingestdata", IngestDataHandler);
         app.MapGet("/{datasetId:Guid}/linkedprojects", GetLinkedProjectsHandler);
+        app.MapPost("/{datasetId:Guid}/users", AddUserToDatasetHandler);
+        app.MapDelete("/{datasetId:Guid}/users/{userId:Guid}", RemoveUserFromDatasetHandler);
 
         return app;
     }
@@ -157,6 +159,40 @@ public static class DatasetsApi
     {
         var userAuthId = context.User.GetAuthId();
         var command = new DatasetLinkedProjectsQuery(userAuthId, datasetId);
+        var commandResult = await mediator.Send(command);
+        if (!commandResult.Success)
+        {
+            return TypedResults.BadRequest(commandResult.ValidationFailures);
+        }
+
+        return TypedResults.Ok(commandResult.Value);
+    }
+
+    private static async Task<Results<Ok<bool>, BadRequest<List<ValidationFailure>>>> AddUserToDatasetHandler(
+        Guid datasetId,
+        [FromBody] AddUserToDatasetDto addUserToDatasetDto,
+        HttpContext context,
+        [FromServices] IMediator mediator)
+    {
+        var userAuthId = context.User.GetAuthId();
+        var command = new AddUserToDatasetCommand(userAuthId, datasetId, addUserToDatasetDto.UserId, addUserToDatasetDto.AccessLevel);
+        var commandResult = await mediator.Send(command);
+        if (!commandResult.Success)
+        {
+            return TypedResults.BadRequest(commandResult.ValidationFailures);
+        }
+
+        return TypedResults.Ok(commandResult.Value);
+    }
+
+    private static async Task<Results<Ok<bool>, BadRequest<List<ValidationFailure>>>> RemoveUserFromDatasetHandler(
+        Guid datasetId,
+        Guid userId,
+        HttpContext context,
+        [FromServices] IMediator mediator)
+    {
+        var userAuthId = context.User.GetAuthId();
+        var command = new RemoveUserFromDatasetCommand(userAuthId, datasetId, userId);
         var commandResult = await mediator.Send(command);
         if (!commandResult.Success)
         {
