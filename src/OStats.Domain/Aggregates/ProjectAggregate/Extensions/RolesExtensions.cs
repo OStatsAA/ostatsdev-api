@@ -35,6 +35,6 @@ public static class RolesExtensions
             return false;
         }
 
-        return userRole.AccessLevel <= accessLevel;
+        return userRole.AccessLevel >= accessLevel;
     }
 }

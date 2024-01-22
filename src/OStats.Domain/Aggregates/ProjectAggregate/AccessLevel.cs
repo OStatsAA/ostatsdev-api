@@ -2,8 +2,9 @@ namespace OStats.Domain.Aggregates.ProjectAggregate;
 
 public enum AccessLevel
 {
-    Owner,
-    Administrator,
-    Editor,
-    ReadOnly
+    Owner = 100,
+    Administrator = 90,
+    Editor = 80,
+    ReadOnly = 50,
+    NoAccess = 0
 }
