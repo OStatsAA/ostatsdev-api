@@ -15,7 +15,8 @@
 			"extensions": [
 				"ms-dotnettools.csdevkit",
 				"ckolkman.vscode-postgres",
-				"github.vscode-github-actions"
+				"github.vscode-github-actions",
+				"GitHub.copilot"
 			]
 		}
 	},
