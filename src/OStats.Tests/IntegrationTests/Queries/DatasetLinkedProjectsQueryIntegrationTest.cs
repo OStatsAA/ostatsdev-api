@@ -19,7 +19,7 @@ public class DatasetLinkedProjectsQueryIntegrationTest : BaseIntegrationTest
         var dataset = new Dataset(owner.Id, "Title", "Source");
         await context.AddAsync(dataset);
         var project = await context.Projects.FirstAsync();
-        project.LinkDataset(dataset.Id);
+        project.LinkDataset(dataset.Id, owner.Id);
         await context.SaveChangesAsync();
 
         var query = new DatasetLinkedProjectsQuery(owner.AuthIdentity, dataset.Id);
@@ -45,7 +45,7 @@ public class DatasetLinkedProjectsQueryIntegrationTest : BaseIntegrationTest
         var dataset = new Dataset(owner.Id, "Title", "Source");
         await context.AddAsync(dataset);
         var project = await context.Projects.FirstAsync();
-        project.LinkDataset(dataset.Id);
+        project.LinkDataset(dataset.Id, owner.Id);
         await context.SaveChangesAsync();
 
         var unauthorizedUser = new User("Name", "email@email.com", "unauthorized_authid");

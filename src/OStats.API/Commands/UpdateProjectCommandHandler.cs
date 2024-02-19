@@ -1,45 +1,46 @@
 using FluentValidation;
-using FluentValidation.Results;
 using MediatR;
-using OStats.API.Common;
+using Microsoft.EntityFrameworkCore;
+using OStats.API.Dtos;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
+using OStats.Domain.Common;
 using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand, ICommandResult<Project>>
+public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand, ValueTuple<DomainOperationResult, BaseProjectDto?>>
 {
     private readonly Context _context;
-    private readonly IValidator<UpdateProjectCommand> _validator;
 
-    public UpdateProjectCommandHandler(Context context, IValidator<UpdateProjectCommand> validator)
+    public UpdateProjectCommandHandler(Context context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
     }
 
-    public async Task<ICommandResult<Project>> Handle(UpdateProjectCommand command, CancellationToken cancellationToken)
+    public async Task<ValueTuple<DomainOperationResult, BaseProjectDto?>> Handle(UpdateProjectCommand command, CancellationToken cancellationToken)
     {
-        var validation = await _validator.ValidateAsync(command);
-        if (!validation.IsValid)
+        var project = await _context.Projects.FindAsync(command.Id, cancellationToken);
+        if (project is null)
         {
-            return new CommandResult<Project>(validation.Errors);
+            return (DomainOperationResult.Failure("Project not found."), null);
         }
 
-        var project = _context.Projects.Local.Where(project => project.Id == command.Id).Single();
-        if (project.LastUpdatedAt != command.LastUpdatedAt)
+        if (project.LastUpdatedAt > command.LastUpdatedAt)
         {
-            var error = new ValidationFailure("LastUpdatedAt", "Project has changed since command was submited.");
-            return new CommandResult<Project>(error);
+            return (DomainOperationResult.Failure("Project has changed since command was submited."), null);
         }
 
-        var user = _context.Users.Local.Where(user => user.AuthIdentity == command.UserAuthId).Single();
+        var user = await _context.Users.Where(user => user.AuthIdentity == command.UserAuthId).SingleOrDefaultAsync();
+        if (user is null)
+        {
+            return (DomainOperationResult.Failure("User not found."), null);
+        }
+
         var minimumAccessLevelRequired = AccessLevel.Editor;
         if (!project.Roles.IsUserAtLeast(user.Id, minimumAccessLevelRequired))
         {
-            var error = new ValidationFailure("UserId", $"User must be at least {minimumAccessLevelRequired}.");
-            return new CommandResult<Project>(error);
+            return (DomainOperationResult.Failure("User does not have the required access level."), null);
         }
 
         project.Title = command.Title;
@@ -47,7 +48,6 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new CommandResult<Project>(project);
+        return (DomainOperationResult.Success, new BaseProjectDto(project));
     }
-
 }

@@ -6,7 +6,6 @@ using OStats.API.Commands;
 using OStats.API.Dtos;
 using OStats.API.Extensions;
 using OStats.API.Queries;
-using OStats.Domain.Aggregates.ProjectAggregate;
 
 namespace OStats.API;
 
@@ -27,20 +26,16 @@ public static class ProjectsApi
         return app;
     }
 
-    public static async Task<Results<Ok<Project>, BadRequest<List<ValidationFailure>>>> CreateProjectAsync(
+    public static async Task<Results<Ok<BaseProjectDto>, BadRequest<string>>> CreateProjectAsync(
         [FromBody] CreateProjectDto createDto,
         HttpContext context,
-        [FromServices] IMediator mediator)
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken)
     {
         var userAuthId = context.User.GetAuthId();
         var command = new CreateProjectCommand(userAuthId, createDto.Title, createDto.Description);
-        var commandResult = await mediator.Send(command);
-        if (!commandResult.Success)
-        {
-            return TypedResults.BadRequest(commandResult.ValidationFailures);
-        }
-
-        return TypedResults.Ok(commandResult.Value);
+        var (result, baseProject) = await mediator.Send(command, cancellationToken);
+        return result.Succeeded ? TypedResults.Ok(baseProject) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
     public static async Task<Results<Ok<ProjectDto>, BadRequest<List<ValidationFailure>>>> GetProjectByIdAsync(
@@ -60,21 +55,17 @@ public static class ProjectsApi
         return TypedResults.Ok(queryResult.Value);
     }
 
-    public static async Task<Results<Ok<Project>, BadRequest<List<ValidationFailure>>>> UpdateProjectAsync(
+    public static async Task<Results<Ok<BaseProjectDto>, BadRequest<string>>> UpdateProjectAsync(
         Guid projectId,
         [FromBody] UpdateProjectDto updateDto,
         HttpContext context,
-        [FromServices] IMediator mediator)
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken)
     {
         var userAuthId = context.User.GetAuthId();
         var command = new UpdateProjectCommand(projectId, userAuthId, updateDto.Title, updateDto.LastUpdatedAt, updateDto.Description);
-        var commandResult = await mediator.Send(command);
-        if (!commandResult.Success)
-        {
-            return TypedResults.BadRequest(commandResult.ValidationFailures);
-        }
-
-        return TypedResults.Ok(commandResult.Value);
+        var (result, baseProjectDto) = await mediator.Send(command, cancellationToken);
+        return result.Succeeded ? TypedResults.Ok(baseProjectDto) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
     public static async Task<Results<Ok<bool>, BadRequest<List<ValidationFailure>>>> DeleteProjectAsync(
@@ -110,7 +101,7 @@ public static class ProjectsApi
         return TypedResults.Ok(queryResult.Value);
     }
 
-    private static async Task<Results<Ok<bool>, BadRequest<List<ValidationFailure>>>> AddUserToProjectHandler(
+    private static async Task<Results<Ok<bool>, BadRequest<string>>> AddUserToProjectHandler(
         Guid projectId,
         [FromBody] AddUserToProjectDto addUserToProjectDto,
         HttpContext context,
@@ -118,62 +109,50 @@ public static class ProjectsApi
     {
         var userAuthId = context.User.GetAuthId();
         var command = new AddUserToProjectCommand(userAuthId, projectId, addUserToProjectDto.UserId, addUserToProjectDto.AccessLevel);
-        var commandResult = await mediator.Send(command);
-        if (!commandResult.Success)
+        var result = await mediator.Send(command);
+        if (!result.Succeeded)
         {
-            return TypedResults.BadRequest(commandResult.ValidationFailures);
+            return TypedResults.BadRequest(result.ErrorMessage);
         }
 
-        return TypedResults.Ok(commandResult.Value);
+        return TypedResults.Ok(result.Succeeded);
     }
-    private static async Task<Results<Ok<bool>, BadRequest<List<ValidationFailure>>>> RemoveUserFromProjectHandler(
+    private static async Task<Results<Ok<bool>, BadRequest<string>>> RemoveUserFromProjectHandler(
         Guid projectId,
         Guid userId,
         HttpContext context,
-        [FromServices] IMediator mediator)
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken)
     {
         var userAuthId = context.User.GetAuthId();
         var command = new RemoveUserFromProjectCommand(userAuthId, projectId, userId);
-        var commandResult = await mediator.Send(command);
-        if (!commandResult.Success)
-        {
-            return TypedResults.BadRequest(commandResult.ValidationFailures);
-        }
-
-        return TypedResults.Ok(commandResult.Value);
+        var result = await mediator.Send(command, cancellationToken);
+        return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    public static async Task<Results<Ok<bool>, BadRequest<List<ValidationFailure>>>> LinkProjectToDatasetHandler(
+    public static async Task<Results<Ok<bool>, BadRequest<string>>> LinkProjectToDatasetHandler(
         Guid projectId,
         Guid datasetId,
         HttpContext context,
-        [FromServices] IMediator mediator)
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken)
     {
         var userAuthId = context.User.GetAuthId();
         var command = new LinkProjectToDatasetCommand(userAuthId, datasetId, projectId);
-        var commandResult = await mediator.Send(command);
-        if (!commandResult.Success)
-        {
-            return TypedResults.BadRequest(commandResult.ValidationFailures);
-        }
-
-        return TypedResults.Ok(commandResult.Value);
+        var result = await mediator.Send(command, cancellationToken);
+        return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    public static async Task<Results<Ok<bool>, BadRequest<List<ValidationFailure>>>> UnlinkProjectToDatasetHandler(
+    public static async Task<Results<Ok<bool>, BadRequest<string>>> UnlinkProjectToDatasetHandler(
         Guid projectId,
         Guid datasetId,
         HttpContext context,
-        [FromServices] IMediator mediator)
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken)
     {
         var userAuthId = context.User.GetAuthId();
         var command = new UnlinkProjectToDatasetCommand(userAuthId, datasetId, projectId);
-        var commandResult = await mediator.Send(command);
-        if (!commandResult.Success)
-        {
-            return TypedResults.BadRequest(commandResult.ValidationFailures);
-        }
-
-        return TypedResults.Ok(commandResult.Value);
+        var result = await mediator.Send(command, cancellationToken);
+        return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
     }
 }

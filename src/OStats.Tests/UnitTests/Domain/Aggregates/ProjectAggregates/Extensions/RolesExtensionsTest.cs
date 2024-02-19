@@ -12,10 +12,12 @@ public class RolesExtensionsTest
         var ownerId = Guid.NewGuid();
         var editorId = Guid.NewGuid();
         var project = new Project(ownerId, "Test", "Description");
-        project.AddOrUpdateUserRole(editorId, AccessLevel.Editor);
+        var result = project.AddOrUpdateUserRole(editorId, AccessLevel.Editor, ownerId);
 
         using (new AssertionScope())
         {
+            result.Succeeded.Should().BeTrue();
+
             project.Roles.GetUserRole(ownerId)?.AccessLevel.Should().Be(AccessLevel.Owner);
             project.Roles.GetUserRole(editorId)?.AccessLevel.Should().Be(AccessLevel.Editor);
         }
@@ -36,11 +38,11 @@ public class RolesExtensionsTest
         var project = new Project(ownerId, "Test", "Description");
         foreach (var editorId in editorsIds)
         {
-            project.AddOrUpdateUserRole(editorId, AccessLevel.Editor);
+            project.AddOrUpdateUserRole(editorId, AccessLevel.Editor, ownerId);
         }
         foreach (var readOnlyId in readOnlyIds)
         {
-            project.AddOrUpdateUserRole(readOnlyId, AccessLevel.ReadOnly);
+            project.AddOrUpdateUserRole(readOnlyId, AccessLevel.ReadOnly, ownerId);
         }
 
         using (new AssertionScope())
@@ -56,7 +58,7 @@ public class RolesExtensionsTest
         var ownerId = Guid.NewGuid();
         var editorId = Guid.NewGuid();
         var project = new Project(ownerId, "Test", "Description");
-        project.AddOrUpdateUserRole(editorId, AccessLevel.Editor);
+        project.AddOrUpdateUserRole(editorId, AccessLevel.Editor, ownerId);
 
         using (new AssertionScope())
         {
@@ -75,9 +77,9 @@ public class RolesExtensionsTest
         var editorId = Guid.NewGuid();
         var readOnlyId = Guid.NewGuid();
         var project = new Project(ownerId, "Test", "Description");
-        project.AddOrUpdateUserRole(administratorId, AccessLevel.Administrator);
-        project.AddOrUpdateUserRole(editorId, AccessLevel.Editor);
-        project.AddOrUpdateUserRole(readOnlyId, AccessLevel.ReadOnly);
+        project.AddOrUpdateUserRole(administratorId, AccessLevel.Administrator, ownerId);
+        project.AddOrUpdateUserRole(editorId, AccessLevel.Editor, ownerId);
+        project.AddOrUpdateUserRole(readOnlyId, AccessLevel.ReadOnly, ownerId);
 
         using (new AssertionScope())
         {

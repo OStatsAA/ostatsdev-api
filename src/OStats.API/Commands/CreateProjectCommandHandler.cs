@@ -1,37 +1,36 @@
-using FluentValidation;
 using MediatR;
-using OStats.API.Common;
+using Microsoft.EntityFrameworkCore;
+using OStats.API.Dtos;
 using OStats.Domain.Aggregates.ProjectAggregate;
+using OStats.Domain.Common;
 using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand, ICommandResult<Project>>
+public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand, ValueTuple<DomainOperationResult, BaseProjectDto?>>
 {
     private readonly Context _context;
-    private readonly IValidator<CreateProjectCommand> _validator;
 
-    public CreateProjectCommandHandler(Context context, IValidator<CreateProjectCommand> validator)
+    public CreateProjectCommandHandler(Context context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
     }
 
-    public async Task<ICommandResult<Project>> Handle(CreateProjectCommand command, CancellationToken cancellationToken)
+    public async Task<ValueTuple<DomainOperationResult, BaseProjectDto?>> Handle(CreateProjectCommand command, CancellationToken cancellationToken)
     {
-        var validation = await _validator.ValidateAsync(command, cancellationToken);
-        if (!validation.IsValid)
+        var user = await _context.Users
+            .SingleOrDefaultAsync(user => user.AuthIdentity == command.UserAuthId, cancellationToken);
+        if (user is null)
         {
-            return new CommandResult<Project>(validation.Errors);
+            return (DomainOperationResult.Failure("User not found."), null);
         }
 
-        var user = _context.Users.Local.Where(user => user.AuthIdentity == command.UserAuthId).Single();
         var project = new Project(user.Id, command.Title, command.Description);
 
         await _context.AddAsync(project);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new CommandResult<Project>(project);
+        return (DomainOperationResult.Success, new BaseProjectDto(project));
     }
 
 }

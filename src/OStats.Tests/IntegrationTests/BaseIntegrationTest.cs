@@ -38,7 +38,7 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
         context.Add(project);
         var dataset = new Dataset(user.Id, "Test", "Test", "Test");
         context.Add(dataset);
-        project.LinkDataset(dataset.Id);
+        project.LinkDataset(dataset.Id, user.Id);
 
         foreach (var change in context.ChangeTracker.Entries())
         {

@@ -2,6 +2,7 @@ using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Commands;
 using OStats.Domain.Aggregates.ProjectAggregate;
+using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
 using OStats.Domain.Aggregates.UserAggregate;
 
 namespace OStats.Tests.IntegrationTests.Commands;
@@ -16,9 +17,10 @@ public class DeleteProjectIntegrationTest : BaseIntegrationTest
     public async Task Should_Fail_If_User_Is_Not_Owner()
     {
         var project = await context.Projects.FirstAsync();
+        var ownerId = project.Roles.GetUsersIdsByAccessLevel(AccessLevel.Owner).First();
         var user = new User("Test User", "test@test.com", "test_user_authid");
         await context.AddAsync(user);
-        project.AddOrUpdateUserRole(user.Id, AccessLevel.Editor);
+        project.AddOrUpdateUserRole(user.Id, AccessLevel.Editor, ownerId);
         await context.SaveChangesAsync();
         var command = new DeleteProjectCommand(user.AuthIdentity, project.Id);
         var result = await sender.Send(command);
