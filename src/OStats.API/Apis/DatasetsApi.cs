@@ -41,12 +41,7 @@ public static class DatasetsApi
         var userAuthId = context.User.GetAuthId();
         var command = new CreateDatasetCommand(userAuthId, createDto.Title, createDto.Source, createDto.Description);
         var (result, baseDatasetDto) = await mediator.Send(command, cancellationToken);
-        if (!result.Succeeded)
-        {
-            return TypedResults.BadRequest(result.ErrorMessage);
-        }
-
-        return TypedResults.Ok(baseDatasetDto);
+        return result.Succeeded ? TypedResults.Ok(baseDatasetDto) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
     public static async Task<Results<Ok<DatasetWithUsersDto>, BadRequest<List<ValidationFailure>>>> GetDatasetByIdHandler(
@@ -57,12 +52,7 @@ public static class DatasetsApi
         var userAuthId = context.User.GetAuthId();
         var command = new DatasetByIdQuery(userAuthId, datasetId);
         var commandResult = await mediator.Send(command);
-        if (!commandResult.Success)
-        {
-            return TypedResults.BadRequest(commandResult.ValidationFailures);
-        }
-
-        return TypedResults.Ok(commandResult.Value);
+        return commandResult.Success ? TypedResults.Ok(commandResult.Value) : TypedResults.BadRequest(commandResult.ValidationFailures);
     }
 
     public static async Task<Results<Ok<bool>, BadRequest<string>>> DeleteDatasetHandler(
@@ -74,12 +64,7 @@ public static class DatasetsApi
         var userAuthId = context.User.GetAuthId();
         var command = new DeleteDatasetCommand(userAuthId, datasetId);
         var result = await mediator.Send(command, cancellationToken);
-        if (!result.Succeeded)
-        {
-            return TypedResults.BadRequest(result.ErrorMessage);
-        }
-
-        return TypedResults.Ok(result.Succeeded);
+        return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
     public static async Task<Results<Ok<BaseDatasetDto>, BadRequest<string>>> UpdateDatasetHandler(
@@ -92,12 +77,7 @@ public static class DatasetsApi
         var userAuthId = context.User.GetAuthId();
         var command = new UpdateDatasetCommand(datasetId, userAuthId, updateDto.Title, updateDto.Source, updateDto.LastUpdatedAt, updateDto.Description);
         var (result, baseDatasetDto) = await mediator.Send(command, cancellationToken);
-        if (!result.Succeeded)
-        {
-            return TypedResults.BadRequest(result.ErrorMessage);
-        }
-
-        return TypedResults.Ok(baseDatasetDto);
+        return result.Succeeded ? TypedResults.Ok(baseDatasetDto) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
     public static async Task<Results<Ok<bool>, BadRequest>> IngestDataHandler(
@@ -180,12 +160,7 @@ public static class DatasetsApi
         var userAuthId = context.User.GetAuthId();
         var command = new AddUserToDatasetCommand(userAuthId, datasetId, addUserToDatasetDto.UserId, addUserToDatasetDto.AccessLevel);
         var result = await mediator.Send(command, cancellationToken);
-        if (!result.Succeeded)
-        {
-            return TypedResults.BadRequest(result.ErrorMessage);
-        }
-
-        return TypedResults.Ok(result.Succeeded);
+        return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
     private static async Task<Results<Ok<bool>, BadRequest<string>>> RemoveUserFromDatasetHandler(
@@ -198,11 +173,6 @@ public static class DatasetsApi
         var userAuthId = context.User.GetAuthId();
         var command = new RemoveUserFromDatasetCommand(userAuthId, datasetId, userId);
         var result = await mediator.Send(command, cancellationToken);
-        if (!result.Succeeded)
-        {
-            return TypedResults.BadRequest(result.ErrorMessage);
-        }
-
-        return TypedResults.Ok(result.Succeeded);
+        return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
     }
 }
