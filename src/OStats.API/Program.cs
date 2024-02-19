@@ -9,7 +9,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddJwtBearerAuthentication();
 builder.Services.AddAuthorization();
 builder.Services.AddDbContext<Context>();
-builder.Services.AddValidators();
 builder.Services.AddGrpcClient<DataService.DataServiceClient>( o => {
     o.Address = new Uri("http://dataservice:50051");
 });
