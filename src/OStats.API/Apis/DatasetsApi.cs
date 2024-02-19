@@ -80,21 +80,17 @@ public static class DatasetsApi
         return result.Succeeded ? TypedResults.Ok(baseDatasetDto) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    private static async Task<Results<Ok<bool>, BadRequest>> IngestDataHandler(
+    private static async Task<Results<Ok<bool>, BadRequest<string>>> IngestDataHandler(
         Guid datasetId,
         [FromBody] IngestDataDto ingestDataDto,
         HttpContext context,
-        [FromServices] IMediator mediator)
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken)
     {
         var userAuthId = context.User.GetAuthId();
         var command = new IngestDataCommand(userAuthId, datasetId, ingestDataDto.Bucket, ingestDataDto.FileName);
-        var commandResult = await mediator.Send(command);
-        if (!commandResult.Success)
-        {
-            return TypedResults.BadRequest();
-        }
-
-        return TypedResults.Ok(commandResult.Success);
+        var result = await mediator.Send(command, cancellationToken);
+        return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
     private static async IAsyncEnumerable<dynamic> GetDataHandler(

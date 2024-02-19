@@ -1,42 +1,41 @@
 using DataServiceGrpc;
-using FluentValidation;
-using FluentValidation.Results;
 using MediatR;
-using OStats.API.Common;
 using OStats.Domain.Aggregates.DatasetAggregate;
+using OStats.Domain.Common;
 using OStats.Infrastructure;
+using OStats.Infrastructure.Extensions;
 
 namespace OStats.API.Commands;
 
-public class IngestDataCommandHandler : IRequestHandler<IngestDataCommand, ICommandResult<bool>>
+public class IngestDataCommandHandler : IRequestHandler<IngestDataCommand, DomainOperationResult>
 {
     private readonly Context _context;
-    private readonly IValidator<IngestDataCommand> _validator;
     private readonly DataService.DataServiceClient _dataServiceClient;
 
-    public IngestDataCommandHandler(Context context, IValidator<IngestDataCommand> validator, DataService.DataServiceClient dataServiceClient)
+    public IngestDataCommandHandler(Context context, DataService.DataServiceClient dataServiceClient)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
         _dataServiceClient = dataServiceClient ?? throw new ArgumentNullException(nameof(dataServiceClient));
     }
 
-    public async Task<ICommandResult<bool>> Handle(IngestDataCommand command, CancellationToken cancellationToken)
+    public async Task<DomainOperationResult> Handle(IngestDataCommand command, CancellationToken cancellationToken)
     {
-        var validation = await _validator.ValidateAsync(command, cancellationToken);
-        if (!validation.IsValid)
+        var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
+        if (user is null)
         {
-            return new CommandResult<bool>(validation.Errors);
+            return DomainOperationResult.Failure("User not found.");
         }
 
-        var user = _context.Users.Local.Where(user => user.AuthIdentity == command.UserAuthId).Single();
-        var dataset = _context.Datasets.Local.Where(dataset => dataset.Id == command.DatasetId).Single();
+        var dataset = await _context.Datasets.FindAsync(command.DatasetId, cancellationToken);
+        if (dataset is null)
+        {
+            return DomainOperationResult.Failure("Dataset not found.");
+        }
 
         var minimumAccessLevelRequired = DatasetAccessLevel.Editor;
         if (dataset.GetUserAccessLevel(user.Id) < minimumAccessLevelRequired)
         {
-            var error = new ValidationFailure("UserId", $"User must be at least {minimumAccessLevelRequired}.");
-            return new CommandResult<bool>(error);
+            return DomainOperationResult.Failure("User does not have the required access level.");
         }
 
         var rpcRequest = new IngestDataRequest()
@@ -46,9 +45,11 @@ public class IngestDataCommandHandler : IRequestHandler<IngestDataCommand, IComm
             FileName = command.FileName,
         };
 
-        var response = await _dataServiceClient.IngestDataAsync(rpcRequest);
+        var response = await _dataServiceClient.IngestDataAsync(rpcRequest, cancellationToken: cancellationToken);
 
-        return new CommandResult<bool>(response.Success);
+        return response.Success
+            ? DomainOperationResult.Success
+            : DomainOperationResult.Failure("Failed to ingest data.");
     }
 
 }

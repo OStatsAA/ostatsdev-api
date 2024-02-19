@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -8,12 +7,6 @@ namespace OStats.API.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddValidators(this IServiceCollection services)
-    {
-        services.AddValidatorsFromAssembly(typeof(Program).Assembly);
-        return services;
-    }
-
     public static IServiceCollection AddJwtBearerAuthentication(this IServiceCollection services)
     {
         services

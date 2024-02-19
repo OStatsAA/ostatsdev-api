@@ -1,9 +1,9 @@
 using MediatR;
-using OStats.API.Common;
+using OStats.Domain.Common;
 
 namespace OStats.API.Commands;
 
-public class IngestDataCommand : IRequest<ICommandResult<bool>>
+public class IngestDataCommand : IRequest<DomainOperationResult>
 {
     public Guid DatasetId { get; }
     public string UserAuthId { get; }
