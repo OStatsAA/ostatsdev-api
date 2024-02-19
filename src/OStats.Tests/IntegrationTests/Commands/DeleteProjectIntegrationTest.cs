@@ -27,8 +27,8 @@ public class DeleteProjectIntegrationTest : BaseIntegrationTest
 
         using (new AssertionScope())
         {
-            result.Success.Should().BeFalse();
-            result.ValidationFailures.Should().NotBeEmpty();
+            result.Succeeded.Should().BeFalse();
+            result.ErrorMessage.Should().NotBeEmpty();
         }
     }
 
@@ -45,8 +45,8 @@ public class DeleteProjectIntegrationTest : BaseIntegrationTest
 
         using (new AssertionScope())
         {
-            result.Success.Should().BeTrue();
-            result.ValidationFailures.Should().BeNull();
+            result.Succeeded.Should().BeTrue();
+            result.ErrorMessage.Should().BeNullOrEmpty();
             context.Users.Any(u => u.Id == existingUser.Id).Should().BeTrue();
             context.Projects.Any(p => p.Id == project.Id).Should().BeFalse();
             context.Roles.Any(r => r.ProjectId == project.Id).Should().BeFalse();

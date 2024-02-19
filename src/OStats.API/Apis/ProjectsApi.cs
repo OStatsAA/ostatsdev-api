@@ -68,20 +68,15 @@ public static class ProjectsApi
         return result.Succeeded ? TypedResults.Ok(baseProjectDto) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    public static async Task<Results<Ok<bool>, BadRequest<List<ValidationFailure>>>> DeleteProjectAsync(
+    public static async Task<Results<Ok<bool>, BadRequest<string>>> DeleteProjectAsync(
         Guid projectId,
         HttpContext context,
         [FromServices] IMediator mediator)
     {
         var userAuthId = context.User.GetAuthId();
         var command = new DeleteProjectCommand(userAuthId, projectId);
-        var commandResult = await mediator.Send(command);
-        if (!commandResult.Success)
-        {
-            return TypedResults.BadRequest(commandResult.ValidationFailures);
-        }
-
-        return TypedResults.Ok(commandResult.Value);
+        var result = await mediator.Send(command);
+        return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
     public static async Task<Results<Ok<List<ProjectUserAndRoleDto>>, BadRequest<List<ValidationFailure>>>> GetProjectUsersAndRolesAsync(
