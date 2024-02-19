@@ -32,7 +32,7 @@ public static class DatasetsApi
         return app;
     }
 
-    public static async Task<Results<Ok<BaseDatasetDto>, BadRequest<string>>> CreateDatasetHandler(
+    private static async Task<Results<Ok<BaseDatasetDto>, BadRequest<string>>> CreateDatasetHandler(
         [FromBody] CreateDatasetDto createDto,
         HttpContext context,
         [FromServices] IMediator mediator,
@@ -44,7 +44,7 @@ public static class DatasetsApi
         return result.Succeeded ? TypedResults.Ok(baseDatasetDto) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    public static async Task<Results<Ok<DatasetWithUsersDto>, BadRequest<List<ValidationFailure>>>> GetDatasetByIdHandler(
+    private static async Task<Results<Ok<DatasetWithUsersDto>, BadRequest<List<ValidationFailure>>>> GetDatasetByIdHandler(
         Guid datasetId,
         HttpContext context,
         [FromServices] IMediator mediator)
@@ -55,7 +55,7 @@ public static class DatasetsApi
         return commandResult.Success ? TypedResults.Ok(commandResult.Value) : TypedResults.BadRequest(commandResult.ValidationFailures);
     }
 
-    public static async Task<Results<Ok<bool>, BadRequest<string>>> DeleteDatasetHandler(
+    private static async Task<Results<Ok<bool>, BadRequest<string>>> DeleteDatasetHandler(
         Guid datasetId,
         HttpContext context,
         [FromServices] IMediator mediator,
@@ -67,7 +67,7 @@ public static class DatasetsApi
         return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    public static async Task<Results<Ok<BaseDatasetDto>, BadRequest<string>>> UpdateDatasetHandler(
+    private static async Task<Results<Ok<BaseDatasetDto>, BadRequest<string>>> UpdateDatasetHandler(
         Guid datasetId,
         [FromBody] UpdateDatasetDto updateDto,
         HttpContext context,
@@ -80,7 +80,7 @@ public static class DatasetsApi
         return result.Succeeded ? TypedResults.Ok(baseDatasetDto) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    public static async Task<Results<Ok<bool>, BadRequest>> IngestDataHandler(
+    private static async Task<Results<Ok<bool>, BadRequest>> IngestDataHandler(
         Guid datasetId,
         [FromBody] IngestDataDto ingestDataDto,
         HttpContext context,
@@ -97,7 +97,7 @@ public static class DatasetsApi
         return TypedResults.Ok(commandResult.Success);
     }
 
-    public static async IAsyncEnumerable<dynamic> GetDataHandler(
+    private static async IAsyncEnumerable<dynamic> GetDataHandler(
         Guid datasetId,
         HttpContext context,
         Context dbContext,

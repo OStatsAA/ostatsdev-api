@@ -26,7 +26,7 @@ public static class ProjectsApi
         return app;
     }
 
-    public static async Task<Results<Ok<BaseProjectDto>, BadRequest<string>>> CreateProjectAsync(
+    private static async Task<Results<Ok<BaseProjectDto>, BadRequest<string>>> CreateProjectAsync(
         [FromBody] CreateProjectDto createDto,
         HttpContext context,
         [FromServices] IMediator mediator,
@@ -38,7 +38,7 @@ public static class ProjectsApi
         return result.Succeeded ? TypedResults.Ok(baseProject) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    public static async Task<Results<Ok<ProjectDto>, BadRequest<List<ValidationFailure>>>> GetProjectByIdAsync(
+    private static async Task<Results<Ok<ProjectDto>, BadRequest<List<ValidationFailure>>>> GetProjectByIdAsync(
         Guid projectId,
         HttpContext context,
         [FromServices] IMediator mediator)
@@ -55,7 +55,7 @@ public static class ProjectsApi
         return TypedResults.Ok(queryResult.Value);
     }
 
-    public static async Task<Results<Ok<BaseProjectDto>, BadRequest<string>>> UpdateProjectAsync(
+    private static async Task<Results<Ok<BaseProjectDto>, BadRequest<string>>> UpdateProjectAsync(
         Guid projectId,
         [FromBody] UpdateProjectDto updateDto,
         HttpContext context,
@@ -68,7 +68,7 @@ public static class ProjectsApi
         return result.Succeeded ? TypedResults.Ok(baseProjectDto) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    public static async Task<Results<Ok<bool>, BadRequest<string>>> DeleteProjectAsync(
+    private static async Task<Results<Ok<bool>, BadRequest<string>>> DeleteProjectAsync(
         Guid projectId,
         HttpContext context,
         [FromServices] IMediator mediator)
@@ -79,7 +79,7 @@ public static class ProjectsApi
         return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    public static async Task<Results<Ok<List<ProjectUserAndRoleDto>>, BadRequest<List<ValidationFailure>>>> GetProjectUsersAndRolesAsync(
+    private static async Task<Results<Ok<List<ProjectUserAndRoleDto>>, BadRequest<List<ValidationFailure>>>> GetProjectUsersAndRolesAsync(
         Guid projectId,
         HttpContext context,
         [FromServices] IMediator mediator)
@@ -120,7 +120,7 @@ public static class ProjectsApi
         return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    public static async Task<Results<Ok<bool>, BadRequest<string>>> LinkProjectToDatasetHandler(
+    private static async Task<Results<Ok<bool>, BadRequest<string>>> LinkProjectToDatasetHandler(
         Guid projectId,
         Guid datasetId,
         HttpContext context,
@@ -133,7 +133,7 @@ public static class ProjectsApi
         return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    public static async Task<Results<Ok<bool>, BadRequest<string>>> UnlinkProjectToDatasetHandler(
+    private static async Task<Results<Ok<bool>, BadRequest<string>>> UnlinkProjectToDatasetHandler(
         Guid projectId,
         Guid datasetId,
         HttpContext context,
