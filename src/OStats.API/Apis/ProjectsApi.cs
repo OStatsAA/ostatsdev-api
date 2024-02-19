@@ -105,12 +105,7 @@ public static class ProjectsApi
         var userAuthId = context.User.GetAuthId();
         var command = new AddUserToProjectCommand(userAuthId, projectId, addUserToProjectDto.UserId, addUserToProjectDto.AccessLevel);
         var result = await mediator.Send(command);
-        if (!result.Succeeded)
-        {
-            return TypedResults.BadRequest(result.ErrorMessage);
-        }
-
-        return TypedResults.Ok(result.Succeeded);
+        return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
     }
     private static async Task<Results<Ok<bool>, BadRequest<string>>> RemoveUserFromProjectHandler(
         Guid projectId,
