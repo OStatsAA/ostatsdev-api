@@ -39,10 +39,11 @@ public static class UsersApi
         return TypedResults.Ok(queryResult.Value);
     }
 
-    public static async Task<Results<Ok<BaseUserDto>, BadRequest<List<ValidationFailure>>>> CreateUserAsync(
+    public static async Task<Results<Ok<BaseUserDto>, BadRequest<string>>> CreateUserAsync(
         [FromBody] CreateUserDto createDto,
         HttpContext context,
-        [FromServices] IMediator mediator)
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken)
     {
         var userAuthId = context.User.GetAuthId();
         var query = new UserByAuthIdQuery(userAuthId);
@@ -53,13 +54,8 @@ public static class UsersApi
         }
 
         var command = new CreateUserCommand(createDto.Name, createDto.Email, userAuthId);
-        var commandResult = await mediator.Send(command);
-        if (!commandResult.Success)
-        {
-            return TypedResults.BadRequest(commandResult.ValidationFailures);
-        }
-
-        return TypedResults.Ok(commandResult.Value);
+        var (result, baseUserDto) = await mediator.Send(command, cancellationToken);
+        return result.Succeeded ? TypedResults.Ok(baseUserDto) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
     public static async Task<Results<Ok<BaseUserDto>, BadRequest<List<ValidationFailure>>>> GetUserByIdAsync(

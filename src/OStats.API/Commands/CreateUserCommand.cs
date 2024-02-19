@@ -1,10 +1,10 @@
 using MediatR;
-using OStats.API.Common;
 using OStats.API.Dtos;
+using OStats.Domain.Common;
 
 namespace OStats.API.Commands;
 
-public class CreateUserCommand : IRequest<ICommandResult<BaseUserDto>>
+public class CreateUserCommand : IRequest<ValueTuple<DomainOperationResult, BaseUserDto?>>
 {
     public string Name { get; }
     public string Email { get; }
