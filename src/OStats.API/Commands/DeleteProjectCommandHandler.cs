@@ -1,45 +1,44 @@
-using FluentValidation;
-using FluentValidation.Results;
 using MediatR;
-using OStats.API.Common;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
+using OStats.Domain.Common;
 using OStats.Infrastructure;
+using OStats.Infrastructure.Extensions;
 
 namespace OStats.API.Commands;
 
-public class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand, ICommandResult<bool>>
+public class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand, DomainOperationResult>
 {
     private readonly Context _context;
-    private readonly IValidator<DeleteProjectCommand> _validator;
 
-    public DeleteProjectCommandHandler(Context context, IValidator<DeleteProjectCommand> validator)
+    public DeleteProjectCommandHandler(Context context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
     }
 
-    public async Task<ICommandResult<bool>> Handle(DeleteProjectCommand command, CancellationToken cancellationToken)
+    public async Task<DomainOperationResult> Handle(DeleteProjectCommand command, CancellationToken cancellationToken)
     {
-        var validation = await _validator.ValidateAsync(command);
-        if (!validation.IsValid)
+        var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
+        if (user is null)
         {
-            return new CommandResult<bool>(validation.Errors);
+            return DomainOperationResult.Failure("User not found.");
         }
 
-        var user = _context.Users.Local.Where(user => user.AuthIdentity == command.UserAuthId).Single();
-        var project = _context.Projects.Local.Where(project => project.Id == command.ProjectId).Single();
+        var project = await _context.Projects.FindAsync(command.ProjectId, cancellationToken);
+        if (project is null)
+        {
+            return DomainOperationResult.Failure("Project not found.");
+        }
 
         var isUserOwner = project.Roles.IsUser(user.Id, AccessLevel.Owner);
         if (!isUserOwner)
         {
-            var error = new ValidationFailure("UserAuthId", "User cannot delete project.");
-            return new CommandResult<bool>(error);
+            return DomainOperationResult.Failure("User does not have permission to delete this project.");
         }
 
         _context.Remove(project);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new CommandResult<bool>(true);
+        return DomainOperationResult.Success;
     }
 }
