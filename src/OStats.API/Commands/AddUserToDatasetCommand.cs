@@ -1,10 +1,10 @@
 using MediatR;
-using OStats.API.Common;
 using OStats.Domain.Aggregates.DatasetAggregate;
+using OStats.Domain.Common;
 
 namespace OStats.API.Commands;
 
-public class AddUserToDatasetCommand : IRequest<ICommandResult<bool>>
+public class AddUserToDatasetCommand : IRequest<DomainOperationResult>
 {
     public string UserAuthId { get; set; }
     public Guid DatasetId { get; set; }

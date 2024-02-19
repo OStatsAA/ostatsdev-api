@@ -1,42 +1,40 @@
-using FluentValidation;
-using FluentValidation.Results;
 using MediatR;
-using OStats.API.Common;
-using OStats.Domain.Aggregates.DatasetAggregate;
+using OStats.Domain.Common;
 using OStats.Infrastructure;
+using OStats.Infrastructure.Extensions;
 
 namespace OStats.API.Commands;
 
-public class RemoveUserFromDatasetCommandHandler : IRequestHandler<RemoveUserFromDatasetCommand, ICommandResult<bool>>
+public class RemoveUserFromDatasetCommandHandler : IRequestHandler<RemoveUserFromDatasetCommand, DomainOperationResult>
 {
     private readonly Context _context;
-    private readonly IValidator<RemoveUserFromDatasetCommand> _validator;
 
-    public RemoveUserFromDatasetCommandHandler(Context context, IValidator<RemoveUserFromDatasetCommand> validator)
+    public RemoveUserFromDatasetCommandHandler(Context context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
     }
 
-    public async Task<ICommandResult<bool>> Handle(RemoveUserFromDatasetCommand request, CancellationToken cancellationToken)
+    public async Task<DomainOperationResult> Handle(RemoveUserFromDatasetCommand request, CancellationToken cancellationToken)
     {
-        var validation = await _validator.ValidateAsync(request, cancellationToken);
-        if (!validation.IsValid)
+        var dataset = await _context.Datasets.FindAsync(request.DatasetId, cancellationToken);
+        if (dataset is null)
         {
-            return new CommandResult<bool>(validation.Errors);
+            return DomainOperationResult.Failure("Dataset not found.");
         }
 
-        var dataset = _context.Datasets.Local.Single(dataset => dataset.Id == request.DatasetId);
-        var requestor = _context.Users.Local.Single(user => user.AuthIdentity == request.UserAuthId);
-        if (dataset.GetUserAccess(requestor.Id) < DatasetAccessLevel.Administrator)
+        var requestor = await _context.Users.FindByAuthIdentityAsync(request.UserAuthId, cancellationToken);
+        if (requestor is null)
         {
-            var error = new ValidationFailure("User", "Requestor cannot grant access to dataset.");
-            return new CommandResult<bool>(error);
+            return DomainOperationResult.Failure("Requestor not found.");
         }
 
-        dataset.RemoveUserAccess(request.UserId);
+        var result = dataset.RemoveUserAccess(request.UserId, requestor.Id);
+        if (!result.Succeeded)
+        {
+            return result;
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
-        return new CommandResult<bool>(true);
+        return result;
     }
 }

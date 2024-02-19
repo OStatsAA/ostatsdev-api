@@ -10,7 +10,6 @@ using OStats.API.Commands;
 using OStats.API.Dtos;
 using OStats.API.Extensions;
 using OStats.API.Queries;
-using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Infrastructure;
 using OStats.Infrastructure.Extensions;
 
@@ -33,20 +32,21 @@ public static class DatasetsApi
         return app;
     }
 
-    public static async Task<Results<Ok<Dataset>, BadRequest<List<ValidationFailure>>>> CreateDatasetHandler(
+    public static async Task<Results<Ok<BaseDatasetDto>, BadRequest<string>>> CreateDatasetHandler(
         [FromBody] CreateDatasetDto createDto,
         HttpContext context,
-        [FromServices] IMediator mediator)
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken)
     {
         var userAuthId = context.User.GetAuthId();
         var command = new CreateDatasetCommand(userAuthId, createDto.Title, createDto.Source, createDto.Description);
-        var commandResult = await mediator.Send(command);
-        if (!commandResult.Success)
+        var (result, baseDatasetDto) = await mediator.Send(command, cancellationToken);
+        if (!result.Succeeded)
         {
-            return TypedResults.BadRequest(commandResult.ValidationFailures);
+            return TypedResults.BadRequest(result.ErrorMessage);
         }
 
-        return TypedResults.Ok(commandResult.Value);
+        return TypedResults.Ok(baseDatasetDto);
     }
 
     public static async Task<Results<Ok<DatasetWithUsersDto>, BadRequest<List<ValidationFailure>>>> GetDatasetByIdHandler(
@@ -65,37 +65,39 @@ public static class DatasetsApi
         return TypedResults.Ok(commandResult.Value);
     }
 
-    public static async Task<Results<Ok<bool>, BadRequest<List<ValidationFailure>>>> DeleteDatasetHandler(
+    public static async Task<Results<Ok<bool>, BadRequest<string>>> DeleteDatasetHandler(
         Guid datasetId,
         HttpContext context,
-        [FromServices] IMediator mediator)
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken)
     {
         var userAuthId = context.User.GetAuthId();
         var command = new DeleteDatasetCommand(userAuthId, datasetId);
-        var commandResult = await mediator.Send(command);
-        if (!commandResult.Success)
+        var result = await mediator.Send(command, cancellationToken);
+        if (!result.Succeeded)
         {
-            return TypedResults.BadRequest(commandResult.ValidationFailures);
+            return TypedResults.BadRequest(result.ErrorMessage);
         }
 
-        return TypedResults.Ok(commandResult.Value);
+        return TypedResults.Ok(result.Succeeded);
     }
 
-    public static async Task<Results<Ok<Dataset>, BadRequest<List<ValidationFailure>>>> UpdateDatasetHandler(
+    public static async Task<Results<Ok<BaseDatasetDto>, BadRequest<string>>> UpdateDatasetHandler(
         Guid datasetId,
         [FromBody] UpdateDatasetDto updateDto,
         HttpContext context,
-        [FromServices] IMediator mediator)
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken)
     {
         var userAuthId = context.User.GetAuthId();
         var command = new UpdateDatasetCommand(datasetId, userAuthId, updateDto.Title, updateDto.Source, updateDto.LastUpdatedAt, updateDto.Description);
-        var commandResult = await mediator.Send(command);
-        if (!commandResult.Success)
+        var (result, baseDatasetDto) = await mediator.Send(command, cancellationToken);
+        if (!result.Succeeded)
         {
-            return TypedResults.BadRequest(commandResult.ValidationFailures);
+            return TypedResults.BadRequest(result.ErrorMessage);
         }
 
-        return TypedResults.Ok(commandResult.Value);
+        return TypedResults.Ok(baseDatasetDto);
     }
 
     public static async Task<Results<Ok<bool>, BadRequest>> IngestDataHandler(
@@ -168,37 +170,39 @@ public static class DatasetsApi
         return TypedResults.Ok(commandResult.Value);
     }
 
-    private static async Task<Results<Ok<bool>, BadRequest<List<ValidationFailure>>>> AddUserToDatasetHandler(
+    private static async Task<Results<Ok<bool>, BadRequest<string>>> AddUserToDatasetHandler(
         Guid datasetId,
         [FromBody] AddUserToDatasetDto addUserToDatasetDto,
         HttpContext context,
-        [FromServices] IMediator mediator)
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken)
     {
         var userAuthId = context.User.GetAuthId();
         var command = new AddUserToDatasetCommand(userAuthId, datasetId, addUserToDatasetDto.UserId, addUserToDatasetDto.AccessLevel);
-        var commandResult = await mediator.Send(command);
-        if (!commandResult.Success)
+        var result = await mediator.Send(command, cancellationToken);
+        if (!result.Succeeded)
         {
-            return TypedResults.BadRequest(commandResult.ValidationFailures);
+            return TypedResults.BadRequest(result.ErrorMessage);
         }
 
-        return TypedResults.Ok(commandResult.Value);
+        return TypedResults.Ok(result.Succeeded);
     }
 
-    private static async Task<Results<Ok<bool>, BadRequest<List<ValidationFailure>>>> RemoveUserFromDatasetHandler(
+    private static async Task<Results<Ok<bool>, BadRequest<string>>> RemoveUserFromDatasetHandler(
         Guid datasetId,
         Guid userId,
         HttpContext context,
-        [FromServices] IMediator mediator)
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken)
     {
         var userAuthId = context.User.GetAuthId();
         var command = new RemoveUserFromDatasetCommand(userAuthId, datasetId, userId);
-        var commandResult = await mediator.Send(command);
-        if (!commandResult.Success)
+        var result = await mediator.Send(command, cancellationToken);
+        if (!result.Succeeded)
         {
-            return TypedResults.BadRequest(commandResult.ValidationFailures);
+            return TypedResults.BadRequest(result.ErrorMessage);
         }
 
-        return TypedResults.Ok(commandResult.Value);
+        return TypedResults.Ok(result.Succeeded);
     }
 }

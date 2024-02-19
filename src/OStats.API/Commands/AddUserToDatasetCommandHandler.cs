@@ -1,41 +1,45 @@
-using FluentValidation;
-using FluentValidation.Results;
 using MediatR;
-using OStats.API.Common;
-using OStats.Domain.Aggregates.DatasetAggregate;
+using OStats.Domain.Common;
 using OStats.Infrastructure;
+using OStats.Infrastructure.Extensions;
 
 namespace OStats.API.Commands;
 
-public class AddUserToDatasetCommandHandler : IRequestHandler<AddUserToDatasetCommand, ICommandResult<bool>>
+public class AddUserToDatasetCommandHandler : IRequestHandler<AddUserToDatasetCommand, DomainOperationResult>
 {
     private readonly Context _context;
-    private readonly IValidator<AddUserToDatasetCommand> _validator;
 
-    public AddUserToDatasetCommandHandler(Context context, IValidator<AddUserToDatasetCommand> validator)
+    public AddUserToDatasetCommandHandler(Context context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
     }
-    public async Task<ICommandResult<bool>> Handle(AddUserToDatasetCommand request, CancellationToken cancellationToken)
+    public async Task<DomainOperationResult> Handle(AddUserToDatasetCommand request, CancellationToken cancellationToken)
     {
-        var validation = await _validator.ValidateAsync(request, cancellationToken);
-        if (!validation.IsValid)
+        var dataset = await _context.Datasets.FindAsync(request.DatasetId, cancellationToken);
+        if (dataset is null)
         {
-            return new CommandResult<bool>(validation.Errors);
+            return DomainOperationResult.Failure("Dataset not found.");
         }
 
-        var dataset = _context.Datasets.Local.Single(project => project.Id == request.DatasetId);
-        var requestor = _context.Users.Local.Single(user => user.AuthIdentity == request.UserAuthId);
-        if (dataset.GetUserAccess(requestor.Id) < DatasetAccessLevel.Administrator)
+        var requestor = await _context.Users.FindByAuthIdentityAsync(request.UserAuthId, cancellationToken);
+        if (requestor is null)
         {
-            var error = new ValidationFailure("User", "Requestor cannot grant access to dataset.");
-            return new CommandResult<bool>(error);
+            return DomainOperationResult.Failure("Requestor not found.");
         }
 
-        dataset.GrantUserAccess(request.UserId, request.AccessLevel);
+        var user = await _context.Users.FindAsync(request.UserId, cancellationToken);
+        if (user is null)
+        {
+            return DomainOperationResult.Failure("User not found.");
+        }
+
+        var result = dataset.GrantUserAccess(request.UserId, request.AccessLevel, requestor.Id);
+        if (!result.Succeeded)
+        {
+            return result;
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
-        return new CommandResult<bool>(true);
+        return result;
     }
 }

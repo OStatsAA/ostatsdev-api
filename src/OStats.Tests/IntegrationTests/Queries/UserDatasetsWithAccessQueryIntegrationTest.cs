@@ -30,7 +30,7 @@ public class UserDatasetsWithAccessQueryIntegrationTest : BaseIntegrationTest
         var userDatasetsIds = new List<Guid>(2);
         foreach (var userDataset in datasets.Take(2).AsEnumerable())
         {
-            userDataset.GrantUserAccess(user.Id, DatasetAccessLevel.ReadOnly);
+            userDataset.GrantUserAccess(user.Id, DatasetAccessLevel.ReadOnly, owner.Id);
             userDatasetsIds.Add(userDataset.Id);
         }
 

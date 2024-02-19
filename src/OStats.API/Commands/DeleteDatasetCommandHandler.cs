@@ -1,43 +1,42 @@
-using FluentValidation;
-using FluentValidation.Results;
 using MediatR;
-using OStats.API.Common;
 using OStats.Domain.Aggregates.DatasetAggregate;
+using OStats.Domain.Common;
 using OStats.Infrastructure;
+using OStats.Infrastructure.Extensions;
 
 namespace OStats.API.Commands;
 
-public class DeleteDatasetCommandHandler : IRequestHandler<DeleteDatasetCommand, ICommandResult<bool>>
+public class DeleteDatasetCommandHandler : IRequestHandler<DeleteDatasetCommand, DomainOperationResult>
 {
     private readonly Context _context;
-    private readonly IValidator<DeleteDatasetCommand> _validator;
 
-    public DeleteDatasetCommandHandler(Context context, IValidator<DeleteDatasetCommand> validator)
+    public DeleteDatasetCommandHandler(Context context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
     }
 
-    public async Task<ICommandResult<bool>> Handle(DeleteDatasetCommand command, CancellationToken cancellationToken)
+    public async Task<DomainOperationResult> Handle(DeleteDatasetCommand command, CancellationToken cancellationToken)
     {
-        var validation = await _validator.ValidateAsync(command);
-        if (!validation.IsValid)
+        var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
+        if (user is null)
         {
-            return new CommandResult<bool>(validation.Errors);
+            return DomainOperationResult.Failure("User not found.");
         }
 
-        var user = _context.Users.Local.Where(user => user.AuthIdentity == command.UserAuthId).Single();
-        var dataset = _context.Datasets.Local.Where(dataset => dataset.Id == command.DatasetId).Single();
-
-        if (dataset.GetUserAccess(user.Id) < DatasetAccessLevel.Owner)
+        var dataset = await _context.Datasets.FindAsync(command.DatasetId, cancellationToken);
+        if (dataset is null)
         {
-            var error = new ValidationFailure("User", "User cannot delete dataset.");
-            return new CommandResult<bool>(error);
+            return DomainOperationResult.Failure("Dataset not found.");
+        }
+
+        if (dataset.GetUserAccessLevel(user.Id) < DatasetAccessLevel.Owner)
+        {
+            return DomainOperationResult.Failure("User does not have permission to delete this dataset.");
         }
 
         _context.Remove(dataset);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new CommandResult<bool>(true);
+        return DomainOperationResult.Success;
     }
 }

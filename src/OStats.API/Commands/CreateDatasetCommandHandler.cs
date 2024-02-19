@@ -1,37 +1,33 @@
-using FluentValidation;
 using MediatR;
-using OStats.API.Common;
+using OStats.API.Dtos;
 using OStats.Domain.Aggregates.DatasetAggregate;
+using OStats.Domain.Common;
 using OStats.Infrastructure;
+using OStats.Infrastructure.Extensions;
 
 namespace OStats.API.Commands;
 
-public class CreateDatasetCommandHandler : IRequestHandler<CreateDatasetCommand, ICommandResult<Dataset>>
+public class CreateDatasetCommandHandler : IRequestHandler<CreateDatasetCommand, ValueTuple<DomainOperationResult, BaseDatasetDto?>>
 {
     private readonly Context _context;
-    private readonly IValidator<CreateDatasetCommand> _validator;
-
-    public CreateDatasetCommandHandler(Context context, IValidator<CreateDatasetCommand> validator)
+    public CreateDatasetCommandHandler(Context context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
     }
 
-    public async Task<ICommandResult<Dataset>> Handle(CreateDatasetCommand command, CancellationToken cancellationToken)
+    public async Task<ValueTuple<DomainOperationResult, BaseDatasetDto?>> Handle(CreateDatasetCommand command, CancellationToken cancellationToken)
     {
-        var validation = await _validator.ValidateAsync(command, cancellationToken);
-        if (!validation.IsValid)
+        var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
+        if (user is null)
         {
-            return new CommandResult<Dataset>(validation.Errors);
+            return (DomainOperationResult.Failure("User not found."), null);
         }
 
-        var user = _context.Users.Local.Where(user => user.AuthIdentity == command.UserAuthId).Single();
         var dataset = new Dataset(user.Id, command.Title, command.Source, command.Description);
-
-        await _context.AddAsync(dataset);
+        await _context.AddAsync(dataset, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new CommandResult<Dataset>(dataset);
+        return (DomainOperationResult.Success, new BaseDatasetDto(dataset));
     }
 
 }
