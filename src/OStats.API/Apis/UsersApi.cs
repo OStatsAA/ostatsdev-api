@@ -22,10 +22,10 @@ public static class UsersApi
         return app;
     }
 
-    public static async Task<Results<Ok<List<BaseUserDto>>, BadRequest<List<ValidationFailure>>>> PeopleSearchHandler(
-        [FromQuery] string search,
-        HttpContext context,
-        [FromServices] IMediator mediator)
+    private static async Task<Results<Ok<List<BaseUserDto>>, BadRequest<List<ValidationFailure>>>> PeopleSearchHandler(
+         [FromQuery] string search,
+         HttpContext context,
+         [FromServices] IMediator mediator)
     {
         var userAuthId = context.User.GetAuthId();
         var query = new PeopleSearchQuery(userAuthId, search);
@@ -39,11 +39,11 @@ public static class UsersApi
         return TypedResults.Ok(queryResult.Value);
     }
 
-    public static async Task<Results<Ok<BaseUserDto>, BadRequest<string>>> CreateUserAsync(
-        [FromBody] CreateUserDto createDto,
-        HttpContext context,
-        [FromServices] IMediator mediator,
-        CancellationToken cancellationToken)
+    private static async Task<Results<Ok<BaseUserDto>, BadRequest<string>>> CreateUserAsync(
+         [FromBody] CreateUserDto createDto,
+         HttpContext context,
+         [FromServices] IMediator mediator,
+         CancellationToken cancellationToken)
     {
         var userAuthId = context.User.GetAuthId();
         var query = new UserByAuthIdQuery(userAuthId);
@@ -58,10 +58,10 @@ public static class UsersApi
         return result.Succeeded ? TypedResults.Ok(baseUserDto) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    public static async Task<Results<Ok<BaseUserDto>, BadRequest<List<ValidationFailure>>>> GetUserByIdAsync(
-        [FromRoute] Guid userId,
-        HttpContext context,
-        [FromServices] IMediator mediator)
+    private static async Task<Results<Ok<BaseUserDto>, BadRequest<List<ValidationFailure>>>> GetUserByIdAsync(
+         [FromRoute] Guid userId,
+         HttpContext context,
+         [FromServices] IMediator mediator)
     {
         var userAuthId = context.User.GetAuthId();
         var query = new UserByIdQuery(userAuthId, userId);
@@ -75,10 +75,10 @@ public static class UsersApi
         return TypedResults.Ok(queryResult.Value);
     }
 
-    public static async Task<Results<Ok<List<UserProjectDto>>, BadRequest<List<ValidationFailure>>>> GetUserProjectsAsync(
-        [FromRoute] Guid userId,
-        HttpContext context,
-        [FromServices] IMediator mediator)
+    private static async Task<Results<Ok<List<UserProjectDto>>, BadRequest<List<ValidationFailure>>>> GetUserProjectsAsync(
+         [FromRoute] Guid userId,
+         HttpContext context,
+         [FromServices] IMediator mediator)
     {
         var userAuthId = context.User.GetAuthId();
         var query = new UserProjectsWithRoleQuery(userAuthId, userId);
@@ -92,10 +92,10 @@ public static class UsersApi
         return TypedResults.Ok(queryResult.Value);
     }
 
-    public static async Task<Results<Ok<List<UserDatasetDto>>, BadRequest<List<ValidationFailure>>>> GetUserDatasetsHandler(
-        [FromRoute] Guid userId,
-        HttpContext context,
-        [FromServices] IMediator mediator)
+    private static async Task<Results<Ok<List<UserDatasetDto>>, BadRequest<List<ValidationFailure>>>> GetUserDatasetsHandler(
+         [FromRoute] Guid userId,
+         HttpContext context,
+         [FromServices] IMediator mediator)
     {
         var userAuthId = context.User.GetAuthId();
         var query = new UserDatasetsWithAccessQuery(userAuthId, userId);
