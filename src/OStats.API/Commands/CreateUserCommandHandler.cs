@@ -1,37 +1,34 @@
-using FluentValidation;
 using MediatR;
-using OStats.API.Common;
+using Microsoft.EntityFrameworkCore;
 using OStats.API.Dtos;
 using OStats.Domain.Aggregates.UserAggregate;
+using OStats.Domain.Common;
 using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, ICommandResult<BaseUserDto>>
+public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, ValueTuple<DomainOperationResult, BaseUserDto?>>
 {
     private readonly Context _context;
-    private readonly IValidator<CreateUserCommand> _validator;
 
-    public CreateUserCommandHandler(Context context, IValidator<CreateUserCommand> validator)
+    public CreateUserCommandHandler(Context context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
     }
 
-    public async Task<ICommandResult<BaseUserDto>> Handle(CreateUserCommand command, CancellationToken cancellationToken)
+    public async Task<ValueTuple<DomainOperationResult, BaseUserDto?>> Handle(CreateUserCommand command, CancellationToken cancellationToken)
     {
-        var validation = await _validator.ValidateAsync(command);
-        if (!validation.IsValid)
+        var duplicatedAuthIdentity = await _context.Users.AnyAsync(u => u.AuthIdentity == command.AuthIdentity, cancellationToken);
+        if (duplicatedAuthIdentity)
         {
-            return new CommandResult<BaseUserDto>(validation.Errors);
+            return (DomainOperationResult.Failure("Cannot create user."), null);
         }
 
         var user = new User(command.Name, command.Email, command.AuthIdentity);
-
-        await _context.AddAsync(user);
+        await _context.AddAsync(user, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new CommandResult<BaseUserDto>(new BaseUserDto(user));
+        return (DomainOperationResult.Success, new BaseUserDto(user));
     }
 
 }
