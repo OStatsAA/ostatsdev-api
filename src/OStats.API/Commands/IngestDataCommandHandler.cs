@@ -33,7 +33,7 @@ public class IngestDataCommandHandler : IRequestHandler<IngestDataCommand, IComm
         var dataset = _context.Datasets.Local.Where(dataset => dataset.Id == command.DatasetId).Single();
 
         var minimumAccessLevelRequired = DatasetAccessLevel.Editor;
-        if (dataset.GetUserAccess(user.Id) < minimumAccessLevelRequired)
+        if (dataset.GetUserAccessLevel(user.Id) < minimumAccessLevelRequired)
         {
             var error = new ValidationFailure("UserId", $"User must be at least {minimumAccessLevelRequired}.");
             return new CommandResult<bool>(error);

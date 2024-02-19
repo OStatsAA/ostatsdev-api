@@ -1,44 +1,45 @@
-using FluentValidation;
-using FluentValidation.Results;
 using MediatR;
-using OStats.API.Common;
+using OStats.API.Dtos;
 using OStats.Domain.Aggregates.DatasetAggregate;
+using OStats.Domain.Common;
 using OStats.Infrastructure;
+using OStats.Infrastructure.Extensions;
 
 namespace OStats.API.Commands;
 
-public class UpdateDatasetCommandHandler : IRequestHandler<UpdateDatasetCommand, ICommandResult<Dataset>>
+public class UpdateDatasetCommandHandler : IRequestHandler<UpdateDatasetCommand, ValueTuple<DomainOperationResult, BaseDatasetDto?>>
 {
     private readonly Context _context;
-    private readonly IValidator<UpdateDatasetCommand> _validator;
 
-    public UpdateDatasetCommandHandler(Context context, IValidator<UpdateDatasetCommand> validator)
+    public UpdateDatasetCommandHandler(Context context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
     }
 
-    public async Task<ICommandResult<Dataset>> Handle(UpdateDatasetCommand command, CancellationToken cancellationToken)
+    public async Task<ValueTuple<DomainOperationResult, BaseDatasetDto?>> Handle(UpdateDatasetCommand command, CancellationToken cancellationToken)
     {
-        var validation = await _validator.ValidateAsync(command);
-        if (!validation.IsValid)
+        var dataset = await _context.Datasets.FindAsync(command.Id, cancellationToken);
+        if (dataset is null)
         {
-            return new CommandResult<Dataset>(validation.Errors);
+            return (DomainOperationResult.Failure("Dataset not found."), null);
         }
 
-        var dataset = _context.Datasets.Local.Where(dataset => dataset.Id == command.Id).Single();
-        if (dataset.LastUpdatedAt != command.LastUpdatedAt)
+        if (dataset.LastUpdatedAt > command.LastUpdatedAt)
         {
-            var error = new ValidationFailure("LastUpdatedAt", "Dataset has changed since command was submited.");
-            return new CommandResult<Dataset>(error);
+            return (DomainOperationResult.Failure("Project has changed since command was submited."), null);
         }
 
-        var user = _context.Users.Local.Where(user => user.AuthIdentity == command.UserAuthId).Single();
+        var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
+        if (user is null)
+        {
+            return (DomainOperationResult.Failure("User not found."), null);
+        }
+
+
         var minimumAccessLevelRequired = DatasetAccessLevel.Editor;
-        if (dataset.GetUserAccess(user.Id) < minimumAccessLevelRequired)
+        if (dataset.GetUserAccessLevel(user.Id) < minimumAccessLevelRequired)
         {
-            var error = new ValidationFailure("UserId", $"User must be at least {minimumAccessLevelRequired}.");
-            return new CommandResult<Dataset>(error);
+            return (DomainOperationResult.Failure("User does not have the required access level."), null);
         }
 
         dataset.Title = command.Title;
@@ -47,7 +48,7 @@ public class UpdateDatasetCommandHandler : IRequestHandler<UpdateDatasetCommand,
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new CommandResult<Dataset>(dataset);
+        return (DomainOperationResult.Success, new BaseDatasetDto(dataset));
     }
 
 }

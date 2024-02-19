@@ -21,7 +21,7 @@ public class DatasetByIdQueryIntegrationTest : BaseIntegrationTest
         await context.AddAsync(dataset);
         var editor = new User("Editor", "editor@email.com", "editor_authid");
         await context.AddAsync(editor);
-        dataset.GrantUserAccess(editor.Id, DatasetAccessLevel.Editor);
+        dataset.GrantUserAccess(editor.Id, DatasetAccessLevel.Editor, owner.Id);
         await context.SaveChangesAsync();
 
         var query = new DatasetByIdQuery(owner.AuthIdentity, dataset.Id);
@@ -49,7 +49,7 @@ public class DatasetByIdQueryIntegrationTest : BaseIntegrationTest
         await context.AddAsync(dataset);
         var editor = new User("Editor", "editor@email.com", "editor_authid2");
         await context.AddAsync(editor);
-        dataset.GrantUserAccess(editor.Id, DatasetAccessLevel.Editor);
+        dataset.GrantUserAccess(editor.Id, DatasetAccessLevel.Editor, owner.Id);
 
         var unauthorizedUser = new User("Name", "email@email.com", "unauthorized_authid");
         await context.AddAsync(unauthorizedUser);
