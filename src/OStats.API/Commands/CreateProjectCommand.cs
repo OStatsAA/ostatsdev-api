@@ -1,10 +1,10 @@
 using MediatR;
-using OStats.API.Common;
-using OStats.Domain.Aggregates.ProjectAggregate;
+using OStats.API.Dtos;
+using OStats.Domain.Common;
 
 namespace OStats.API.Commands;
 
-public class CreateProjectCommand : IRequest<ICommandResult<Project>>
+public class CreateProjectCommand : IRequest<ValueTuple<DomainOperationResult, BaseProjectDto?>>
 {
     public string UserAuthId { get; set; }
     public string Title { get; set; }

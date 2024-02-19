@@ -1,10 +1,10 @@
 using MediatR;
-using OStats.API.Common;
-using OStats.Domain.Aggregates.ProjectAggregate;
+using OStats.API.Dtos;
+using OStats.Domain.Common;
 
 namespace OStats.API.Commands;
 
-public class UpdateProjectCommand : CreateProjectCommand, IRequest<ICommandResult<Project>>
+public class UpdateProjectCommand : CreateProjectCommand, IRequest<ValueTuple<DomainOperationResult, BaseProjectDto?>>
 {
     public Guid Id { get; init; }
     public DateTime LastUpdatedAt { get; init; }

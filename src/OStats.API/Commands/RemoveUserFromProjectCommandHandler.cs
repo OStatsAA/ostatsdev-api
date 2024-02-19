@@ -1,43 +1,43 @@
-using FluentValidation;
-using FluentValidation.Results;
 using MediatR;
-using OStats.API.Common;
-using OStats.Domain.Aggregates.ProjectAggregate;
-using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
+using Microsoft.EntityFrameworkCore;
+using OStats.Domain.Common;
 using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class RemoveUserFromProjectCommandHandler : IRequestHandler<RemoveUserFromProjectCommand, ICommandResult<bool>>
+public class RemoveUserFromProjectCommandHandler : IRequestHandler<RemoveUserFromProjectCommand, DomainOperationResult>
 {
     private readonly Context _context;
-    private readonly IValidator<RemoveUserFromProjectCommand> _validator;
 
-    public RemoveUserFromProjectCommandHandler(Context context, IValidator<RemoveUserFromProjectCommand> validator)
+    public RemoveUserFromProjectCommandHandler(Context context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
     }
 
-    public async Task<ICommandResult<bool>> Handle(RemoveUserFromProjectCommand request, CancellationToken cancellationToken)
+    public async Task<DomainOperationResult> Handle(RemoveUserFromProjectCommand request, CancellationToken cancellationToken)
     {
-        var validation = await _validator.ValidateAsync(request, cancellationToken);
-        if (!validation.IsValid)
+
+        var requestor = await _context.Users.SingleOrDefaultAsync(user => user.AuthIdentity == request.UserAuthId);
+        if (requestor is null)
         {
-            return new CommandResult<bool>(validation.Errors);
+            return DomainOperationResult.Failure("Requestor not found.");
         }
 
-        var project = _context.Projects.Local.Single(project => project.Id == request.ProjectId);
-        var requestor = _context.Users.Local.Single(user => user.AuthIdentity == request.UserAuthId);
-        if (!project.Roles.IsUserAtLeast(requestor.Id, AccessLevel.Administrator))
+        var project = await _context.Projects.FindAsync(request.ProjectId);
+        if (project is null)
         {
-            var error = new ValidationFailure("User", "Requestor cannot revoke access from project.");
-            return new CommandResult<bool>(error);
+            return DomainOperationResult.Failure("Project not found.");
         }
 
-        project.RemoveUserRole(request.UserId);
+        var result = project.RemoveUserRole(request.UserId, requestor.Id);
+
+        if (!result.Succeeded)
+        {
+            return result;
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
-        return new CommandResult<bool>(true);
+
+        return result;
     }
 }

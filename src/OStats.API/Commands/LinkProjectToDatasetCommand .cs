@@ -1,9 +1,9 @@
 using MediatR;
-using OStats.API.Common;
+using OStats.Domain.Common;
 
 namespace OStats.API.Commands;
 
-public class LinkProjectToDatasetCommand : IRequest<ICommandResult<bool>>
+public class LinkProjectToDatasetCommand : IRequest<DomainOperationResult>
 {
     public string UserAuthId { get; }
     public Guid DatasetId { get; }

@@ -1,6 +1,7 @@
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Commands;
+using OStats.API.Dtos;
 using OStats.Domain.Aggregates.ProjectAggregate;
 
 namespace OStats.Tests.IntegrationTests.Commands;
@@ -23,20 +24,18 @@ public class UpdateProjectIntegrationTest : BaseIntegrationTest
         var editedTitle = "Edited Title";
         var editedDescription = "Edited description";
         var command = new UpdateProjectCommand(project.Id, user.AuthIdentity, editedTitle, project.LastUpdatedAt, editedDescription);
-        var result = await sender.Send(command);
+        var (result, baseProjectDto) = await sender.Send(command);
 
         using (new AssertionScope())
         {
-            result.Success.Should().BeTrue();
-            result.ValidationFailures.Should().BeNull();
-            result.Value.Should().NotBeNull().And.BeOfType<Project>();
-            if (result.Value is not null)
-            {
-                result.Value.CreatedAt.Should().Be(previousCreatedAtDatetime);
-                result.Value.LastUpdatedAt.Should().BeAfter(previousLastUpdatedAtDatetime);
-                result.Value.Title.Should().Be(editedTitle);
-                result.Value.Description.Should().Be(editedDescription);
-            }
+            result.Succeeded.Should().BeTrue();
+            result.ErrorMessage.Should().BeNull();
+
+            baseProjectDto.Should().NotBeNull().And.BeOfType<BaseProjectDto>();
+            baseProjectDto.CreatedAt.Should().Be(previousCreatedAtDatetime);
+            baseProjectDto.LastUpdatedAt.Should().BeAfter(previousLastUpdatedAtDatetime);
+            baseProjectDto.Title.Should().Be(editedTitle);
+            baseProjectDto.Description.Should().Be(editedDescription);
         }
     }
 
@@ -53,17 +52,13 @@ public class UpdateProjectIntegrationTest : BaseIntegrationTest
         project.Title = "Bypassed edition";
         await context.SaveChangesAsync();
         var command = new UpdateProjectCommand(project.Id, user.AuthIdentity, editedTitle, previousLastUpdatedAtDatetime, editedDescription);
-        var result = await sender.Send(command);
+        var (result, baseProjectDto) = await sender.Send(command);
 
         using (new AssertionScope())
         {
-            result.Success.Should().BeFalse();
-            result.Value.Should().BeNull();
-            result.ValidationFailures.Should().NotBeNull();
-            if (result.ValidationFailures is not null)
-            {
-                result.ValidationFailures.Where(vf => vf.PropertyName == "LastUpdatedAt").Should().HaveCount(1);
-            }
+            result.Succeeded.Should().BeFalse();
+            result.ErrorMessage.Should().NotBeNullOrEmpty();
+            baseProjectDto.Should().BeNull();
         }
     }
 

@@ -28,9 +28,8 @@ public class AddUserToProjectIntegrationTest : BaseIntegrationTest
 
         using (new AssertionScope())
         {
-            result.Success.Should().BeTrue();
-            result.ValidationFailures.Should().BeNull();
-            result.Value.Should().BeTrue();
+            result.Succeeded.Should().BeTrue();
+            result.ErrorMessage.Should().BeNull();
 
             project.GetUserRole(user.Id).Should().BeOfType<Role>();
             project.GetUserRole(user.Id)?.AccessLevel.Should().Be(access);

@@ -1,9 +1,9 @@
 using MediatR;
-using OStats.API.Common;
+using OStats.Domain.Common;
 
 namespace OStats.API.Commands;
 
-public class RemoveUserFromProjectCommand : IRequest<ICommandResult<bool>>
+public class RemoveUserFromProjectCommand : IRequest<DomainOperationResult>
 {
     public string UserAuthId { get; set; }
     public Guid ProjectId { get; set; }

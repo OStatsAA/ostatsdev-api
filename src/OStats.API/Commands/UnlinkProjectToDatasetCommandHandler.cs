@@ -1,43 +1,47 @@
-using FluentValidation;
 using MediatR;
-using OStats.API.Common;
-using OStats.Domain.Aggregates.ProjectAggregate;
-using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
+using Microsoft.EntityFrameworkCore;
+using OStats.Domain.Common;
 using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class UnlinkProjectToDatasetCommandHandler : IRequestHandler<UnlinkProjectToDatasetCommand, ICommandResult<bool>>
+public class UnlinkProjectToDatasetCommandHandler : IRequestHandler<UnlinkProjectToDatasetCommand, DomainOperationResult>
 {
     private readonly Context _context;
-    private readonly IValidator<UnlinkProjectToDatasetCommand> _validator;
 
-    public UnlinkProjectToDatasetCommandHandler(Context context, IValidator<UnlinkProjectToDatasetCommand> validator)
+    public UnlinkProjectToDatasetCommandHandler(Context context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
     }
 
-    public async Task<ICommandResult<bool>> Handle(UnlinkProjectToDatasetCommand command, CancellationToken cancellationToken)
+    public async Task<DomainOperationResult> Handle(UnlinkProjectToDatasetCommand command, CancellationToken cancellationToken)
     {
-        var validation = await _validator.ValidateAsync(command, cancellationToken);
-        if (!validation.IsValid)
+        var user = await _context.Users.SingleOrDefaultAsync(user => user.AuthIdentity == command.UserAuthId);
+        if (user is null)
         {
-            return new CommandResult<bool>(validation.Errors);
+            return DomainOperationResult.Failure("User not found.");
         }
 
-        var user = _context.Users.Local.Where(user => user.AuthIdentity == command.UserAuthId).Single();
-        var project = _context.Projects.Local.Where(project => project.Id == command.ProjectId).Single();
-        var dataset = _context.Datasets.Local.Where(dataset => dataset.Id == command.DatasetId).Single();
-
-        if(project.Roles.IsUserAtLeast(user.Id, AccessLevel.Editor))
+        var project = await _context.Projects.FindAsync(command.ProjectId);
+        if (project is null)
         {
-            project.UnlinkDataset(dataset.Id);
+            return DomainOperationResult.Failure("Project not found.");
+        }
+
+        var dataset = await _context.Datasets.FindAsync(command.DatasetId);
+        if (dataset is null)
+        {
+            return DomainOperationResult.Failure("Dataset not found.");
+        }
+
+        var result = project.UnlinkDataset(dataset.Id, user.Id);
+        if (!result.Succeeded)
+        {
+            return result;
         }
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new CommandResult<bool>(true);
+        return result;
     }
-
 }

@@ -22,29 +22,46 @@ public class Project : Entity, IAggregateRoot
     {
         Title = title;
         Description = description;
-        AddOrUpdateUserRole(ownerId, AccessLevel.Owner);
+        _roles.Add(new Role(Id, ownerId, AccessLevel.Owner));
     }
 
-    public void AddOrUpdateUserRole(Guid userId, AccessLevel accessLevel)
+    public DomainOperationResult AddOrUpdateUserRole(Guid userId, AccessLevel accessLevel, Guid requestorId)
     {
-        var userRole = _roles.GetUserRole(userId);
+        var requestorRole = _roles.GetUserRole(requestorId);
+        if (requestorRole is null || requestorRole.AccessLevel < AccessLevel.Administrator)
+        {
+            return DomainOperationResult.Failure("Requestor does not have permission to add or update user role.");
+        }
 
+        var userRole = _roles.GetUserRole(userId);
         if (userRole != null)
         {
             userRole.AccessLevel = accessLevel;
-            return;
+        }
+        else
+        {
+            _roles.Add(new Role(Id, userId, accessLevel));
         }
 
-        _roles.Add(new Role(Id, userId, accessLevel));
+        return DomainOperationResult.Success;
     }
 
-    public void RemoveUserRole(Guid userId)
+    public DomainOperationResult RemoveUserRole(Guid userId, Guid requestorId)
     {
-        var userRole = _roles.GetUserRole(userId);
-        if (userRole != null)
+        var requestorRole = _roles.GetUserRole(requestorId);
+        if (requestorRole is null || requestorRole.AccessLevel < AccessLevel.Administrator)
         {
-            _roles.Remove(userRole);
+            return DomainOperationResult.Failure("Requestor does not have permission to remove user role.");
         }
+
+        var userRole = _roles.GetUserRole(userId);
+        if (userRole is null)
+        {
+            return DomainOperationResult.Failure("User does not have a role in this project.");
+        }
+
+        _roles.Remove(userRole);
+        return DomainOperationResult.Success;
     }
 
     public Role? GetUserRole(Guid userId)
@@ -52,18 +69,39 @@ public class Project : Entity, IAggregateRoot
         return _roles.Find(role => role.UserId == userId);
     }
 
-    public bool LinkDataset(Guid datasetId)
+    public DomainOperationResult LinkDataset(Guid datasetId, Guid requestorId)
     {
+        var requestorRole = _roles.GetUserRole(requestorId);
+        if (requestorRole is null || requestorRole.AccessLevel < AccessLevel.Editor)
+        {
+            return DomainOperationResult.Failure("Requestor does not have permission to link dataset.");
+        }
+
         if (_linkedDatasets.Any(link => link.DatasetId == datasetId))
         {
-            return false;
+            return DomainOperationResult.Failure("Dataset is already linked to this project.");
         }
-        return _linkedDatasets.Add(new DatasetProjectLink(datasetId, Id));
+
+        _linkedDatasets.Add(new DatasetProjectLink(datasetId, Id));
+        return DomainOperationResult.Success;
     }
 
-    public bool UnlinkDataset(Guid datasetId)
+    public DomainOperationResult UnlinkDataset(Guid datasetId, Guid requestorId)
     {
-        var link = _linkedDatasets.Single(link => link.DatasetId == datasetId);
-        return _linkedDatasets.Remove(link);
+        var requestorRole = _roles.GetUserRole(requestorId);
+        if (requestorRole is null || requestorRole.AccessLevel < AccessLevel.Editor)
+        {
+            return DomainOperationResult.Failure("Requestor does not have permission to unlink dataset.");
+        }
+
+        var removed = _linkedDatasets.RemoveWhere(link => link.DatasetId == datasetId) > 0;
+        if (removed)
+        {
+            return DomainOperationResult.Success;
+        }
+        else
+        {
+            return DomainOperationResult.Failure("Dataset is not linked to this project.");
+        }
     }
 }

@@ -26,7 +26,7 @@ public class ProjectUsersAndRolesQueryIntegrationTest : BaseIntegrationTest
         await context.AddRangeAsync(editors);
         foreach (var editor in editors)
         {
-            project.AddOrUpdateUserRole(editor.Id, AccessLevel.Editor);
+            project.AddOrUpdateUserRole(editor.Id, AccessLevel.Editor, owner.Id);
         }
         var readers = new[]{
             new User("Reader1", "1@test.com", "auth_id_reader1"),
@@ -35,7 +35,7 @@ public class ProjectUsersAndRolesQueryIntegrationTest : BaseIntegrationTest
         await context.AddRangeAsync(readers);
         foreach (var reader in readers)
         {
-            project.AddOrUpdateUserRole(reader.Id, AccessLevel.ReadOnly);
+            project.AddOrUpdateUserRole(reader.Id, AccessLevel.ReadOnly, owner.Id);
         };
 
         await context.SaveChangesAsync();

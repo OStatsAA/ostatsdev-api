@@ -30,7 +30,7 @@ public class UserProjectsWithRoleQueryIntegrationTest : BaseIntegrationTest
         var userProjectsIds = new List<Guid>(2);
         foreach (var userProject in projects.Take(2).AsEnumerable())
         {
-            userProject.AddOrUpdateUserRole(user.Id, AccessLevel.ReadOnly);
+            userProject.AddOrUpdateUserRole(user.Id, AccessLevel.ReadOnly, owner.Id);
             userProjectsIds.Add(userProject.Id);
         }
 
