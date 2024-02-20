@@ -1,4 +1,3 @@
-using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Dtos;

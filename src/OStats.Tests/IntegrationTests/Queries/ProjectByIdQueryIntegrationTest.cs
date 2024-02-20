@@ -20,14 +20,12 @@ public class ProjectByIdQueryIntegrationTest : BaseIntegrationTest
         await context.Projects.AddAsync(project);
         await context.SaveChangesAsync();
 
-        var query = new ProjectByIdQuery(user.AuthIdentity, project.Id);
-        var queryResult = await sender.Send(query);
+        var queriedProject = await ProjectQueries.GetProjectByIdAsync(context, user.AuthIdentity, project.Id);
 
-        using (new AssertionScope())
+        using(new AssertionScope())
         {
-            queryResult.Should().NotBeNull();
-            queryResult.Success.Should().BeTrue();
-            queryResult.ValidationFailures.Should().BeNullOrEmpty();
+            queriedProject.Should().NotBeNull();
+            queriedProject!.Id.Should().Be(project.Id);
         }
     }
 
@@ -43,14 +41,8 @@ public class ProjectByIdQueryIntegrationTest : BaseIntegrationTest
         await context.AddAsync(unauthorized);
         await context.SaveChangesAsync();
 
-        var query = new ProjectByIdQuery(unauthorized.AuthIdentity, project.Id);
-        var queryResult = await sender.Send(query);
+        var queriedProject = await ProjectQueries.GetProjectByIdAsync(context, unauthorized.AuthIdentity, project.Id);
 
-        using (new AssertionScope())
-        {
-            queryResult.Success.Should().BeFalse();
-            queryResult.ValidationFailures.Should().NotBeEmpty();
-            queryResult.Value.Should().BeNull();
-        }
+        queriedProject.Should().BeNull();
     }
 }

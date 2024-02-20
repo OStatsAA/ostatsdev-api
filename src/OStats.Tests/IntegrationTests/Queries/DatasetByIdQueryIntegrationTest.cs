@@ -1,6 +1,5 @@
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
-using OStats.API.Dtos;
 using OStats.API.Queries;
 using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Domain.Aggregates.UserAggregate;
@@ -24,20 +23,11 @@ public class DatasetByIdQueryIntegrationTest : BaseIntegrationTest
         dataset.GrantUserAccess(editor.Id, DatasetAccessLevel.Editor, owner.Id);
         await context.SaveChangesAsync();
 
-        var query = new DatasetByIdQuery(owner.AuthIdentity, dataset.Id);
-        var result = await sender.Send(query);
-
+        var queriedDataset = await DatasetQueries.GetDatasetByIdAsync(context, owner.AuthIdentity, dataset.Id);
         using (new AssertionScope())
         {
-            result.Success.Should().BeTrue();
-            result.ValidationFailures.Should().BeNullOrEmpty();
-            result.Value.Should().BeOfType<DatasetWithUsersDto>();
-            if (result.Value is not null)
-            {
-                result.Value.Should().BeOfType<DatasetWithUsersDto>();
-                result.Value.Id.Should().Be(dataset.Id);
-                result.Value.DatasetUserAccessLevels.Should().HaveCount(2);
-            }
+            queriedDataset.Should().NotBeNull();
+            queriedDataset!.Id.Should().Be(dataset.Id);
         }
     }
 
@@ -56,14 +46,7 @@ public class DatasetByIdQueryIntegrationTest : BaseIntegrationTest
 
         await context.SaveChangesAsync();
 
-        var query = new DatasetByIdQuery(unauthorizedUser.AuthIdentity, dataset.Id);
-        var result = await sender.Send(query);
-
-        using (new AssertionScope())
-        {
-            result.Success.Should().BeFalse();
-            result.ValidationFailures.Should().NotBeEmpty();
-            result.Value.Should().BeNull();
-        }
+        var queriedDataset = await DatasetQueries.GetDatasetByIdAsync(context, unauthorizedUser.AuthIdentity, dataset.Id);
+        queriedDataset.Should().BeNull();
     }
 }
