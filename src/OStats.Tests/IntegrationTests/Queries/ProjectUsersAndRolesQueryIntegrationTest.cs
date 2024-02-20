@@ -40,13 +40,12 @@ public class ProjectUsersAndRolesQueryIntegrationTest : BaseIntegrationTest
 
         await context.SaveChangesAsync();
 
-        var query = new ProjectUsersAndRolesQuery(owner.AuthIdentity, project.Id);
-        var result = await sender.Send(query);
+        var queriedProjectUsersAndRoles = await ProjectQueries.GetProjectUsersAndRolesAsync(context, owner.Id, project.Id);
 
         using (new AssertionScope())
         {
-            result.Value.Should().AllBeOfType<ProjectUserAndRoleDto>();
-            result.Value.Should().HaveCount(1 + editors.Length + readers.Length);
+            queriedProjectUsersAndRoles.Should().AllBeOfType<ProjectUserAndRoleDto>();
+            queriedProjectUsersAndRoles.Should().HaveCount(1 + editors.Length + readers.Length);
         }
     }
 }

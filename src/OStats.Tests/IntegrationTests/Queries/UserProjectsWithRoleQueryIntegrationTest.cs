@@ -1,4 +1,3 @@
-using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Dtos;
 using OStats.API.Queries;
@@ -36,20 +35,10 @@ public class UserProjectsWithRoleQueryIntegrationTest : BaseIntegrationTest
 
         await context.SaveChangesAsync();
 
-        var query = new UserProjectsWithRoleQuery(user.AuthIdentity, user.Id);
-        var result = await sender.Send(query);
+        var queriedUserProjects = await UserQueries.GetUserProjectsAsync(context, user.AuthIdentity, user.Id);
 
-        using (new AssertionScope())
-        {
-            result.Value.Should().NotBeNullOrEmpty();
-            if (result.Value is not null)
-            {
-                result.Value.Should().AllBeOfType<UserProjectDto>();
-                result.Value.Should().HaveCount(2);
-                result.Value.Select(userProjectDto => userProjectDto.Id)
-                      .Should()
-                      .BeEquivalentTo(userProjectsIds);
-            }
-        }
+        queriedUserProjects.Should().AllBeOfType<UserProjectDto>();
+        queriedUserProjects.Should().HaveCount(2);
+        queriedUserProjects.Select(userProjectDto => userProjectDto.Id).Should().BeEquivalentTo(userProjectsIds);
     }
 }

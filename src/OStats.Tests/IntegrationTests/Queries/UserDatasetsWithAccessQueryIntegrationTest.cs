@@ -36,20 +36,13 @@ public class UserDatasetsWithAccessQueryIntegrationTest : BaseIntegrationTest
 
         await context.SaveChangesAsync();
 
-        var query = new UserDatasetsWithAccessQuery(user.AuthIdentity, user.Id);
-        var result = await sender.Send(query);
+        var queriedUserDatasets = await UserQueries.GetUserDatasetsAsync(context, user.AuthIdentity, user.Id);
 
-        using (new AssertionScope())
-        {
-            result.Value.Should().NotBeNullOrEmpty();
-            if (result.Value is not null)
-            {
-                result.Value.Should().AllBeOfType<UserDatasetDto>();
-                result.Value.Should().HaveCount(2);
-                result.Value.Select(userDatasetDto => userDatasetDto.Id)
-                      .Should()
-                      .BeEquivalentTo(userDatasetsIds);
-            }
-        }
+        queriedUserDatasets.Should().AllBeOfType<UserDatasetDto>();
+        queriedUserDatasets.Should().HaveCount(2);
+        queriedUserDatasets
+            .Select(userDatasetDto => userDatasetDto.Id)
+            .Should()
+            .BeEquivalentTo(userDatasetsIds);
     }
 }

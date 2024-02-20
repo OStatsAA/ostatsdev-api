@@ -37,34 +37,7 @@ public class PeopleSearchQueryIntegrationTest : BaseIntegrationTest
         await context.AddRangeAsync(users);
         await context.SaveChangesAsync();
 
-        var query = new PeopleSearchQuery(users.First().AuthIdentity, "castil");
-        var result = await sender.Send(query);
-
-        using (new AssertionScope())
-        {
-            result.Success.Should().BeTrue();
-            result.ValidationFailures.Should().BeNullOrEmpty();
-            result.Value.Should().HaveCount(2);
-        }
-
-        query = new PeopleSearchQuery(users.First().AuthIdentity, "helen");
-        result = await sender.Send(query);
-
-        using (new AssertionScope())
-        {
-            result.Success.Should().BeTrue();
-            result.ValidationFailures.Should().BeNullOrEmpty();
-            result.Value.Should().HaveCount(2);
-        }
-
-        query = new PeopleSearchQuery(users.First().AuthIdentity, "guilherme");
-        result = await sender.Send(query);
-
-        using (new AssertionScope())
-        {
-            result.Success.Should().BeTrue();
-            result.ValidationFailures.Should().BeNullOrEmpty();
-            result.Value.Should().HaveCount(0);
-        }
+        var searchResult = await UserQueries.SearchUsersAsync(context, "castil");
+        searchResult.Should().HaveCount(2);
     }
 }

@@ -1,4 +1,3 @@
-using FluentValidation.Results;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -6,6 +5,8 @@ using OStats.API.Commands;
 using OStats.API.Dtos;
 using OStats.API.Extensions;
 using OStats.API.Queries;
+using OStats.Infrastructure;
+using OStats.Infrastructure.Extensions;
 
 namespace OStats.API;
 
@@ -38,21 +39,20 @@ public static class ProjectsApi
         return result.Succeeded ? TypedResults.Ok(baseProject) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    private static async Task<Results<Ok<ProjectDto>, BadRequest<List<ValidationFailure>>>> GetProjectByIdAsync(
+    private static async Task<Results<Ok<ProjectDto>, NotFound>> GetProjectByIdAsync(
         Guid projectId,
-        HttpContext context,
-        [FromServices] IMediator mediator)
+        HttpContext httpContext,
+        Context dbContext)
     {
-        var userAuthId = context.User.GetAuthId();
-        var query = new ProjectByIdQuery(userAuthId, projectId);
-        var queryResult = await mediator.Send(query);
-
-        if (!queryResult.Success)
+        var userAuthId = httpContext.User.GetAuthId();
+        var project = await ProjectQueries.GetProjectByIdAsync(dbContext, userAuthId, projectId);
+        if (project is null)
         {
-            return TypedResults.BadRequest(queryResult.ValidationFailures);
+            return TypedResults.NotFound();
         }
 
-        return TypedResults.Ok(queryResult.Value);
+        var linkedDatasets = await ProjectQueries.GetProjectDatasetsAsync(dbContext, projectId);
+        return TypedResults.Ok(new ProjectDto(project, linkedDatasets));
     }
 
     private static async Task<Results<Ok<BaseProjectDto>, BadRequest<string>>> UpdateProjectAsync(
@@ -79,21 +79,21 @@ public static class ProjectsApi
         return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    private static async Task<Results<Ok<List<ProjectUserAndRoleDto>>, BadRequest<List<ValidationFailure>>>> GetProjectUsersAndRolesAsync(
+    private static async Task<Results<Ok<List<ProjectUserAndRoleDto>>, BadRequest>> GetProjectUsersAndRolesAsync(
         Guid projectId,
-        HttpContext context,
-        [FromServices] IMediator mediator)
+        HttpContext httpContext,
+        Context dbContext,
+        CancellationToken cancellationToken)
     {
-        var userAuthId = context.User.GetAuthId();
-        var query = new ProjectUsersAndRolesQuery(userAuthId, projectId);
-        var queryResult = await mediator.Send(query);
-
-        if (!queryResult.Success)
+        var userAuthId = httpContext.User.GetAuthId();
+        var user = await dbContext.Users.FindByAuthIdentityAsync(userAuthId, cancellationToken);
+        if (user is null)
         {
-            return TypedResults.BadRequest(queryResult.ValidationFailures);
+            return TypedResults.BadRequest();
         }
 
-        return TypedResults.Ok(queryResult.Value);
+        var projectUsersAndRoles = await ProjectQueries.GetProjectUsersAndRolesAsync(dbContext, user.Id, projectId);
+        return TypedResults.Ok(projectUsersAndRoles);
     }
 
     private static async Task<Results<Ok<bool>, BadRequest<string>>> AddUserToProjectHandler(

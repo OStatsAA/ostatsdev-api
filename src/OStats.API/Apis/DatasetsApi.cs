@@ -1,6 +1,5 @@
 using System.Text.Json;
 using DataServiceGrpc;
-using FluentValidation.Results;
 using Grpc.Core;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -10,6 +9,7 @@ using OStats.API.Commands;
 using OStats.API.Dtos;
 using OStats.API.Extensions;
 using OStats.API.Queries;
+using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Infrastructure;
 using OStats.Infrastructure.Extensions;
 
@@ -44,15 +44,20 @@ public static class DatasetsApi
         return result.Succeeded ? TypedResults.Ok(baseDatasetDto) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    private static async Task<Results<Ok<DatasetWithUsersDto>, BadRequest<List<ValidationFailure>>>> GetDatasetByIdHandler(
+    private static async Task<Results<Ok<DatasetWithUsersDto>, NotFound>> GetDatasetByIdHandler(
         Guid datasetId,
-        HttpContext context,
-        [FromServices] IMediator mediator)
+        HttpContext httpContext,
+        Context dbContext)
     {
-        var userAuthId = context.User.GetAuthId();
-        var command = new DatasetByIdQuery(userAuthId, datasetId);
-        var commandResult = await mediator.Send(command);
-        return commandResult.Success ? TypedResults.Ok(commandResult.Value) : TypedResults.BadRequest(commandResult.ValidationFailures);
+        var userAuthId = httpContext.User.GetAuthId();
+        var dataset = await DatasetQueries.GetDatasetByIdAsync(dbContext, userAuthId, datasetId);
+        if (dataset is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        var users = await DatasetQueries.GetDatasetUsersAsync(dbContext, datasetId);
+        return TypedResults.Ok(new DatasetWithUsersDto(dataset, users));
     }
 
     private static async Task<Results<Ok<bool>, BadRequest<string>>> DeleteDatasetHandler(
@@ -130,20 +135,20 @@ public static class DatasetsApi
         }
     }
 
-    private static async Task<Results<Ok<List<DatasetProjectLinkDto>>, BadRequest<List<ValidationFailure>>>> GetLinkedProjectsHandler(
+    private static async Task<Results<Ok<List<DatasetProjectLinkDto>>, UnauthorizedHttpResult, BadRequest>> GetLinkedProjectsHandler(
         Guid datasetId,
-        HttpContext context,
-        [FromServices] IMediator mediator)
+        HttpContext httpContext,
+        Context dbContext)
     {
-        var userAuthId = context.User.GetAuthId();
-        var command = new DatasetLinkedProjectsQuery(userAuthId, datasetId);
-        var commandResult = await mediator.Send(command);
-        if (!commandResult.Success)
+        var userAuthId = httpContext.User.GetAuthId();
+        var userAccessLevel = await DatasetQueries.GetUserDatasetAccessLevel(dbContext, userAuthId, datasetId);
+        if (userAccessLevel < DatasetAccessLevel.ReadOnly)
         {
-            return TypedResults.BadRequest(commandResult.ValidationFailures);
+            return TypedResults.Unauthorized();
         }
 
-        return TypedResults.Ok(commandResult.Value);
+        var linkedProjects = await DatasetQueries.GetDatasetLinkedProjectsAsync(dbContext, datasetId);
+        return TypedResults.Ok(linkedProjects);
     }
 
     private static async Task<Results<Ok<bool>, BadRequest<string>>> AddUserToDatasetHandler(
