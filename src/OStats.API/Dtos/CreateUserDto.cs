@@ -5,7 +5,9 @@ namespace OStats.API.Dtos;
 public struct CreateUserDto
 {
     [Required]
-    public string Name { get; set; }
+    public required string Name { get; init; }
+
     [Required]
-    public string Email { get; set; }
+    [EmailAddress]
+    public required string Email { get; init; }
 }
