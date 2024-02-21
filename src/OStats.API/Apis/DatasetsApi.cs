@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using OStats.API.Commands;
 using OStats.API.Dtos;
 using OStats.API.Extensions;
+using OStats.API.Filters;
 using OStats.API.Queries;
 using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Infrastructure;
@@ -19,14 +20,14 @@ public static class DatasetsApi
 {
     public static RouteGroupBuilder MapDatasetsApi(this RouteGroupBuilder app)
     {
-        app.MapPost("/", CreateDatasetHandler);
+        app.MapPost("/", CreateDatasetHandler).AddEndpointFilter<ValidationFilter<CreateDatasetDto>>();
         app.MapGet("/{datasetId:Guid}", GetDatasetByIdHandler);
         app.MapDelete("/{datasetId:Guid}", DeleteDatasetHandler);
-        app.MapPut("/{datasetId:Guid}", UpdateDatasetHandler);
+        app.MapPut("/{datasetId:Guid}", UpdateDatasetHandler).AddEndpointFilter<ValidationFilter<UpdateDatasetDto>>();
         app.MapGet("/{datasetId:Guid}/getdata", GetDataHandler);
-        app.MapPost("/{datasetId:Guid}/ingestdata", IngestDataHandler);
+        app.MapPost("/{datasetId:Guid}/ingestdata", IngestDataHandler).AddEndpointFilter<ValidationFilter<IngestDataDto>>();
         app.MapGet("/{datasetId:Guid}/linkedprojects", GetLinkedProjectsHandler);
-        app.MapPost("/{datasetId:Guid}/users", AddUserToDatasetHandler);
+        app.MapPost("/{datasetId:Guid}/users", AddUserToDatasetHandler).AddEndpointFilter<ValidationFilter<AddUserToDatasetDto>>();
         app.MapDelete("/{datasetId:Guid}/users/{userId:Guid}", RemoveUserFromDatasetHandler);
 
         return app;

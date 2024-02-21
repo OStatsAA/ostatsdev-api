@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using OStats.API.Commands;
 using OStats.API.Dtos;
 using OStats.API.Extensions;
+using OStats.API.Filters;
 using OStats.API.Queries;
 using OStats.Infrastructure;
 
@@ -14,7 +15,7 @@ public static class UsersApi
     public static RouteGroupBuilder MapUsersApi(this RouteGroupBuilder app)
     {
         app.MapGet("/", PeopleSearchHandler);
-        app.MapPost("/", CreateUserAsync);
+        app.MapPost("/", CreateUserAsync).AddEndpointFilter<ValidationFilter<CreateUserDto>>();
         app.MapGet("/{userId:Guid}", GetUserByIdAsync);
         app.MapGet("/{userId:Guid}/projects", GetUserProjectsAsync);
         app.MapGet("/{userId:Guid}/datasets", GetUserDatasetsHandler);
