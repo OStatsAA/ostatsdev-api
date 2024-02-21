@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using OStats.API.Commands;
 using OStats.API.Dtos;
 using OStats.API.Extensions;
+using OStats.API.Filters;
 using OStats.API.Queries;
 using OStats.Infrastructure;
 using OStats.Infrastructure.Extensions;
@@ -14,14 +15,14 @@ public static class ProjectsApi
 {
     public static RouteGroupBuilder MapProjectsApi(this RouteGroupBuilder app)
     {
-        app.MapPost("/", CreateProjectAsync);
+        app.MapPost("/", CreateProjectAsync).AddEndpointFilter<ValidationFilter<CreateProjectDto>>();
         app.MapGet("/{projectId:Guid}", GetProjectByIdAsync);
-        app.MapPut("/{projectId:Guid}", UpdateProjectAsync);
+        app.MapPut("/{projectId:Guid}", UpdateProjectAsync).AddEndpointFilter<ValidationFilter<UpdateProjectDto>>();
         app.MapDelete("/{projectId:Guid}", DeleteProjectAsync);
         app.MapPost("/{projectId:Guid}/linkdataset/{datasetId:Guid}", LinkProjectToDatasetHandler);
         app.MapDelete("/{projectId:Guid}/linkdataset/{datasetId:Guid}", UnlinkProjectToDatasetHandler);
         app.MapGet("/{projectId:Guid}/users", GetProjectUsersAndRolesAsync);
-        app.MapPost("/{projectId:Guid}/users", AddUserToProjectHandler);
+        app.MapPost("/{projectId:Guid}/users", AddUserToProjectHandler).AddEndpointFilter<ValidationFilter<AddUserToProjectDto>>();
         app.MapDelete("/{projectId:Guid}/users/{userId:Guid}", RemoveUserFromProjectHandler);
 
         return app;
