@@ -13,12 +13,14 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
     private readonly IServiceScope _scope;
     protected readonly ISender sender;
     protected readonly Context context;
+    protected readonly HttpClient client;
 
     protected BaseIntegrationTest(IntegrationTestWebAppFactory factory)
     {
         _scope = factory.Services.CreateScope();
         sender = _scope.ServiceProvider.GetRequiredService<ISender>();
         context = _scope.ServiceProvider.GetRequiredService<Context>();
+        client = factory.CreateClient();
 
         SetDatabaseInitialState();
     }
@@ -39,13 +41,6 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
         var dataset = new Dataset(user.Id, "Test", "Test", "Test");
         context.Add(dataset);
         project.LinkDataset(dataset.Id, user.Id);
-
-        foreach (var change in context.ChangeTracker.Entries())
-        {
-            Console.WriteLine(change.Entity.ToString());
-        } 
-    
-
         context.SaveChanges();
     }
 
