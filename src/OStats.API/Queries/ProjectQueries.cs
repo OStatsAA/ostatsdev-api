@@ -27,19 +27,19 @@ public static class ProjectQueries
                 .SingleOrDefault()
     );
 
-    public static readonly Func<Context, Guid, Task<List<Dataset>>> GetProjectDatasetsAsync = EF.CompileAsyncQuery(
-        (Context context, Guid projectId) =>
-            context.DatasetsProjectsLinks
-                .Join(
-                    context.Datasets.IgnoreAutoIncludes(),
-                    link => link.DatasetId,
-                    dataset => dataset.Id,
-                    (link, dataset) => new { link, dataset })
-                .Where(join => join.link.ProjectId == projectId)
-                .Select(join => join.dataset)
-                .AsNoTracking()
-                .ToList()
-    );
+    public static Task<List<Dataset>> GetProjectDatasetsAsync(Context context, Guid projectId)
+    {
+        return context.DatasetsProjectsLinks
+            .Join(
+                context.Datasets.IgnoreAutoIncludes(),
+                link => link.DatasetId,
+                dataset => dataset.Id,
+                (link, dataset) => new { link, dataset })
+            .Where(join => join.link.ProjectId == projectId)
+            .Select(join => join.dataset)
+            .AsNoTracking()
+            .ToListAsync();
+    }
 
     public static Task<List<ProjectUserAndRoleDto>> GetProjectUsersAndRolesAsync(Context context, Guid userId, Guid projectId)
     {
