@@ -6,7 +6,7 @@ public class ValidationFilter<T> : IEndpointFilter
 {
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
-        var model = context.GetArgument<T>(0);
+        var model = context.Arguments.First(arg => arg is T);
         if (model is null)
         {
             return TypedResults.BadRequest("Model is null");
