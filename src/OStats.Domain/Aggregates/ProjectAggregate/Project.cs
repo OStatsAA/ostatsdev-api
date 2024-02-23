@@ -12,13 +12,13 @@ public class Project : Entity, IAggregateRoot
     private readonly HashSet<DatasetProjectLink> _linkedDatasets = new HashSet<DatasetProjectLink>();
     public IReadOnlyCollection<DatasetProjectLink> LinkedDatasets => _linkedDatasets;
 
-    private Project(string title, string? description)
+    private Project(string title, string? description = null)
     {
         Title = title;
         Description = description;
     }
 
-    public Project(Guid ownerId, string title, string? description)
+    public Project(Guid ownerId, string title, string? description = null)
     {
         Title = title;
         Description = description;
