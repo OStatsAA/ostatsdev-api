@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate;
 
@@ -15,4 +16,11 @@ public record ProjectDto : BaseProjectDto
                 project))
             .ToList();
     }
+
+    [JsonConstructor]
+    public ProjectDto(Guid id, string title, string description, DateTime createdAt, DateTime lastUpdatedAt, IReadOnlyCollection<DatasetProjectLinkDto> linkedDatasets) : base(id, createdAt, lastUpdatedAt, title, description)
+    {
+        LinkedDatasets = linkedDatasets;
+    }
+
 }
