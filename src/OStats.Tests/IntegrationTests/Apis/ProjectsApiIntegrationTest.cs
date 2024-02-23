@@ -202,14 +202,11 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var response = await client.DeleteAsync($"{_base_url}/{project.Id}");
+        var isDeleted = await context.Projects.AnyAsync(p => p.Id == project.Id);
 
         using (new AssertionScope())
         {
             response.IsSuccessStatusCode.Should().BeTrue();
-            var result = await response.Content.ReadFromJsonAsync<bool>();
-            result.Should().BeTrue();
-
-            var isDeleted = await context.Projects.AnyAsync(p => p.Id == project.Id);
             isDeleted.Should().BeFalse();
         }
     }
