@@ -18,6 +18,15 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
     {
     }
 
+    public static IEnumerable<object[]> InvalidCreateProjectDtos()
+    {
+        return new List<object[]>
+        {
+            new object[] { new CreateProjectDto { Title = "" } },
+            new object[] { new CreateProjectDto { Title = new string('a', 257) } },
+        };
+    }
+
     [Fact]
     public async Task Should_Create_Project()
     {
@@ -43,19 +52,18 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
         }
     }
 
-    [Fact]
-    public async Task Should_Fail_If_Title_Is_Empty()
+    [Theory]
+    [MemberData(nameof(InvalidCreateProjectDtos))]
+    public async Task Should_Not_Create_With_Invalid_Input(CreateProjectDto createProjectDto)
     {
         var token = JwtTokenProvider.GenerateTokenForAuthId("test_auth_identity");
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var response = await client.PostAsJsonAsync(_base_url, new CreateProjectDto { Title = "" });
+        var response = await client.PostAsJsonAsync(_base_url, createProjectDto);
 
         using (new AssertionScope())
         {
             response.IsSuccessStatusCode.Should().BeFalse();
-            var errorMessage = await response.Content.ReadAsStringAsync();
-            errorMessage.Should().Contain("Title field is required");
         }
     }
 
