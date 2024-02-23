@@ -69,7 +69,7 @@ public static class ProjectsApi
         return result.Succeeded ? TypedResults.Ok(baseProjectDto) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    private static async Task<Results<Ok<bool>, BadRequest<string>>> DeleteProjectAsync(
+    private static async Task<Results<Ok, BadRequest<string>>> DeleteProjectAsync(
         Guid projectId,
         HttpContext context,
         [FromServices] IMediator mediator)
@@ -77,7 +77,7 @@ public static class ProjectsApi
         var userAuthId = context.User.GetAuthId();
         var command = new DeleteProjectCommand(userAuthId, projectId);
         var result = await mediator.Send(command);
-        return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
+        return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
 
     private static async Task<Results<Ok<List<ProjectUserAndRoleDto>>, BadRequest>> GetProjectUsersAndRolesAsync(
@@ -97,7 +97,7 @@ public static class ProjectsApi
         return TypedResults.Ok(projectUsersAndRoles);
     }
 
-    private static async Task<Results<Ok<bool>, BadRequest<string>>> AddUserToProjectHandler(
+    private static async Task<Results<Ok, BadRequest<string>>> AddUserToProjectHandler(
         Guid projectId,
         [FromBody] AddUserToProjectDto addUserToProjectDto,
         HttpContext context,
@@ -106,9 +106,9 @@ public static class ProjectsApi
         var userAuthId = context.User.GetAuthId();
         var command = new AddUserToProjectCommand(userAuthId, projectId, addUserToProjectDto.UserId, addUserToProjectDto.AccessLevel);
         var result = await mediator.Send(command);
-        return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
+        return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
-    private static async Task<Results<Ok<bool>, BadRequest<string>>> RemoveUserFromProjectHandler(
+    private static async Task<Results<Ok, BadRequest<string>>> RemoveUserFromProjectHandler(
         Guid projectId,
         Guid userId,
         HttpContext context,
@@ -118,10 +118,10 @@ public static class ProjectsApi
         var userAuthId = context.User.GetAuthId();
         var command = new RemoveUserFromProjectCommand(userAuthId, projectId, userId);
         var result = await mediator.Send(command, cancellationToken);
-        return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
+        return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    private static async Task<Results<Ok<bool>, BadRequest<string>>> LinkProjectToDatasetHandler(
+    private static async Task<Results<Ok, BadRequest<string>>> LinkProjectToDatasetHandler(
         Guid projectId,
         Guid datasetId,
         HttpContext context,
@@ -131,10 +131,10 @@ public static class ProjectsApi
         var userAuthId = context.User.GetAuthId();
         var command = new LinkProjectToDatasetCommand(userAuthId, datasetId, projectId);
         var result = await mediator.Send(command, cancellationToken);
-        return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
+        return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
 
-    private static async Task<Results<Ok<bool>, BadRequest<string>>> UnlinkProjectToDatasetHandler(
+    private static async Task<Results<Ok, BadRequest<string>>> UnlinkProjectToDatasetHandler(
         Guid projectId,
         Guid datasetId,
         HttpContext context,
@@ -144,6 +144,6 @@ public static class ProjectsApi
         var userAuthId = context.User.GetAuthId();
         var command = new UnlinkProjectToDatasetCommand(userAuthId, datasetId, projectId);
         var result = await mediator.Send(command, cancellationToken);
-        return result.Succeeded ? TypedResults.Ok(result.Succeeded) : TypedResults.BadRequest(result.ErrorMessage);
+        return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
 }
