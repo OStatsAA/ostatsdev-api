@@ -4,6 +4,7 @@ using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Dtos;
 using OStats.Domain.Aggregates.DatasetAggregate;
+using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.UserAggregate;
 
 namespace OStats.Tests.IntegrationTests.Apis;
@@ -228,5 +229,29 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
         }
     }
 
-    // TODO: get linked projects
+    [Fact]
+    public async Task Should_Get_Dataset_Linked_Projects()
+    {
+        var validUser = await context.Users.FirstAsync();
+        var dataset = new Dataset(validUser.Id, "Test Dataset", "Source");
+        await context.Datasets.AddAsync(dataset);
+        var project = new Project(validUser.Id, "Test Project");
+        await context.Projects.AddAsync(project);
+        project.LinkDataset(dataset.Id, validUser.Id);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.GetAsync($"{_baseUrl}/{dataset.Id}/linkedprojects");
+        var links = await response.Content.ReadFromJsonAsync<List<object>>();
+
+        using (new AssertionScope())
+        {
+            response.IsSuccessStatusCode.Should().BeTrue();
+            links.Should().NotBeNullOrEmpty();
+            links.Should().HaveCount(1);
+        }
+    }
 }

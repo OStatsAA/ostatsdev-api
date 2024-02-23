@@ -1,8 +1,6 @@
-using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Queries;
 using OStats.Domain.Aggregates.DatasetAggregate;
-using OStats.Domain.Aggregates.UserAggregate;
 
 namespace OStats.Tests.IntegrationTests.Queries;
 
@@ -24,6 +22,6 @@ public class DatasetLinkedProjectsQueryIntegrationTest : BaseIntegrationTest
 
         var queriedDatasetProjectLinks = await DatasetQueries.GetDatasetLinkedProjectsAsync(context, dataset.Id);
         queriedDatasetProjectLinks.Should().HaveCount(1);
-        queriedDatasetProjectLinks.First().DatasetId.Should().Be(dataset.Id);
+        queriedDatasetProjectLinks.First().Dataset.Id.Should().Be(dataset.Id);
     }
 }
