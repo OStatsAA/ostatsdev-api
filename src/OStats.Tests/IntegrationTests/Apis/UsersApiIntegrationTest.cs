@@ -106,4 +106,40 @@ public class UsersApiIntegrationTest : BaseIntegrationTest
             response.IsSuccessStatusCode.Should().BeFalse();
         }
     }
+
+    [Fact]
+    public async Task Should_Get_User_Projects()
+    {
+        var validUser = await context.Users.FirstAsync();
+
+        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.GetAsync($"{_base_url}/{validUser.Id}/projects");
+        var userProjects = await response.Content.ReadFromJsonAsync<IEnumerable<object>>();
+
+        using (new AssertionScope())
+        {
+            response.IsSuccessStatusCode.Should().BeTrue();
+            userProjects.Should().NotBeNullOrEmpty();
+        }
+    }
+
+    [Fact]
+    public async Task Should_Get_User_Datasets()
+    {
+        var validUser = await context.Users.FirstAsync();
+
+        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.GetAsync($"{_base_url}/{validUser.Id}/datasets");
+        var userDatasets = await response.Content.ReadFromJsonAsync<IEnumerable<object>>();
+
+        using (new AssertionScope())
+        {
+            response.IsSuccessStatusCode.Should().BeTrue();
+            userDatasets.Should().NotBeNullOrEmpty();
+        }
+    }
 }
