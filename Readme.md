@@ -1,20 +1,19 @@
 # OStats.dev API
 
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/508ca71a0ad5457e8b5849bd1411f0bf)](https://app.codacy.com/gh/OStatsAA/ostatsdev-api/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade) [![Codacy Badge](https://app.codacy.com/project/badge/Coverage/508ca71a0ad5457e8b5849bd1411f0bf)](https://app.codacy.com/gh/OStatsAA/ostatsdev-api/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
+
 ## Running tests
 
-Run tests and collect coverage results
+Run tests via IDE or dotnet cli.
+
 ```
-dotnet test src/ --collect:"XPlat Code Coverage" --results-directory:".coverage_report"
+dotnet test src/
 ```
 
-Generate report
-```
-reportgenerator -reports:/workspaces/ostatsdev-api/.coverage_report/{Guid}/coverage.cobertura.xml -targetdir:/workspaces/ostatsdev-api/.coverage_report/{Guid} -reporttypes:Html
-```
+Coverage report may be generated via [Get Coverage Report Script](scripts/get_test_coverage_report.sh)
 
-Server HTML report
 ```
-python3 -m http.server --directory .coverage_report/{Guid}/
+source scripts/get_test_coverage_report.sh
 ```
 
 ## Database migration
@@ -27,11 +26,4 @@ dotnet ef migrations add <MIGRATION_NAME> --project src/OStats.Infrastructure/
 Generate idempotent script
 ```
 dotnet ef migrations script --idempotent --output=./migration.sql --project src/OStats.Infrastructure/
-```
-
-Database port-forward
-```
-doctl auth init
-doctl kubernetes cluster kubeconfig save 2d90a1ff-1ea2-4c58-b8a7-5f6e66fac1ec
-kubectl port-forward service/database 5431:5432 --namespace=ostats
 ```
