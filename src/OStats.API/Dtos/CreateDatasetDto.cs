@@ -4,11 +4,11 @@ namespace OStats.API.Dtos;
 
 public record CreateDatasetDto
 {
-    [Required(AllowEmptyStrings = false)]
+    [Required]
     [Length(1, 256)]
     public required string Title { get; init; }
 
-    [Required(AllowEmptyStrings = false)]
+    [Required]
     [Length(1, 256)]
     public required string Source { get; init; }
 

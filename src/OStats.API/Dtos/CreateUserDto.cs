@@ -4,11 +4,11 @@ namespace OStats.API.Dtos;
 
 public struct CreateUserDto
 {
-    [Required(AllowEmptyStrings = false)]
+    [Required]
     [Length(1, 128)]
     public required string Name { get; init; }
 
-    [Required(AllowEmptyStrings = false)]
+    [Required]
     [EmailAddress]
     [MaxLength(128)]
     public required string Email { get; init; }
