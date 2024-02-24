@@ -4,7 +4,7 @@ namespace OStats.API.Dtos;
 
 public record CreateProjectDto
 {
-    [Required(AllowEmptyStrings = false)]
+    [Required]
     [Length(1, 256)]
     public required string Title { get; init; }
 
