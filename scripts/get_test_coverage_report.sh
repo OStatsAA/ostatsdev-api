@@ -3,6 +3,11 @@
 RESULTS_DIR=".coverage_report"
 TEST_OUTPUT_FILE="$RESULTS_DIR/script_test_output.txt"
 
+# Check if results directory exists, if not, create it
+if [ ! -d "$RESULTS_DIR" ]; then
+  mkdir $RESULTS_DIR
+fi
+
 # Run tests
 echo "Running tests..."
 dotnet test src/ --collect:"XPlat Code Coverage" --results-directory:$RESULTS_DIR | tee $TEST_OUTPUT_FILE
