@@ -21,6 +21,10 @@ dotnet test src/ \
 run_uuid=$(tail -n 1 $TEST_OUTPUT_FILE | awk -F '.coverage_report/' '{print substr($2, 1, 36)}')
 echo "Run UUID: $run_uuid"
 
+# Copy coverage xml to root
+echo "Copying coverage xml to root..."
+cp "$RESULTS_DIR/$run_uuid/coverage.cobertura.xml" .
+
 # Generate test coverage report
 echo "Generating test coverage report..."
 reportgenerator -reports:"$RESULTS_DIR/$run_uuid/coverage.cobertura.xml" -targetdir:"$RESULTS_DIR/$run_uuid" -reporttypes:Html 1> /dev/null
