@@ -1,5 +1,7 @@
 # OStats.dev API
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/638e5664aebb45af91c65cfbf010dc21)](https://app.codacy.com/gh/OStatsAA/ostatsdev-api?utm_source=github.com&utm_medium=referral&utm_content=OStatsAA/ostatsdev-api&utm_campaign=Badge_Grade)
+
 ## Running tests
 
 Run tests and collect coverage results
