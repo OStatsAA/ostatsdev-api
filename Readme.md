@@ -6,24 +6,26 @@
 
 Run tests via IDE or dotnet cli.
 
-```
+```text
 dotnet test src/
 ```
 
 Coverage report may be generated via [Get Coverage Report Script](scripts/get_test_coverage_report.sh)
 
-```
+```text
 source scripts/get_test_coverage_report.sh
 ```
 
 ## Database migration
 
 Generate migration
-```
+
+```text
 dotnet ef migrations add <MIGRATION_NAME> --project src/OStats.Infrastructure/
 ```
 
 Generate idempotent script
-```
+
+```text
 dotnet ef migrations script --idempotent --output=./migration.sql --project src/OStats.Infrastructure/
 ```
