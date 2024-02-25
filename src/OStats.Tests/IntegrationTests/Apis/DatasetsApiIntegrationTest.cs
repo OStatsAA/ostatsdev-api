@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions.Execution;
@@ -252,6 +253,22 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
             response.IsSuccessStatusCode.Should().BeTrue();
             links.Should().NotBeNullOrEmpty();
             links.Should().HaveCount(1);
+        }
+    }
+
+    [Fact]
+    public async Task Should_Fail_To_Query_If_User_Is_Not_Valid()
+    {
+        var dataset = await context.Datasets.FirstAsync();
+        var token = JwtTokenProvider.GenerateTokenForInvalidUser();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.GetAsync($"{_baseUrl}/{dataset.Id}/data");
+
+        using (new AssertionScope())
+        {
+            response.IsSuccessStatusCode.Should().BeFalse();
+            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         }
     }
 }

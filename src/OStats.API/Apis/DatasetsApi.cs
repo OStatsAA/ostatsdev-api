@@ -1,4 +1,4 @@
-using System.Text.Json;
+using System.Runtime.CompilerServices;
 using DataServiceGrpc;
 using Grpc.Core;
 using MediatR;
@@ -24,7 +24,7 @@ public static class DatasetsApi
         app.MapGet("/{datasetId:Guid}", GetDatasetByIdHandler);
         app.MapDelete("/{datasetId:Guid}", DeleteDatasetHandler);
         app.MapPut("/{datasetId:Guid}", UpdateDatasetHandler).AddEndpointFilter<ValidationFilter<UpdateDatasetDto>>();
-        app.MapGet("/{datasetId:Guid}/getdata", GetDataHandler);
+        app.MapGet("/{datasetId:Guid}/data", GetDataHandler);
         app.MapPost("/{datasetId:Guid}/ingestdata", IngestDataHandler).AddEndpointFilter<ValidationFilter<IngestDataDto>>();
         app.MapGet("/{datasetId:Guid}/linkedprojects", GetLinkedProjectsHandler);
         app.MapPost("/{datasetId:Guid}/users", AddUserToDatasetHandler).AddEndpointFilter<ValidationFilter<AddUserToDatasetDto>>();
@@ -105,18 +105,18 @@ public static class DatasetsApi
         HttpContext context,
         Context dbContext,
         [FromServices] DataService.DataServiceClient _dataServiceClient,
-        CancellationToken cancellationToken)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var user = await dbContext.Users.FindByAuthIdentityAsync(context.User.GetAuthId(), cancellationToken);
         if (user is null)
         {
-            context.Response.StatusCode = TypedResults.BadRequest().StatusCode;
+            yield return context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             yield break;
         }
 
-        if (!await dbContext.DatasetsUsersAccessLevels.AnyAsync(accesses => accesses.UserId == user.Id && accesses.DatasetId == datasetId))
+        if (!await dbContext.DatasetsUsersAccessLevels.AnyAsync(accesses => accesses.UserId == user.Id && accesses.DatasetId == datasetId, cancellationToken))
         {
-            context.Response.StatusCode = TypedResults.Unauthorized().StatusCode;
+            yield return context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             yield break;
         }
 
@@ -129,11 +129,7 @@ public static class DatasetsApi
         var call = _dataServiceClient.GetData(queryRequest, cancellationToken: cancellationToken);
         await foreach (var response in call.ResponseStream.ReadAllAsync(cancellationToken))
         {
-            var json = JsonSerializer.Deserialize<dynamic>(response.Body);
-            if (json is not null)
-            {
-                yield return json;
-            }
+            yield return response.Body;
         }
     }
 
