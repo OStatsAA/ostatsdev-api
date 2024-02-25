@@ -30,7 +30,7 @@
         "POSTGRES_HOST": "127.0.0.1",
         "POSTGRES_PASSWORD": "postgres",
         "POSTGRES_USER": "postgres",
-        "POSTGRES_DB": "ostats",
+        "POSTGRES_DB": "ostats"
       }
     },
     "IIS Express": {

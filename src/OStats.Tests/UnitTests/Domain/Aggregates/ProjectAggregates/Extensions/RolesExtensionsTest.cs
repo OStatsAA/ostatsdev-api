@@ -27,11 +27,11 @@ public class RolesExtensionsTest
     public void GetUsersIdsByAccessLevel_Should_Get_Users_Ids_By_Access_Level()
     {
         var ownerId = Guid.NewGuid();
-        var editorsIds = new List<Guid>()
+        var editorsIds = new List<Guid>
         {
             Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()
         };
-        var readOnlyIds = new List<Guid>()
+        var readOnlyIds = new List<Guid>
         {
             Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()
         };

@@ -38,7 +38,7 @@ public class IngestDataCommandHandler : IRequestHandler<IngestDataCommand, Domai
             return DomainOperationResult.Failure("User does not have the required access level.");
         }
 
-        var rpcRequest = new IngestDataRequest()
+        var rpcRequest = new IngestDataRequest
         {
             DatasetId = dataset.Id.ToString(),
             Bucket = command.Bucket,

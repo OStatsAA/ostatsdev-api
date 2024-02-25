@@ -18,7 +18,13 @@ public class Project : Entity, IAggregateRoot
         Description = description;
     }
 
-    public Project(Guid ownerId, string title, string? description = null)
+    public Project(Guid ownerId, string title)
+    {
+        Title = title;
+        _roles.Add(new Role(Id, ownerId, AccessLevel.Owner));
+    }
+
+    public Project(Guid ownerId, string title, string description)
     {
         Title = title;
         Description = description;

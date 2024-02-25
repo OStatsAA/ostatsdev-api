@@ -82,7 +82,6 @@ public class Context : DbContext
             if (entityEntry.State == EntityState.Modified || entityEntry.State == EntityState.Deleted)
             {
                 entityEntry.Entity.LastUpdatedAt = DateTime.UtcNow;
-                continue;
             }
         }
     }
