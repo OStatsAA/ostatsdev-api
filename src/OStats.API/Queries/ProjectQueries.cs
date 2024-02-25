@@ -8,7 +8,12 @@ namespace OStats.API.Queries;
 
 public static class ProjectQueries
 {
-    public static readonly Func<Context, string, Guid, Task<Project?>> GetProjectByIdAsync = EF.CompileAsyncQuery(
+    public static Task<Project?> GetProjectByIdAsync(Context context, string userAuthId, Guid projectId, CancellationToken cancellationToken)
+    {
+        return GetProjectById(context, userAuthId, projectId).WaitAsync(cancellationToken);
+    }
+
+    private static readonly Func<Context, string, Guid, Task<Project?>> GetProjectById = EF.CompileAsyncQuery(
         (Context context, string userAuthId, Guid projectId) =>
             context.Projects
                 .Join(
@@ -27,7 +32,7 @@ public static class ProjectQueries
                 .SingleOrDefault()
     );
 
-    public static Task<List<Dataset>> GetProjectDatasetsAsync(Context context, Guid projectId)
+    public static Task<List<Dataset>> GetProjectDatasetsAsync(Context context, Guid projectId, CancellationToken cancellationToken)
     {
         return context.DatasetsProjectsLinks
             .Join(
@@ -38,10 +43,10 @@ public static class ProjectQueries
             .Where(join => join.link.ProjectId == projectId)
             .Select(join => join.dataset)
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public static Task<List<ProjectUserAndRoleDto>> GetProjectUsersAndRolesAsync(Context context, Guid userId, Guid projectId)
+    public static Task<List<ProjectUserAndRoleDto>> GetProjectUsersAndRolesAsync(Context context, Guid userId, Guid projectId, CancellationToken cancellationToken)
     {
         return context.Projects
             .Join(
@@ -58,6 +63,6 @@ public static class ProjectQueries
                            join.project.Roles.Any(role => role.UserId == userId))
             .Select(join => new ProjectUserAndRoleDto(join.user, join.role))
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 }

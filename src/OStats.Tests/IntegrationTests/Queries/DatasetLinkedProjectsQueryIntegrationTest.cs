@@ -20,7 +20,7 @@ public class DatasetLinkedProjectsQueryIntegrationTest : BaseIntegrationTest
         project.LinkDataset(dataset.Id, owner.Id);
         await context.SaveChangesAsync();
 
-        var queriedDatasetProjectLinks = await DatasetQueries.GetDatasetLinkedProjectsAsync(context, dataset.Id);
+        var queriedDatasetProjectLinks = await DatasetQueries.GetDatasetLinkedProjectsAsync(context, dataset.Id, default);
         queriedDatasetProjectLinks.Should().HaveCount(1);
         queriedDatasetProjectLinks.First().Dataset.Id.Should().Be(dataset.Id);
     }

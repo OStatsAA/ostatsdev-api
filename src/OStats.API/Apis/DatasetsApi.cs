@@ -48,16 +48,17 @@ public static class DatasetsApi
     private static async Task<Results<Ok<DatasetWithUsersDto>, NotFound>> GetDatasetByIdHandler(
         Guid datasetId,
         HttpContext httpContext,
-        Context dbContext)
+        Context dbContext,
+        CancellationToken cancellationToken)
     {
         var userAuthId = httpContext.User.GetAuthId();
-        var dataset = await DatasetQueries.GetDatasetByIdAsync(dbContext, userAuthId, datasetId);
+        var dataset = await DatasetQueries.GetDatasetByIdAsync(dbContext, userAuthId, datasetId, cancellationToken);
         if (dataset is null)
         {
             return TypedResults.NotFound();
         }
 
-        var users = await DatasetQueries.GetDatasetUsersAsync(dbContext, datasetId);
+        var users = await DatasetQueries.GetDatasetUsersAsync(dbContext, datasetId, cancellationToken);
         return TypedResults.Ok(new DatasetWithUsersDto(dataset, users));
     }
 
@@ -139,16 +140,17 @@ public static class DatasetsApi
     private static async Task<Results<Ok<List<DatasetProjectLinkDto>>, UnauthorizedHttpResult, BadRequest>> GetLinkedProjectsHandler(
         Guid datasetId,
         HttpContext httpContext,
-        Context dbContext)
+        Context dbContext,
+        CancellationToken cancellationToken)
     {
         var userAuthId = httpContext.User.GetAuthId();
-        var userAccessLevel = await DatasetQueries.GetUserDatasetAccessLevel(dbContext, userAuthId, datasetId);
+        var userAccessLevel = await DatasetQueries.GetUserDatasetAccessLevelAsync(dbContext, userAuthId, datasetId, cancellationToken);
         if (userAccessLevel < DatasetAccessLevel.ReadOnly)
         {
             return TypedResults.Unauthorized();
         }
 
-        var linkedProjects = await DatasetQueries.GetDatasetLinkedProjectsAsync(dbContext, datasetId);
+        var linkedProjects = await DatasetQueries.GetDatasetLinkedProjectsAsync(dbContext, datasetId, cancellationToken);
         return TypedResults.Ok(linkedProjects);
     }
 

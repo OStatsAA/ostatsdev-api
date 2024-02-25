@@ -23,7 +23,7 @@ public class DatasetByIdQueryIntegrationTest : BaseIntegrationTest
         dataset.GrantUserAccess(editor.Id, DatasetAccessLevel.Editor, owner.Id);
         await context.SaveChangesAsync();
 
-        var queriedDataset = await DatasetQueries.GetDatasetByIdAsync(context, owner.AuthIdentity, dataset.Id);
+        var queriedDataset = await DatasetQueries.GetDatasetByIdAsync(context, owner.AuthIdentity, dataset.Id, default);
         using (new AssertionScope())
         {
             queriedDataset.Should().NotBeNull();
@@ -46,7 +46,7 @@ public class DatasetByIdQueryIntegrationTest : BaseIntegrationTest
 
         await context.SaveChangesAsync();
 
-        var queriedDataset = await DatasetQueries.GetDatasetByIdAsync(context, unauthorizedUser.AuthIdentity, dataset.Id);
+        var queriedDataset = await DatasetQueries.GetDatasetByIdAsync(context, unauthorizedUser.AuthIdentity, dataset.Id, default);
         queriedDataset.Should().BeNull();
     }
 }

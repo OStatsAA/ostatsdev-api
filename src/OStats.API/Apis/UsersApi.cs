@@ -25,9 +25,10 @@ public static class UsersApi
 
     private static async Task<Ok<List<BaseUserDto>>> PeopleSearchHandler(
         [FromQuery] string search,
-        Context dbContext)
+        Context dbContext,
+        CancellationToken cancellationToken)
     {
-        var users = await UserQueries.SearchUsersAsync(dbContext, search);
+        var users = await UserQueries.SearchUsersAsync(dbContext, search, cancellationToken);
         return TypedResults.Ok(users);
     }
 
@@ -39,7 +40,7 @@ public static class UsersApi
         CancellationToken cancellationToken)
     {
         var userAuthId = context.User.GetAuthId();
-        var user = await UserQueries.GetUserByAuthIdAsync(dbContext, userAuthId);
+        var user = await UserQueries.GetUserByAuthIdAsync(dbContext, userAuthId, cancellationToken);
         if (user is not null)
         {
             return TypedResults.Ok(user);
@@ -52,29 +53,32 @@ public static class UsersApi
 
     private static async Task<Results<Ok<BaseUserDto>, NotFound>> GetUserByIdAsync(
         [FromRoute] Guid userId,
-        Context dbContext)
+        Context dbContext,
+        CancellationToken cancellationToken)
     {
-        var user = await UserQueries.GetUserByIdAsync(dbContext, userId);
+        var user = await UserQueries.GetUserByIdAsync(dbContext, userId, cancellationToken);
         return user is not null ? TypedResults.Ok(user) : TypedResults.NotFound();
     }
 
     private static async Task<Ok<List<UserProjectDto>>> GetUserProjectsAsync(
         [FromRoute] Guid userId,
         HttpContext httpContext,
-        Context dbContext)
+        Context dbContext,
+        CancellationToken cancellationToken)
     {
         var userAuthId = httpContext.User.GetAuthId();
-        var userProjects = await UserQueries.GetUserProjectsAsync(dbContext, userAuthId, userId);
+        var userProjects = await UserQueries.GetUserProjectsAsync(dbContext, userAuthId, userId, cancellationToken);
         return TypedResults.Ok(userProjects);
     }
 
     private static async Task<Ok<List<UserDatasetDto>>> GetUserDatasetsHandler(
         [FromRoute] Guid userId,
         HttpContext context,
-        Context dbContext)
+        Context dbContext,
+        CancellationToken cancellationToken)
     {
         var userAuthId = context.User.GetAuthId();
-        var userDatasets = await UserQueries.GetUserDatasetsAsync(dbContext, userAuthId, userId);
+        var userDatasets = await UserQueries.GetUserDatasetsAsync(dbContext, userAuthId, userId, cancellationToken);
         return TypedResults.Ok(userDatasets);
     }
 }

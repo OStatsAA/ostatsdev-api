@@ -8,7 +8,7 @@ namespace OStats.API.Queries;
 
 public static class DatasetQueries
 {
-    public static Task<Dataset?> GetDatasetByIdAsync(Context context, string userAuthId, Guid datasetId)
+    public static Task<Dataset?> GetDatasetByIdAsync(Context context, string userAuthId, Guid datasetId, CancellationToken cancellationToken)
     {
         return context.DatasetsUsersAccessLevels
             .Join(
@@ -25,10 +25,10 @@ public static class DatasetQueries
                                 joined.user.AuthIdentity == userAuthId)
             .Select(joined => joined.datasetAndUserId.dataset)
             .AsNoTracking()
-            .SingleOrDefaultAsync();
+            .SingleOrDefaultAsync(cancellationToken);
     }
 
-    public static Task<List<User>> GetDatasetUsersAsync(Context context, Guid datasetId)
+    public static Task<List<User>> GetDatasetUsersAsync(Context context, Guid datasetId, CancellationToken cancellationToken)
     {
         return context.DatasetsUsersAccessLevels
             .Where(datasetAccess => datasetAccess.DatasetId == datasetId)
@@ -38,10 +38,10 @@ public static class DatasetQueries
                 user => user.Id,
                 (_, user) => user)
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public static Task<List<DatasetProjectLinkDto>> GetDatasetLinkedProjectsAsync(Context context, Guid datasetId)
+    public static Task<List<DatasetProjectLinkDto>> GetDatasetLinkedProjectsAsync(Context context, Guid datasetId, CancellationToken cancellationToken)
     {
         return context.DatasetsProjectsLinks
             .Join(
@@ -57,10 +57,15 @@ public static class DatasetQueries
             .Where(join => join.link.DatasetId == datasetId)
             .Select(join => new DatasetProjectLinkDto(join.link, join.dataset, join.project))
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public static readonly Func<Context, string, Guid, Task<DatasetAccessLevel>> GetUserDatasetAccessLevel = EF.CompileAsyncQuery(
+    public static Task<DatasetAccessLevel> GetUserDatasetAccessLevelAsync(Context context, string userAuthId, Guid datasetId, CancellationToken cancellationToken)
+    {
+        return GetUserDatasetAccessLevel(context, userAuthId, datasetId).WaitAsync(cancellationToken);
+    }
+
+    private static readonly Func<Context, string, Guid, Task<DatasetAccessLevel>> GetUserDatasetAccessLevel = EF.CompileAsyncQuery(
         (Context context, string userAuthId, Guid datasetId) =>
             context.DatasetsUsersAccessLevels
                 .Join(

@@ -43,16 +43,17 @@ public static class ProjectsApi
     private static async Task<Results<Ok<ProjectDto>, NotFound>> GetProjectByIdAsync(
         Guid projectId,
         HttpContext httpContext,
-        Context dbContext)
+        Context dbContext,
+        CancellationToken cancellationToken)
     {
         var userAuthId = httpContext.User.GetAuthId();
-        var project = await ProjectQueries.GetProjectByIdAsync(dbContext, userAuthId, projectId);
+        var project = await ProjectQueries.GetProjectByIdAsync(dbContext, userAuthId, projectId, cancellationToken);
         if (project is null)
         {
             return TypedResults.NotFound();
         }
 
-        var linkedDatasets = await ProjectQueries.GetProjectDatasetsAsync(dbContext, projectId);
+        var linkedDatasets = await ProjectQueries.GetProjectDatasetsAsync(dbContext, projectId, cancellationToken);
         return TypedResults.Ok(new ProjectDto(project, linkedDatasets));
     }
 
@@ -93,7 +94,7 @@ public static class ProjectsApi
             return TypedResults.BadRequest();
         }
 
-        var projectUsersAndRoles = await ProjectQueries.GetProjectUsersAndRolesAsync(dbContext, user.Id, projectId);
+        var projectUsersAndRoles = await ProjectQueries.GetProjectUsersAndRolesAsync(dbContext, user.Id, projectId, cancellationToken);
         return TypedResults.Ok(projectUsersAndRoles);
     }
 

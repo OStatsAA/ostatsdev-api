@@ -23,7 +23,7 @@ public class GetDatasetUsersIntegrationTest : BaseIntegrationTest
         dataset.GrantUserAccess(editor.Id, DatasetAccessLevel.Editor, owner.Id);
         await context.SaveChangesAsync();
 
-        var datasetUsers = await DatasetQueries.GetDatasetUsersAsync(context, dataset.Id);
+        var datasetUsers = await DatasetQueries.GetDatasetUsersAsync(context, dataset.Id, default);
 
         using (new AssertionScope())
         {
