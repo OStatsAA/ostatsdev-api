@@ -40,7 +40,7 @@ public class ProjectUsersAndRolesQueryIntegrationTest : BaseIntegrationTest
 
         await context.SaveChangesAsync();
 
-        var queriedProjectUsersAndRoles = await ProjectQueries.GetProjectUsersAndRolesAsync(context, owner.Id, project.Id);
+        var queriedProjectUsersAndRoles = await ProjectQueries.GetProjectUsersAndRolesAsync(context, owner.Id, project.Id, default);
 
         using (new AssertionScope())
         {

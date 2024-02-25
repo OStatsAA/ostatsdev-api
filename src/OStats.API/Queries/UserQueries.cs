@@ -6,17 +6,17 @@ namespace OStats.API.Queries;
 
 public static class UserQueries
 {
-    public static Task<List<BaseUserDto>> SearchUsersAsync(Context context, string searchInput)
+    public static Task<List<BaseUserDto>> SearchUsersAsync(Context context, string searchInput, CancellationToken cancellationToken)
     {
         return context.Users
             .IgnoreAutoIncludes()
             .Where(user => EF.Functions.ILike(user.Name, $"%{searchInput}%"))
             .Select(user => new BaseUserDto(user))
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public static Task<List<UserProjectDto>> GetUserProjectsAsync(Context context, string userAuthId, Guid userId)
+    public static Task<List<UserProjectDto>> GetUserProjectsAsync(Context context, string userAuthId, Guid userId, CancellationToken cancellationToken)
     {
         return context.Roles
             .Join(
@@ -33,10 +33,15 @@ public static class UserQueries
                            join.roleAndUser.user.Id == userId)
             .Select(join => new UserProjectDto(join.project, join.roleAndUser.role))
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public static readonly Func<Context, Guid, Task<BaseUserDto?>> GetUserByIdAsync = EF.CompileAsyncQuery(
+    public static Task<BaseUserDto?> GetUserByIdAsync(Context context, Guid userId, CancellationToken cancellationToken)
+    {
+        return GetUserById(context, userId).WaitAsync(cancellationToken);
+    }
+
+    private static readonly Func<Context, Guid, Task<BaseUserDto?>> GetUserById = EF.CompileAsyncQuery(
         (Context context, Guid userId) =>
             context.Users
                 .Where(user => user.Id == userId)
@@ -45,7 +50,12 @@ public static class UserQueries
                 .SingleOrDefault()
     );
 
-    public static readonly Func<Context, string, Task<BaseUserDto?>> GetUserByAuthIdAsync = EF.CompileAsyncQuery(
+    public static Task<BaseUserDto?> GetUserByAuthIdAsync(Context context, string userAuthId, CancellationToken cancellationToken)
+    {
+        return GetUserByAuthId(context, userAuthId).WaitAsync(cancellationToken);
+    }
+
+    public static readonly Func<Context, string, Task<BaseUserDto?>> GetUserByAuthId = EF.CompileAsyncQuery(
         (Context context, string userAuthId) =>
             context.Users
                 .Where(user => user.AuthIdentity == userAuthId)
@@ -54,7 +64,7 @@ public static class UserQueries
                 .SingleOrDefault()
     );
 
-    public static Task<List<UserDatasetDto>> GetUserDatasetsAsync(Context context, string userAuthId, Guid userId)
+    public static Task<List<UserDatasetDto>> GetUserDatasetsAsync(Context context, string userAuthId, Guid userId, CancellationToken cancellationToken)
     {
         return context.DatasetsUsersAccessLevels
             .Join(
@@ -71,6 +81,6 @@ public static class UserQueries
                                 joined.user.AuthIdentity == userAuthId)
             .Select(join => new UserDatasetDto(join.datasetAndUserId.dataset, join.datasetAndUserId.userAccess))
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 }

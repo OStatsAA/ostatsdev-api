@@ -35,7 +35,7 @@ public class UserProjectsWithRoleQueryIntegrationTest : BaseIntegrationTest
 
         await context.SaveChangesAsync();
 
-        var queriedUserProjects = await UserQueries.GetUserProjectsAsync(context, user.AuthIdentity, user.Id);
+        var queriedUserProjects = await UserQueries.GetUserProjectsAsync(context, user.AuthIdentity, user.Id, default);
 
         queriedUserProjects.Should().AllBeOfType<UserProjectDto>();
         queriedUserProjects.Should().HaveCount(2);

@@ -20,7 +20,7 @@ public class ProjectByIdQueryIntegrationTest : BaseIntegrationTest
         await context.Projects.AddAsync(project);
         await context.SaveChangesAsync();
 
-        var queriedProject = await ProjectQueries.GetProjectByIdAsync(context, user.AuthIdentity, project.Id);
+        var queriedProject = await ProjectQueries.GetProjectByIdAsync(context, user.AuthIdentity, project.Id, default);
 
         using(new AssertionScope())
         {
@@ -41,7 +41,7 @@ public class ProjectByIdQueryIntegrationTest : BaseIntegrationTest
         await context.AddAsync(unauthorized);
         await context.SaveChangesAsync();
 
-        var queriedProject = await ProjectQueries.GetProjectByIdAsync(context, unauthorized.AuthIdentity, project.Id);
+        var queriedProject = await ProjectQueries.GetProjectByIdAsync(context, unauthorized.AuthIdentity, project.Id, default);
 
         queriedProject.Should().BeNull();
     }

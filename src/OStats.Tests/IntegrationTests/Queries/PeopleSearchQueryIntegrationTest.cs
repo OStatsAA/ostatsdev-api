@@ -37,7 +37,7 @@ public class PeopleSearchQueryIntegrationTest : BaseIntegrationTest
         await context.AddRangeAsync(users);
         await context.SaveChangesAsync();
 
-        var searchResult = await UserQueries.SearchUsersAsync(context, "castil");
+        var searchResult = await UserQueries.SearchUsersAsync(context, "castil", default);
         searchResult.Should().HaveCount(2);
     }
 }
