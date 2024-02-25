@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OStats.API.Dtos;
 
-public struct CreateUserDto
+public record CreateUserDto
 {
     [Required]
     [Length(1, 128)]

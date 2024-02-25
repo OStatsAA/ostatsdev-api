@@ -9,7 +9,13 @@ public class CreateProjectCommand : IRequest<ValueTuple<DomainOperationResult, B
     public string UserAuthId { get; set; }
     public string Title { get; set; }
     public string? Description { get; set; }
-    public CreateProjectCommand(string userAuthId, string title, string? description = null)
+
+    public CreateProjectCommand(string userAuthId, string title)
+    {
+        UserAuthId = userAuthId;
+        Title = title;
+    }
+    public CreateProjectCommand(string userAuthId, string title, string description)
     {
         UserAuthId = userAuthId;
         Title = title;

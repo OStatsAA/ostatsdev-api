@@ -36,7 +36,7 @@ public class ProjectUsersAndRolesQueryIntegrationTest : BaseIntegrationTest
         foreach (var reader in readers)
         {
             project.AddOrUpdateUserRole(reader.Id, AccessLevel.ReadOnly, owner.Id);
-        };
+        }
 
         await context.SaveChangesAsync();
 

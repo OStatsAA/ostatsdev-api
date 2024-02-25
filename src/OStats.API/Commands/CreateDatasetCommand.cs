@@ -10,7 +10,14 @@ public class CreateDatasetCommand : IRequest<ValueTuple<DomainOperationResult, B
     public string Title { get; set; }
     public string Source { get; set; }
     public string? Description { get; set; }
-    public CreateDatasetCommand(string userAuthId, string title, string source, string? description = null)
+
+    public CreateDatasetCommand(string userAuthId, string title, string source)
+    {
+        UserAuthId = userAuthId;
+        Title = title;
+        Source = source;
+    }
+    public CreateDatasetCommand(string userAuthId, string title, string source, string description)
     {
         UserAuthId = userAuthId;
         Title = title;

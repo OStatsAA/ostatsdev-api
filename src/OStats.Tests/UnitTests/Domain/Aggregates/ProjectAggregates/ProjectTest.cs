@@ -29,8 +29,6 @@ public class ProjectTest
         var initialAccessLevel = AccessLevel.ReadOnly;
         var updatedAccessLevel = AccessLevel.Editor;
         project.AddOrUpdateUserRole(userId, initialAccessLevel, ownerId);
-
-        var before_update_role = project.Roles.Single(role => role.UserId == userId);
         project.AddOrUpdateUserRole(userId, updatedAccessLevel, ownerId);
 
         project.Roles.Should().NotContain(role => role.UserId == userId

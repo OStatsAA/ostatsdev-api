@@ -119,7 +119,7 @@ public static class DatasetsApi
             yield break;
         }
 
-        var queryRequest = new GetDataRequest()
+        var queryRequest = new GetDataRequest
         {
             DatasetId = datasetId.ToString(),
             Query = "SELECT * FROM data"

@@ -36,7 +36,7 @@ public static class DatasetQueries
                 context.Users,
                 datasetAndUserId => datasetAndUserId.UserId,
                 user => user.Id,
-                (datasetAndUserId, user) => user)
+                (_, user) => user)
             .AsNoTracking()
             .ToListAsync();
     }

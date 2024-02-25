@@ -17,7 +17,14 @@ public class Dataset : Entity, IAggregateRoot
         Source = source;
     }
 
-    public Dataset(Guid ownerId, string title, string source, string? description = null)
+    public Dataset(Guid ownerId, string title, string source)
+    {
+        Title = title;
+        Source = source;
+        _datasetUsersAccessesLevels.Add(new DatasetUserAccessLevel(Id, ownerId, DatasetAccessLevel.Owner));
+    }
+
+    public Dataset(Guid ownerId, string title, string source, string description)
     {
         Title = title;
         Source = source;
