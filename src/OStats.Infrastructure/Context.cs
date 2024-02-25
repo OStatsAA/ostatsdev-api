@@ -63,6 +63,12 @@ public class Context : DbContext
         return base.SaveChanges();
     }
 
+    public async Task<int> SaveChangesAsync()
+    {
+        AddTimeStamps();
+        return await base.SaveChangesAsync();
+    }
+
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         AddTimeStamps();
