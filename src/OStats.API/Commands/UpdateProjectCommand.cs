@@ -9,12 +9,7 @@ public class UpdateProjectCommand : CreateProjectCommand, IRequest<ValueTuple<Do
     public Guid Id { get; init; }
     public DateTime LastUpdatedAt { get; init; }
 
-    public UpdateProjectCommand(Guid id, string userAuthId, string title, DateTime lastUpdatedAt) : base(userAuthId, title)
-    {
-        Id = id;
-        LastUpdatedAt = lastUpdatedAt;
-    }
-    public UpdateProjectCommand(Guid id, string userAuthId, string title, DateTime lastUpdatedAt, string description) : base(userAuthId, title, description)
+    public UpdateProjectCommand(Guid id, string userAuthId, string title, DateTime lastUpdatedAt, string? description) : base(userAuthId, title, description)
     {
         Id = id;
         LastUpdatedAt = lastUpdatedAt;
