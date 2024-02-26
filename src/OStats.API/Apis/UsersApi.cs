@@ -39,7 +39,7 @@ public static class UsersApi
         Context dbContext,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.User.GetAuthId();
+        var userAuthId = context.GetUserAuthId();
         var user = await UserQueries.GetUserByAuthIdAsync(dbContext, userAuthId, cancellationToken);
         if (user is not null)
         {
@@ -66,7 +66,7 @@ public static class UsersApi
         Context dbContext,
         CancellationToken cancellationToken)
     {
-        var userAuthId = httpContext.User.GetAuthId();
+        var userAuthId = httpContext.GetUserAuthId();
         var userProjects = await UserQueries.GetUserProjectsAsync(dbContext, userAuthId, userId, cancellationToken);
         return TypedResults.Ok(userProjects);
     }
@@ -77,7 +77,7 @@ public static class UsersApi
         Context dbContext,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.User.GetAuthId();
+        var userAuthId = context.GetUserAuthId();
         var userDatasets = await UserQueries.GetUserDatasetsAsync(dbContext, userAuthId, userId, cancellationToken);
         return TypedResults.Ok(userDatasets);
     }
