@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using OStats.API.Dtos;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Common;
@@ -18,8 +17,7 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
 
     public async Task<ValueTuple<DomainOperationResult, BaseProjectDto?>> Handle(CreateProjectCommand command, CancellationToken cancellationToken)
     {
-        var user = await _context.Users
-            .SingleOrDefaultAsync(user => user.AuthIdentity == command.UserAuthId, cancellationToken);
+        var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
         if (user is null)
         {
             return (DomainOperationResult.Failure("User not found."), null);

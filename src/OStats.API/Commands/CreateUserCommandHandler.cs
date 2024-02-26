@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using OStats.API.Dtos;
 using OStats.Domain.Aggregates.UserAggregate;
 using OStats.Domain.Common;
@@ -18,7 +17,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Value
 
     public async Task<ValueTuple<DomainOperationResult, BaseUserDto?>> Handle(CreateUserCommand command, CancellationToken cancellationToken)
     {
-        var duplicatedAuthIdentity = await _context.Users.AnyAsync(u => u.AuthIdentity == command.AuthIdentity, cancellationToken);
+        var duplicatedAuthIdentity = await _context.Users.AnyByAuthIdentityAsync(command.AuthIdentity, cancellationToken);
         if (duplicatedAuthIdentity)
         {
             return (DomainOperationResult.Failure("Cannot create user."), null);
