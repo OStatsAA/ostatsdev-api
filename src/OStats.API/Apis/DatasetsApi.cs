@@ -113,7 +113,7 @@ public static class DatasetsApi
             yield break;
         }
 
-        if (!await dbContext.DatasetsUsersAccessLevels.AnyAsync(accesses => accesses.UserId == user.Id && accesses.DatasetId == datasetId, cancellationToken))
+        if (!await dbContext.DatasetsUsersAccessLevels.AnyByUserAndDatasetIdAsync(user.Id, datasetId, cancellationToken))
         {
             yield return context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             yield break;

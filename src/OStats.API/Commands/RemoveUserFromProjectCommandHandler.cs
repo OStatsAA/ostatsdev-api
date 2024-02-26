@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using OStats.Domain.Common;
 using OStats.Infrastructure;
 
@@ -17,7 +16,7 @@ public class RemoveUserFromProjectCommandHandler : IRequestHandler<RemoveUserFro
     public async Task<DomainOperationResult> Handle(RemoveUserFromProjectCommand request, CancellationToken cancellationToken)
     {
 
-        var requestor = await _context.Users.SingleOrDefaultAsync(user => user.AuthIdentity == request.UserAuthId);
+        var requestor = await _context.Users.FindByAuthIdentityAsync(request.UserAuthId, cancellationToken);
         if (requestor is null)
         {
             return DomainOperationResult.Failure("Requestor not found.");

@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using OStats.Domain.Common;
 using OStats.Infrastructure;
 
@@ -16,8 +15,7 @@ public class LinkProjectToDatasetCommandHandler : IRequestHandler<LinkProjectToD
 
     public async Task<DomainOperationResult> Handle(LinkProjectToDatasetCommand command, CancellationToken cancellationToken)
     {
-        var user = await _context.Users
-            .SingleOrDefaultAsync(user => user.AuthIdentity == command.UserAuthId, cancellationToken);
+        var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
         if (user is null)
         {
             return DomainOperationResult.Failure("User not found.");
