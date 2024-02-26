@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OStats.Domain.Aggregates.UserAggregate;
 
-namespace OStats.Infrastructure.Extensions;
+namespace OStats.Infrastructure;
 
 public static class DbSetExtensions
 {

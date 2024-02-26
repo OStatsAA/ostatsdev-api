@@ -1,7 +1,6 @@
 using MediatR;
 using OStats.Domain.Common;
 using OStats.Infrastructure;
-using OStats.Infrastructure.Extensions;
 
 namespace OStats.API.Commands;
 
