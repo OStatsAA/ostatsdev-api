@@ -39,7 +39,7 @@ public static class DatasetsApi
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.User.GetAuthId();
+        var userAuthId = context.GetUserAuthId();
         var command = new CreateDatasetCommand(userAuthId, createDto.Title, createDto.Source, createDto.Description);
         var (result, baseDatasetDto) = await mediator.Send(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok(baseDatasetDto) : TypedResults.BadRequest(result.ErrorMessage);
@@ -51,7 +51,7 @@ public static class DatasetsApi
         Context dbContext,
         CancellationToken cancellationToken)
     {
-        var userAuthId = httpContext.User.GetAuthId();
+        var userAuthId = httpContext.GetUserAuthId();
         var dataset = await DatasetQueries.GetDatasetByIdAsync(dbContext, userAuthId, datasetId, cancellationToken);
         if (dataset is null)
         {
@@ -68,7 +68,7 @@ public static class DatasetsApi
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.User.GetAuthId();
+        var userAuthId = context.GetUserAuthId();
         var command = new DeleteDatasetCommand(userAuthId, datasetId);
         var result = await mediator.Send(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
@@ -81,7 +81,7 @@ public static class DatasetsApi
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.User.GetAuthId();
+        var userAuthId = context.GetUserAuthId();
         var command = new UpdateDatasetCommand(datasetId, userAuthId, updateDto.Title, updateDto.Source, updateDto.LastUpdatedAt, updateDto.Description);
         var (result, baseDatasetDto) = await mediator.Send(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok(baseDatasetDto) : TypedResults.BadRequest(result.ErrorMessage);
@@ -94,7 +94,7 @@ public static class DatasetsApi
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.User.GetAuthId();
+        var userAuthId = context.GetUserAuthId();
         var command = new IngestDataCommand(userAuthId, datasetId, ingestDataDto.Bucket, ingestDataDto.FileName);
         var result = await mediator.Send(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
@@ -107,7 +107,7 @@ public static class DatasetsApi
         [FromServices] DataService.DataServiceClient _dataServiceClient,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var user = await dbContext.Users.FindByAuthIdentityAsync(context.User.GetAuthId(), cancellationToken);
+        var user = await dbContext.Users.FindByAuthIdentityAsync(context.GetUserAuthId(), cancellationToken);
         if (user is null)
         {
             yield return context.Response.StatusCode = StatusCodes.Status401Unauthorized;
@@ -139,7 +139,7 @@ public static class DatasetsApi
         Context dbContext,
         CancellationToken cancellationToken)
     {
-        var userAuthId = httpContext.User.GetAuthId();
+        var userAuthId = httpContext.GetUserAuthId();
         var userAccessLevel = await DatasetQueries.GetUserDatasetAccessLevelAsync(dbContext, userAuthId, datasetId, cancellationToken);
         if (userAccessLevel < DatasetAccessLevel.ReadOnly)
         {
@@ -157,7 +157,7 @@ public static class DatasetsApi
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.User.GetAuthId();
+        var userAuthId = context.GetUserAuthId();
         var command = new AddUserToDatasetCommand(userAuthId, datasetId, addUserToDatasetDto.UserId, addUserToDatasetDto.AccessLevel);
         var result = await mediator.Send(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
@@ -170,7 +170,7 @@ public static class DatasetsApi
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.User.GetAuthId();
+        var userAuthId = context.GetUserAuthId();
         var command = new RemoveUserFromDatasetCommand(userAuthId, datasetId, userId);
         var result = await mediator.Send(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
