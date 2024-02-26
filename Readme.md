@@ -1,6 +1,8 @@
 # OStats.dev API
 
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/508ca71a0ad5457e8b5849bd1411f0bf)](https://app.codacy.com/gh/OStatsAA/ostatsdev-api/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade) [![Codacy Badge](https://app.codacy.com/project/badge/Coverage/508ca71a0ad5457e8b5849bd1411f0bf)](https://app.codacy.com/gh/OStatsAA/ostatsdev-api/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/508ca71a0ad5457e8b5849bd1411f0bf)](https://app.codacy.com/gh/OStatsAA/ostatsdev-api/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Coverage/508ca71a0ad5457e8b5849bd1411f0bf)](https://app.codacy.com/gh/OStatsAA/ostatsdev-api/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
+![Publish Worflow Badge](https://github.com/OStatsAA/ostatsdev-api/actions/workflows/docker-publish.yml/badge.svg)
 
 ## Running tests
 
