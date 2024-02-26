@@ -7,7 +7,6 @@ using OStats.API.Extensions;
 using OStats.API.Filters;
 using OStats.API.Queries;
 using OStats.Infrastructure;
-using OStats.Infrastructure.Extensions;
 
 namespace OStats.API;
 

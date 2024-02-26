@@ -3,7 +3,6 @@ using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
 using OStats.Domain.Common;
 using OStats.Infrastructure;
-using OStats.Infrastructure.Extensions;
 
 namespace OStats.API.Commands;
 

@@ -12,7 +12,6 @@ using OStats.API.Filters;
 using OStats.API.Queries;
 using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Infrastructure;
-using OStats.Infrastructure.Extensions;
 
 namespace OStats.API;
 
