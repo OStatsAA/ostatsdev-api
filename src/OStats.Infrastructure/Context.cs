@@ -22,6 +22,9 @@ public class Context : DbContext
     // UserAggregate db sets
     public DbSet<User> Users { get; set; }
 
+    // History db sets
+    public DbSet<AggregateHistoryEntry> AggregatesHistoryEntries { get; set; }
+
     public Context() { }
 
     public Context(DbContextOptions options) : base(options) { }
@@ -56,6 +59,9 @@ public class Context : DbContext
 
         // UserAggregate entities configuration
         modelBuilder.ApplyConfiguration(new UserEntityConfiguration());
+
+        // History entities configuration
+        modelBuilder.ApplyConfiguration(new AggregateHistoryEntryConfiguration());
 
         // Apply Outbox pattern configuration
         modelBuilder.AddInboxStateEntity();
