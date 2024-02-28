@@ -44,7 +44,7 @@ public static class ServiceCollectionExtensions
                 outboxConfig.UsePostgres().UseBusOutbox();
             });
 
-            busConfig.UsingRabbitMq((context, cfg) =>
+            busConfig.UsingRabbitMq((_, cfg) =>
             {
                 var host = Environment.GetEnvironmentVariable("RABBITMQ_DEFAULT_HOST");
                 cfg.Host(host, "/", h =>
