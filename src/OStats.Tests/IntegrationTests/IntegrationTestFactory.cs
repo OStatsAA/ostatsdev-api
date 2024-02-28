@@ -9,10 +9,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Org.BouncyCastle.Asn1.Cms;
 using OStats.Infrastructure;
 using Testcontainers.PostgreSql;
-using Testcontainers.RabbitMq;
 
 namespace OStats.Tests.IntegrationTests;
 
