@@ -21,7 +21,11 @@
 		}
 	},
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	"forwardPorts": [5432, 5431],
+	"forwardPorts": [
+		5432, // Postgres
+		5672, // RabbitMQ
+		15672  // RabbitMQ Management
+	],
 	// "portsAttributes": {
 	//		"5001": {
 	//			"protocol": "https"
