@@ -9,7 +9,7 @@ public class Dataset : Entity, IAggregateRoot
     public string Source { get; set; }
     public string? Description { get; set; }
     private readonly List<DatasetUserAccessLevel> _datasetUsersAccessesLevels = new List<DatasetUserAccessLevel>();
-    public IReadOnlyCollection<DatasetUserAccessLevel> DatasetUserAccessLevels => _datasetUsersAccessesLevels.AsReadOnly();
+    public IReadOnlyCollection<DatasetUserAccessLevel> DatasetUserAccessLevels => _datasetUsersAccessesLevels;
 
     private readonly List<IDomainEvent> _domainEvents = new List<IDomainEvent>();
     public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
