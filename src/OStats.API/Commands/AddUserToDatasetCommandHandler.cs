@@ -1,3 +1,4 @@
+using MassTransit;
 using MediatR;
 using OStats.Domain.Common;
 using OStats.Infrastructure;
@@ -7,11 +8,14 @@ namespace OStats.API.Commands;
 public class AddUserToDatasetCommandHandler : IRequestHandler<AddUserToDatasetCommand, DomainOperationResult>
 {
     private readonly Context _context;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public AddUserToDatasetCommandHandler(Context context)
+    public AddUserToDatasetCommandHandler(Context context, IPublishEndpoint publishEndpoint)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
+        _publishEndpoint = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
     }
+
     public async Task<DomainOperationResult> Handle(AddUserToDatasetCommand request, CancellationToken cancellationToken)
     {
         var dataset = await _context.Datasets.FindAsync(request.DatasetId, cancellationToken);
@@ -38,6 +42,7 @@ public class AddUserToDatasetCommandHandler : IRequestHandler<AddUserToDatasetCo
             return result;
         }
 
+        await _publishEndpoint.Publish(dataset.DomainEvents.First(), cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
         return result;
     }
