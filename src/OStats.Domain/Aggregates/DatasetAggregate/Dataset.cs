@@ -9,7 +9,10 @@ public class Dataset : Entity, IAggregateRoot
     public string Source { get; set; }
     public string? Description { get; set; }
     private readonly List<DatasetUserAccessLevel> _datasetUsersAccessesLevels = new List<DatasetUserAccessLevel>();
-    public IReadOnlyCollection<DatasetUserAccessLevel> DatasetUserAccessLevels => _datasetUsersAccessesLevels;
+    public IReadOnlyCollection<DatasetUserAccessLevel> DatasetUserAccessLevels => _datasetUsersAccessesLevels.AsReadOnly();
+
+    private readonly List<IDomainEvent> _domainEvents = new List<IDomainEvent>();
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 
     private Dataset(string title, string source)
     {
@@ -42,7 +45,7 @@ public class Dataset : Entity, IAggregateRoot
 
         var datasetUserAccess = new DatasetUserAccessLevel(Id, userId, accessLevel);
         _datasetUsersAccessesLevels.Add(datasetUserAccess);
-
+        _domainEvents.Add(new GrantedUserAccessToDatasetDomainEvent(datasetUserAccess, requestorId));
         return DomainOperationResult.Success;
     }
 
@@ -66,7 +69,7 @@ public class Dataset : Entity, IAggregateRoot
         }
 
         _datasetUsersAccessesLevels.Remove(userAccess);
-
+        _domainEvents.Add(new RevokedUserAccessFromDatasetDomainEvent(userAccess, requestorId));
         return DomainOperationResult.Success;
     }
 
