@@ -1,12 +1,18 @@
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Org.BouncyCastle.Asn1.Cms;
 using OStats.Infrastructure;
 using Testcontainers.PostgreSql;
+using Testcontainers.RabbitMq;
 
 namespace OStats.Tests.IntegrationTests;
 
@@ -18,8 +24,14 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.UseEnvironment("IntegrationTest");
         builder.ConfigureTestServices(services =>
         {
+            services.Configure<HealthCheckServiceOptions>(options =>
+            {
+                options.Registrations.Clear();
+            });
+
             var descriptorType = typeof(DbContextOptions<Context>);
             var descriptor = services.SingleOrDefault(s => s.ServiceType == descriptorType);
 
@@ -31,6 +43,11 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             services.AddDbContext<Context>(options =>
             {
                 options.UseNpgsql(_dbContainer.GetConnectionString());
+            });
+
+            services.AddMassTransitTestHarness(x =>
+            {
+                x.SetTestTimeouts(TimeSpan.FromSeconds(30));
             });
 
             services.Configure<JwtBearerOptions>(
@@ -49,13 +66,14 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
         });
     }
 
-    public Task InitializeAsync()
+    public async Task InitializeAsync()
     {
-        return _dbContainer.StartAsync();
+        await _dbContainer.StartAsync();
     }
 
-    public new Task DisposeAsync()
+    public async new Task DisposeAsync()
     {
-        return _dbContainer.StopAsync();
+        await _dbContainer.DisposeAsync();
+        await base.DisposeAsync();
     }
 }

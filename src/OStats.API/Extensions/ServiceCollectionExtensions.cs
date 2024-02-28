@@ -1,7 +1,9 @@
 using System.Security.Claims;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OStats.Infrastructure;
 
 namespace OStats.API.Extensions;
 
@@ -25,6 +27,33 @@ public static class ServiceCollectionExtensions
             };
         });
 
+        return services;
+    }
+
+    public static IServiceCollection AddMessageBroker(this IServiceCollection services)
+    {
+        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "IntegrationTest")
+        {
+            return services;
+        }
+
+        services.AddMassTransit(busConfig =>
+        {
+            busConfig.AddEntityFrameworkOutbox<Context>(outboxConfig =>
+            {
+                outboxConfig.UsePostgres().UseBusOutbox();
+            });
+
+            busConfig.UsingRabbitMq((context, cfg) =>
+            {
+                var host = Environment.GetEnvironmentVariable("RABBITMQ_DEFAULT_HOST");
+                cfg.Host(host, "/", h =>
+                {
+                    h.Username(Environment.GetEnvironmentVariable("RABBITMQ_DEFAULT_USER"));
+                    h.Password(Environment.GetEnvironmentVariable("RABBITMQ_DEFAULT_PASS"));
+                });
+            });
+        });
         return services;
     }
 
