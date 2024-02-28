@@ -2,11 +2,13 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions.Execution;
+using MassTransit.Testing;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Dtos;
 using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.UserAggregate;
+using OStats.Domain.Common;
 
 namespace OStats.Tests.IntegrationTests.Apis;
 
@@ -194,6 +196,10 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
 
             datasetAccessLevel.Should().NotBeNull();
             datasetAccessLevel!.AccessLevel.Should().Be(DatasetAccessLevel.ReadOnly);
+
+            var _event = await queueHarness.Published.SelectAsync<IDomainEvent>().First();
+            _event.Should().NotBeNull();
+            _event.Context.Message.Should().BeOfType<GrantedUserAccessToDatasetDomainEvent>();
         }
     }
 

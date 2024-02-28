@@ -1,3 +1,4 @@
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate;
@@ -55,6 +56,11 @@ public class Context : DbContext
 
         // UserAggregate entities configuration
         modelBuilder.ApplyConfiguration(new UserEntityConfiguration());
+
+        // Apply Outbox pattern configuration
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
     }
 
     public override int SaveChanges()

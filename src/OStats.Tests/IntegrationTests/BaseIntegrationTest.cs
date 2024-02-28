@@ -1,3 +1,4 @@
+using MassTransit.Testing;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,12 +15,14 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
     protected readonly ISender sender;
     protected readonly Context context;
     protected readonly HttpClient client;
+    protected readonly ITestHarness queueHarness;
 
     protected BaseIntegrationTest(IntegrationTestWebAppFactory factory)
     {
         _scope = factory.Services.CreateScope();
         sender = _scope.ServiceProvider.GetRequiredService<ISender>();
         context = _scope.ServiceProvider.GetRequiredService<Context>();
+        queueHarness = _scope.ServiceProvider.GetTestHarness();
         client = factory.CreateClient();
 
         SetDatabaseInitialState();
@@ -48,5 +51,6 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
     {
         _scope?.Dispose();
         context?.Dispose();
+        queueHarness?.Stop();
     }
 }

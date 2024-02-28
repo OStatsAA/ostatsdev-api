@@ -9,7 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddJwtBearerAuthentication();
 builder.Services.AddAuthorization();
 builder.Services.AddDbContext<Context>();
-builder.Services.AddGrpcClient<DataService.DataServiceClient>( o => {
+builder.Services.AddGrpcClient<DataService.DataServiceClient>(o =>
+{
     o.Address = new Uri("http://dataservice:50051");
 });
 builder.Services.AddEndpointsApiExplorer();
@@ -18,6 +19,7 @@ builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
 });
+builder.Services.AddMessageBroker();
 
 var app = builder.Build();
 
