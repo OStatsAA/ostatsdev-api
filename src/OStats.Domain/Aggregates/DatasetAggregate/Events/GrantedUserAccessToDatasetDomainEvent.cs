@@ -12,4 +12,9 @@ public record GrantedUserAccessToDatasetDomainEvent : IDomainEvent
         DatasetUserAccessLevel = datasetUserAccessLevel;
         RequestorId = requestorId;
     }
+
+    public string GetEventDescription(string datasetTitle, string requestorName, string userName)
+    {
+        return $"{requestorName} granted {userName} {this.DatasetUserAccessLevel.AccessLevel.ToString()} access to dataset {datasetTitle}";
+    }
 }
