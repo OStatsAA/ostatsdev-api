@@ -39,6 +39,8 @@ public static class ServiceCollectionExtensions
 
         services.AddMassTransit(busConfig =>
         {
+            busConfig.AddConsumers(typeof(Program).Assembly);
+
             busConfig.AddEntityFrameworkOutbox<Context>(outboxConfig =>
             {
                 outboxConfig.UsePostgres().UseBusOutbox();
