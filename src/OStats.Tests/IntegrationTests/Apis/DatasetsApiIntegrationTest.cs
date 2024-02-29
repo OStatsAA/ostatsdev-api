@@ -185,6 +185,8 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
             $"{_baseUrl}/{dataset.Id}/users",
             new AddUserToDatasetDto { UserId = other.Id, AccessLevel = DatasetAccessLevel.ReadOnly });
 
+        await Task.Delay(5 * 1000);
+
         using (new AssertionScope())
         {
             response.IsSuccessStatusCode.Should().BeTrue();
@@ -200,6 +202,9 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
             var _event = await queueHarness.Published.SelectAsync<IDomainEvent>().First();
             _event.Should().NotBeNull();
             _event.Context.Message.Should().BeOfType<GrantedUserAccessToDatasetDomainEvent>();
+
+            var consumed = queueHarness.Consumed.SelectAsync<IDomainEvent>().First();
+            consumed.Should().NotBeNull();
         }
     }
 
