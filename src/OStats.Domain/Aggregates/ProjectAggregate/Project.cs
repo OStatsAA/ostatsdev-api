@@ -3,7 +3,7 @@ using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
 
 namespace OStats.Domain.Aggregates.ProjectAggregate;
 
-public class Project : Entity, IAggregateRoot
+public class Project : AggregateRoot
 {
     public string Title { get; set; }
     public string? Description { get; set; }
@@ -11,8 +11,6 @@ public class Project : Entity, IAggregateRoot
     public IReadOnlyCollection<Role> Roles => _roles;
     private readonly HashSet<DatasetProjectLink> _linkedDatasets = new HashSet<DatasetProjectLink>();
     public IReadOnlyCollection<DatasetProjectLink> LinkedDatasets => _linkedDatasets;
-    private readonly List<IDomainEvent> _domainEvents = new List<IDomainEvent>();
-    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 
     private Project(string title, string? description = null)
     {

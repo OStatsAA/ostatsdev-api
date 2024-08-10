@@ -3,16 +3,13 @@ using OStats.Domain.Common;
 
 namespace OStats.Domain.Aggregates.DatasetAggregate;
 
-public class Dataset : Entity, IAggregateRoot
+public class Dataset : AggregateRoot
 {
     public string Title { get; set; }
     public string Source { get; set; }
     public string? Description { get; set; }
     private readonly List<DatasetUserAccessLevel> _datasetUsersAccessesLevels = new List<DatasetUserAccessLevel>();
     public IReadOnlyCollection<DatasetUserAccessLevel> DatasetUserAccessLevels => _datasetUsersAccessesLevels;
-
-    private readonly List<IDomainEvent> _domainEvents = new List<IDomainEvent>();
-    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 
     private Dataset(string title, string source)
     {
