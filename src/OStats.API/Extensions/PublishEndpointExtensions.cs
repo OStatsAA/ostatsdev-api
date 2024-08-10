@@ -14,7 +14,7 @@ public static class PublishEndpointExtensions
     /// <param name="aggregateRoot">The aggregate root.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    public static async Task PublishDomainEventsAsync(this IPublishEndpoint publishEndpoint, IAggregateRoot aggregateRoot, CancellationToken cancellationToken)
+    public static async Task PublishDomainEventsAsync(this IPublishEndpoint publishEndpoint, AggregateRoot aggregateRoot, CancellationToken cancellationToken)
     {
         if (!aggregateRoot.DomainEvents.Any())
         {

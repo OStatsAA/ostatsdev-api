@@ -9,7 +9,7 @@ public static class ChangeTrackerExtensions
         if (changeTracker.HasChanges())
         {
             return changeTracker
-                .Entries<IAggregateRoot>()
+                .Entries<AggregateRoot>()
                 .Where(entry => entry.Entity.DomainEvents.Count != 0)
                 .SelectMany(entry => entry.Entity.DomainEvents);
         }
