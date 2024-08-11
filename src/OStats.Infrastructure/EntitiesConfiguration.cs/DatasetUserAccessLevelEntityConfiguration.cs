@@ -4,7 +4,7 @@ using OStats.Domain.Aggregates.DatasetAggregate;
 
 namespace OStats.Infrastructure.EntitiesConfiguration;
 
-class DatasetUserAccessLevelEntityConfiguration : EntityConfiguration<DatasetUserAccessLevel>, IEntityTypeConfiguration<DatasetUserAccessLevel>
+sealed class DatasetUserAccessLevelEntityConfiguration : EntityConfiguration<DatasetUserAccessLevel>, IEntityTypeConfiguration<DatasetUserAccessLevel>
 {
     public void Configure(EntityTypeBuilder<DatasetUserAccessLevel> builder)
     {

@@ -6,7 +6,7 @@ using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class AddUserToDatasetCommandHandler : IRequestHandler<AddUserToDatasetCommand, DomainOperationResult>
+public sealed class AddUserToDatasetCommandHandler : IRequestHandler<AddUserToDatasetCommand, DomainOperationResult>
 {
     private readonly Context _context;
     private readonly IPublishEndpoint _publishEndpoint;

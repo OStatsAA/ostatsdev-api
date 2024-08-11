@@ -3,7 +3,7 @@ using OStats.Domain.Common;
 
 namespace OStats.API.Commands;
 
-public class IngestDataCommand : IRequest<DomainOperationResult>
+public sealed class IngestDataCommand : IRequest<DomainOperationResult>
 {
     public Guid DatasetId { get; }
     public string UserAuthId { get; }

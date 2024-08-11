@@ -6,7 +6,7 @@ using OStats.Domain.Aggregates.UserAggregate;
 
 namespace OStats.Infrastructure.EntitiesConfiguration;
 
-class UserEntityConfiguration : EntityConfiguration<User>, IEntityTypeConfiguration<User>
+sealed class UserEntityConfiguration : EntityConfiguration<User>, IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {

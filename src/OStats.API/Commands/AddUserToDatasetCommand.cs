@@ -4,7 +4,7 @@ using OStats.Domain.Common;
 
 namespace OStats.API.Commands;
 
-public class AddUserToDatasetCommand : IRequest<DomainOperationResult>
+public sealed class AddUserToDatasetCommand : IRequest<DomainOperationResult>
 {
     public string UserAuthId { get; set; }
     public Guid DatasetId { get; set; }

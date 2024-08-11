@@ -6,7 +6,7 @@ using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class UpdateDatasetCommandHandler : IRequestHandler<UpdateDatasetCommand, ValueTuple<DomainOperationResult, BaseDatasetDto?>>
+public sealed class UpdateDatasetCommandHandler : IRequestHandler<UpdateDatasetCommand, ValueTuple<DomainOperationResult, BaseDatasetDto?>>
 {
     private readonly Context _context;
 

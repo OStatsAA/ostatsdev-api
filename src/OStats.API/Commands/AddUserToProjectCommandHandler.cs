@@ -4,7 +4,7 @@ using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class AddUserToProjectCommandHandler : IRequestHandler<AddUserToProjectCommand, DomainOperationResult>
+public sealed class AddUserToProjectCommandHandler : IRequestHandler<AddUserToProjectCommand, DomainOperationResult>
 {
     private readonly Context _context;
 

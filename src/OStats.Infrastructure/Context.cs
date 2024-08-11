@@ -8,7 +8,7 @@ using OStats.Infrastructure.EntitiesConfiguration;
 
 namespace OStats.Infrastructure;
 
-public class Context : DbContext
+public sealed class Context : DbContext
 {
     // DatasetAggregate db sets
     public DbSet<Dataset> Datasets { get; set; }
