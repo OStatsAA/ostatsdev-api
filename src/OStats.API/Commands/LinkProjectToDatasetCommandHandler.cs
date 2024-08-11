@@ -4,7 +4,7 @@ using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class LinkProjectToDatasetCommandHandler : IRequestHandler<LinkProjectToDatasetCommand, DomainOperationResult>
+public sealed class LinkProjectToDatasetCommandHandler : IRequestHandler<LinkProjectToDatasetCommand, DomainOperationResult>
 {
     private readonly Context _context;
 

@@ -4,7 +4,7 @@ using OStats.Domain.Common;
 
 namespace OStats.API.Commands;
 
-public class UpdateProjectCommand : CreateProjectCommand, IRequest<ValueTuple<DomainOperationResult, BaseProjectDto?>>
+public sealed class UpdateProjectCommand : CreateProjectCommand, IRequest<ValueTuple<DomainOperationResult, BaseProjectDto?>>
 {
     public Guid Id { get; init; }
     public DateTime LastUpdatedAt { get; init; }

@@ -2,7 +2,7 @@ using OStats.Domain.Common;
 
 namespace OStats.Domain.Aggregates.DatasetAggregate;
 
-public class RevokedUserAccessFromDatasetDomainEvent : IDomainEvent
+public sealed class RevokedUserAccessFromDatasetDomainEvent : IDomainEvent
 {
     public DatasetUserAccessLevel DatasetUserAccessLevel { get; init; }
     public Guid RequestorId { get; init; }

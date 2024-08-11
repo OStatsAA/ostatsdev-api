@@ -4,7 +4,7 @@ using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class RemoveUserFromProjectCommandHandler : IRequestHandler<RemoveUserFromProjectCommand, DomainOperationResult>
+public sealed class RemoveUserFromProjectCommandHandler : IRequestHandler<RemoveUserFromProjectCommand, DomainOperationResult>
 {
     private readonly Context _context;
 

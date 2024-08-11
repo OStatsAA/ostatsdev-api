@@ -3,7 +3,7 @@ using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
 
 namespace OStats.Domain.Aggregates.ProjectAggregate;
 
-public class Project : AggregateRoot
+public sealed class Project : AggregateRoot
 {
     public string Title { get; set; }
     public string? Description { get; set; }

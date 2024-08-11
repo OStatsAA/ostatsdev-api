@@ -5,7 +5,7 @@ using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class DeleteDatasetCommandHandler : IRequestHandler<DeleteDatasetCommand, DomainOperationResult>
+public sealed class DeleteDatasetCommandHandler : IRequestHandler<DeleteDatasetCommand, DomainOperationResult>
 {
     private readonly Context _context;
 

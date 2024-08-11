@@ -4,7 +4,7 @@ using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class RemoveUserFromDatasetCommandHandler : IRequestHandler<RemoveUserFromDatasetCommand, DomainOperationResult>
+public sealed class RemoveUserFromDatasetCommandHandler : IRequestHandler<RemoveUserFromDatasetCommand, DomainOperationResult>
 {
     private readonly Context _context;
 

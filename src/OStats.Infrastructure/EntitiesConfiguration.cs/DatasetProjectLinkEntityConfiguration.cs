@@ -4,7 +4,7 @@ using OStats.Domain.Aggregates.ProjectAggregate;
 
 namespace OStats.Infrastructure.EntitiesConfiguration;
 
-class DatasetProjectLinkConfiguration : EntityConfiguration<DatasetProjectLink>, IEntityTypeConfiguration<DatasetProjectLink>
+sealed class DatasetProjectLinkConfiguration : EntityConfiguration<DatasetProjectLink>, IEntityTypeConfiguration<DatasetProjectLink>
 {
     public void Configure(EntityTypeBuilder<DatasetProjectLink> builder)
     {

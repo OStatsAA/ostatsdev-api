@@ -4,7 +4,7 @@ using OStats.Domain.Common;
 
 namespace OStats.Infrastructure.EntitiesConfiguration;
 
-public class AggregateHistoryEntryConfiguration : IEntityTypeConfiguration<AggregateHistoryEntry>
+sealed class AggregateHistoryEntryConfiguration : IEntityTypeConfiguration<AggregateHistoryEntry>
 {
     public void Configure(EntityTypeBuilder<AggregateHistoryEntry> builder)
     {
