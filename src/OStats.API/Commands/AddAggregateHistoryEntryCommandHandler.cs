@@ -1,10 +1,10 @@
-using MassTransit;
+using MediatR;
 using OStats.Domain.Common;
 using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public sealed class AddAggregateHistoryEntryCommandHandler : IConsumer<AddAggregateHistoryEntryCommand>
+public sealed class AddAggregateHistoryEntryCommandHandler : IRequestHandler<AddAggregateHistoryEntryCommand, bool>
 {
     private readonly Context _context;
 
@@ -13,9 +13,8 @@ public sealed class AddAggregateHistoryEntryCommandHandler : IConsumer<AddAggreg
         _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    public async Task Consume(ConsumeContext<AddAggregateHistoryEntryCommand> context)
+    public async Task<bool> Handle(AddAggregateHistoryEntryCommand request, CancellationToken cancellationToken)
     {
-        var request = context.Message;
         _context.AggregatesHistoryEntries.Add(new AggregateHistoryEntry(
             request.AggregateId,
             request.AggregateType,
@@ -25,7 +24,9 @@ public sealed class AddAggregateHistoryEntryCommandHandler : IConsumer<AddAggreg
             request.EventDescription,
             request.TimeStamp
         ));
-        await _context.SaveChangesAsync();
-    }
 
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return true;
+    }
 }
