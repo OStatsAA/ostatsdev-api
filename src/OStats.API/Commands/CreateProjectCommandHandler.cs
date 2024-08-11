@@ -6,7 +6,7 @@ using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand, ValueTuple<DomainOperationResult, BaseProjectDto?>>
+public sealed class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand, ValueTuple<DomainOperationResult, BaseProjectDto?>>
 {
     private readonly Context _context;
 

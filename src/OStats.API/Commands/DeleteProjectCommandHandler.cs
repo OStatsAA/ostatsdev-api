@@ -6,7 +6,7 @@ using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand, DomainOperationResult>
+public sealed class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand, DomainOperationResult>
 {
     private readonly Context _context;
 

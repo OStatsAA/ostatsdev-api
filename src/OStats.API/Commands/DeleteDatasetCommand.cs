@@ -3,7 +3,7 @@ using OStats.Domain.Common;
 
 namespace OStats.API.Commands;
 
-public class DeleteDatasetCommand : IRequest<DomainOperationResult>
+public sealed class DeleteDatasetCommand : IRequest<DomainOperationResult>
 {
     public string UserAuthId { get; }
     public Guid DatasetId { get; }

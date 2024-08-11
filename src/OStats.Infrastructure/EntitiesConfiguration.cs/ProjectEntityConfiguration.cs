@@ -4,7 +4,7 @@ using OStats.Domain.Aggregates.ProjectAggregate;
 
 namespace OStats.Infrastructure.EntitiesConfiguration;
 
-class ProjectEntityConfiguration : EntityConfiguration<Project>, IEntityTypeConfiguration<Project>
+sealed class ProjectEntityConfiguration : EntityConfiguration<Project>, IEntityTypeConfiguration<Project>
 {
        public void Configure(EntityTypeBuilder<Project> builder)
        {

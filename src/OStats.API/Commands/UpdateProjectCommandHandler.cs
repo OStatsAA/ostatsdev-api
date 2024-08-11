@@ -7,7 +7,7 @@ using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand, ValueTuple<DomainOperationResult, BaseProjectDto?>>
+public sealed class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand, ValueTuple<DomainOperationResult, BaseProjectDto?>>
 {
     private readonly Context _context;
 

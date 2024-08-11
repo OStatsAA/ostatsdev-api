@@ -4,7 +4,7 @@ using OStats.Domain.Common;
 
 namespace OStats.API.Commands;
 
-public class UpdateDatasetCommand : CreateDatasetCommand, IRequest<ValueTuple<DomainOperationResult, BaseDatasetDto?>>
+public sealed class UpdateDatasetCommand : CreateDatasetCommand, IRequest<ValueTuple<DomainOperationResult, BaseDatasetDto?>>
 {
     public Guid Id { get; init; }
     public DateTime LastUpdatedAt { get; init; }

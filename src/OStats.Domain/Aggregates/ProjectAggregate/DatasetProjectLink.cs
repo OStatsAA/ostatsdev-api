@@ -2,7 +2,7 @@ using OStats.Domain.Common;
 
 namespace OStats.Domain.Aggregates.ProjectAggregate;
 
-public class DatasetProjectLink : Entity
+public sealed class DatasetProjectLink : Entity
 {
     public Guid DatasetId { get; }
     public Guid ProjectId { get; }

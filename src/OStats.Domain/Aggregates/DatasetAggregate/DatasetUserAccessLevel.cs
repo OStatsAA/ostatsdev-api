@@ -2,7 +2,7 @@ using OStats.Domain.Common;
 
 namespace OStats.Domain.Aggregates.DatasetAggregate;
 
-public class DatasetUserAccessLevel : Entity
+public sealed class DatasetUserAccessLevel : Entity
 {
     public Guid DatasetId { get; }
     public Guid UserId { get; }

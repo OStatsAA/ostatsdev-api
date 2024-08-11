@@ -6,7 +6,7 @@ using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, ValueTuple<DomainOperationResult, BaseUserDto?>>
+public sealed class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, ValueTuple<DomainOperationResult, BaseUserDto?>>
 {
     private readonly Context _context;
 

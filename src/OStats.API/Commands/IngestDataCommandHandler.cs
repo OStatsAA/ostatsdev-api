@@ -6,7 +6,7 @@ using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class IngestDataCommandHandler : IRequestHandler<IngestDataCommand, DomainOperationResult>
+public sealed class IngestDataCommandHandler : IRequestHandler<IngestDataCommand, DomainOperationResult>
 {
     private readonly Context _context;
     private readonly DataService.DataServiceClient _dataServiceClient;

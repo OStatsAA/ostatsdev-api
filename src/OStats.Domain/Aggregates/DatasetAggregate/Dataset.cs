@@ -3,7 +3,7 @@ using OStats.Domain.Common;
 
 namespace OStats.Domain.Aggregates.DatasetAggregate;
 
-public class Dataset : AggregateRoot
+public sealed class Dataset : AggregateRoot
 {
     public string Title { get; set; }
     public string Source { get; set; }

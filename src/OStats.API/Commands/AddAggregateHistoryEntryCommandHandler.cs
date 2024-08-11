@@ -4,7 +4,7 @@ using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class AddAggregateHistoryEntryCommandHandler : IConsumer<AddAggregateHistoryEntryCommand>
+public sealed class AddAggregateHistoryEntryCommandHandler : IConsumer<AddAggregateHistoryEntryCommand>
 {
     private readonly Context _context;
 

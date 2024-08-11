@@ -3,7 +3,7 @@ using OStats.Domain.Common;
 
 namespace OStats.API.Commands;
 
-public class RemoveUserFromProjectCommand : IRequest<DomainOperationResult>
+public sealed class RemoveUserFromProjectCommand : IRequest<DomainOperationResult>
 {
     public string UserAuthId { get; set; }
     public Guid ProjectId { get; set; }

@@ -4,7 +4,7 @@ using OStats.Domain.Aggregates.ProjectAggregate;
 
 namespace OStats.Infrastructure.EntitiesConfiguration;
 
-class RoleEntityConfiguration : EntityConfiguration<Role>, IEntityTypeConfiguration<Role>
+sealed class RoleEntityConfiguration : EntityConfiguration<Role>, IEntityTypeConfiguration<Role>
 {
     public void Configure(EntityTypeBuilder<Role> builder)
     {

@@ -1,6 +1,6 @@
 namespace OStats.API.Commands;
 
-public record AddAggregateHistoryEntryCommand
+public sealed record AddAggregateHistoryEntryCommand
 {
     public required Guid AggregateId { get; init; }
     public required string AggregateType { get; init; }

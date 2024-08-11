@@ -4,7 +4,7 @@ using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class UnlinkProjectToDatasetCommandHandler : IRequestHandler<UnlinkProjectToDatasetCommand, DomainOperationResult>
+public sealed class UnlinkProjectToDatasetCommandHandler : IRequestHandler<UnlinkProjectToDatasetCommand, DomainOperationResult>
 {
     private readonly Context _context;
 

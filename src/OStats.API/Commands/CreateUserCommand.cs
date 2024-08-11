@@ -4,7 +4,7 @@ using OStats.Domain.Common;
 
 namespace OStats.API.Commands;
 
-public class CreateUserCommand : IRequest<ValueTuple<DomainOperationResult, BaseUserDto?>>
+public sealed class CreateUserCommand : IRequest<ValueTuple<DomainOperationResult, BaseUserDto?>>
 {
     public string Name { get; }
     public string Email { get; }

@@ -2,7 +2,7 @@ using OStats.Domain.Common;
 
 namespace OStats.Domain.Aggregates.ProjectAggregate;
 
-public class Role : Entity
+public sealed class Role : Entity
 {
     public Guid ProjectId { get; }
     public Guid UserId { get; }

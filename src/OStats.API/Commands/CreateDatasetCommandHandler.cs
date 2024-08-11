@@ -6,7 +6,7 @@ using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public class CreateDatasetCommandHandler : IRequestHandler<CreateDatasetCommand, ValueTuple<DomainOperationResult, BaseDatasetDto?>>
+public sealed class CreateDatasetCommandHandler : IRequestHandler<CreateDatasetCommand, ValueTuple<DomainOperationResult, BaseDatasetDto?>>
 {
     private readonly Context _context;
     public CreateDatasetCommandHandler(Context context)
