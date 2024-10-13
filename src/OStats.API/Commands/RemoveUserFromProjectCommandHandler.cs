@@ -1,19 +1,17 @@
-using MediatR;
+using MassTransit;
+using OStats.API.Commands.Common;
 using OStats.Domain.Common;
 using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public sealed class RemoveUserFromProjectCommandHandler : IRequestHandler<RemoveUserFromProjectCommand, DomainOperationResult>
+public sealed class RemoveUserFromProjectCommandHandler : CommandHandler<RemoveUserFromProjectCommand, DomainOperationResult>
 {
-    private readonly Context _context;
-
-    public RemoveUserFromProjectCommandHandler(Context context)
+    public RemoveUserFromProjectCommandHandler(Context context, IPublishEndpoint publishEndpoint) : base(context, publishEndpoint)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    public async Task<DomainOperationResult> Handle(RemoveUserFromProjectCommand request, CancellationToken cancellationToken)
+    public override async Task<DomainOperationResult> Handle(RemoveUserFromProjectCommand request, CancellationToken cancellationToken)
     {
 
         var requestor = await _context.Users.FindByAuthIdentityAsync(request.UserAuthId, cancellationToken);
@@ -35,7 +33,7 @@ public sealed class RemoveUserFromProjectCommandHandler : IRequestHandler<Remove
             return result;
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await SaveCommandHandlerChangesAsync(cancellationToken);
 
         return result;
     }

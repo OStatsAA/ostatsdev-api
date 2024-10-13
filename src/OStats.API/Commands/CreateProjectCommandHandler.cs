@@ -1,4 +1,5 @@
-using MediatR;
+using MassTransit;
+using OStats.API.Commands.Common;
 using OStats.API.Dtos;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Common;
@@ -6,16 +7,13 @@ using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public sealed class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand, ValueTuple<DomainOperationResult, BaseProjectDto?>>
+public sealed class CreateProjectCommandHandler : CommandHandler<CreateProjectCommand, ValueTuple<DomainOperationResult, BaseProjectDto?>>
 {
-    private readonly Context _context;
-
-    public CreateProjectCommandHandler(Context context)
+    public CreateProjectCommandHandler(Context context, IPublishEndpoint publishEndpoint) : base(context, publishEndpoint)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    public async Task<ValueTuple<DomainOperationResult, BaseProjectDto?>> Handle(CreateProjectCommand command, CancellationToken cancellationToken)
+    public override async Task<ValueTuple<DomainOperationResult, BaseProjectDto?>> Handle(CreateProjectCommand command, CancellationToken cancellationToken)
     {
         var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
         if (user is null)
@@ -26,9 +24,8 @@ public sealed class CreateProjectCommandHandler : IRequestHandler<CreateProjectC
         var project = new Project(user.Id, command.Title, command.Description);
 
         await _context.AddAsync(project);
-        await _context.SaveChangesAsync(cancellationToken);
+        await SaveCommandHandlerChangesAsync(cancellationToken);
 
         return (DomainOperationResult.Success, new BaseProjectDto(project));
     }
-
 }
