@@ -1,19 +1,17 @@
-using MediatR;
+using MassTransit;
+using OStats.API.Commands.Common;
 using OStats.Domain.Common;
 using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public sealed class UnlinkProjectToDatasetCommandHandler : IRequestHandler<UnlinkProjectToDatasetCommand, DomainOperationResult>
+public sealed class UnlinkProjectToDatasetCommandHandler : CommandHandler<UnlinkProjectToDatasetCommand, DomainOperationResult>
 {
-    private readonly Context _context;
-
-    public UnlinkProjectToDatasetCommandHandler(Context context)
+    public UnlinkProjectToDatasetCommandHandler(Context context, IPublishEndpoint publishEndpoint) : base(context, publishEndpoint)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    public async Task<DomainOperationResult> Handle(UnlinkProjectToDatasetCommand command, CancellationToken cancellationToken)
+    public override async Task<DomainOperationResult> Handle(UnlinkProjectToDatasetCommand command, CancellationToken cancellationToken)
     {
         var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
         if (user is null)
@@ -39,7 +37,7 @@ public sealed class UnlinkProjectToDatasetCommandHandler : IRequestHandler<Unlin
             return result;
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await SaveCommandHandlerChangesAsync(cancellationToken);
 
         return result;
     }

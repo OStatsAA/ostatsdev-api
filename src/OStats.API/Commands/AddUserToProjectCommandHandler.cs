@@ -1,19 +1,17 @@
-using MediatR;
+using MassTransit;
+using OStats.API.Commands.Common;
 using OStats.Domain.Common;
 using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public sealed class AddUserToProjectCommandHandler : IRequestHandler<AddUserToProjectCommand, DomainOperationResult>
+public sealed class AddUserToProjectCommandHandler : CommandHandler<AddUserToProjectCommand, DomainOperationResult>
 {
-    private readonly Context _context;
-
-    public AddUserToProjectCommandHandler(Context context)
+    public AddUserToProjectCommandHandler(Context context, IPublishEndpoint publishEndpoint) : base(context, publishEndpoint)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    public async Task<DomainOperationResult> Handle(AddUserToProjectCommand request, CancellationToken cancellationToken)
+    public override async Task<DomainOperationResult> Handle(AddUserToProjectCommand request, CancellationToken cancellationToken)
     {
         var project = await _context.Projects.FindAsync(request.ProjectId, cancellationToken);
         if (project is null)
@@ -33,7 +31,7 @@ public sealed class AddUserToProjectCommandHandler : IRequestHandler<AddUserToPr
             return result;
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await SaveCommandHandlerChangesAsync(cancellationToken);
         return result;
     }
 }

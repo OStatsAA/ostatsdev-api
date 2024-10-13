@@ -1,4 +1,5 @@
-using MediatR;
+using MassTransit;
+using OStats.API.Commands.Common;
 using OStats.API.Dtos;
 using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Domain.Common;
@@ -6,16 +7,13 @@ using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public sealed class UpdateDatasetCommandHandler : IRequestHandler<UpdateDatasetCommand, ValueTuple<DomainOperationResult, BaseDatasetDto?>>
+public sealed class UpdateDatasetCommandHandler : CommandHandler<UpdateDatasetCommand, ValueTuple<DomainOperationResult, BaseDatasetDto?>>
 {
-    private readonly Context _context;
-
-    public UpdateDatasetCommandHandler(Context context)
+    public UpdateDatasetCommandHandler(Context context, IPublishEndpoint publishEndpoint) : base(context, publishEndpoint)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    public async Task<ValueTuple<DomainOperationResult, BaseDatasetDto?>> Handle(UpdateDatasetCommand command, CancellationToken cancellationToken)
+    public override async Task<ValueTuple<DomainOperationResult, BaseDatasetDto?>> Handle(UpdateDatasetCommand command, CancellationToken cancellationToken)
     {
         var dataset = await _context.Datasets.FindAsync(command.Id, cancellationToken);
         if (dataset is null)
@@ -45,9 +43,8 @@ public sealed class UpdateDatasetCommandHandler : IRequestHandler<UpdateDatasetC
         dataset.Source = command.Source;
         dataset.Description = command.Description;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await SaveCommandHandlerChangesAsync(cancellationToken);
 
         return (DomainOperationResult.Success, new BaseDatasetDto(dataset));
     }
-
 }

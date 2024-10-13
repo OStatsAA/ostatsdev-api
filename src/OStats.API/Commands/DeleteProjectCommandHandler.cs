@@ -1,4 +1,5 @@
-using MediatR;
+using MassTransit;
+using OStats.API.Commands.Common;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
 using OStats.Domain.Common;
@@ -6,16 +7,13 @@ using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public sealed class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand, DomainOperationResult>
+public sealed class DeleteProjectCommandHandler : CommandHandler<DeleteProjectCommand, DomainOperationResult>
 {
-    private readonly Context _context;
-
-    public DeleteProjectCommandHandler(Context context)
+    public DeleteProjectCommandHandler(Context context, IPublishEndpoint publishEndpoint) : base(context, publishEndpoint)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    public async Task<DomainOperationResult> Handle(DeleteProjectCommand command, CancellationToken cancellationToken)
+    public override async Task<DomainOperationResult> Handle(DeleteProjectCommand command, CancellationToken cancellationToken)
     {
         var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
         if (user is null)
@@ -36,7 +34,7 @@ public sealed class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectC
         }
 
         _context.Remove(project);
-        await _context.SaveChangesAsync(cancellationToken);
+        await SaveCommandHandlerChangesAsync(cancellationToken);
 
         return DomainOperationResult.Success;
     }

@@ -45,15 +45,14 @@ public abstract class CommandHandler<T, R> : IRequestHandler<T, R> where T : IRe
     }
 
     /// <summary>
-    /// Saves changes to the database context and publishes domain events.
+    /// Saves the changes made in the command handler asynchronously.
     /// </summary>
-    /// <param name="context">The database context.</param>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the number of state entries written to the database.</returns>
-    protected async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    protected async Task SaveCommandHandlerChangesAsync(CancellationToken cancellationToken)
     {
         var domainEvents = _context.ChangeTracker.GetAggregateRootDomainEvents();
-        if (domainEvents is not null && domainEvents.Any())
+        if (domainEvents.Any())
         {
             foreach (var domainEvent in domainEvents)
             {
@@ -63,6 +62,6 @@ public abstract class CommandHandler<T, R> : IRequestHandler<T, R> where T : IRe
             }
         }
 
-        return await _context.SaveChangesAsync(cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }

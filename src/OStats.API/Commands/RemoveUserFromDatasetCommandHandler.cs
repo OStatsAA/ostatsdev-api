@@ -1,19 +1,17 @@
-using MediatR;
+using MassTransit;
+using OStats.API.Commands.Common;
 using OStats.Domain.Common;
 using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public sealed class RemoveUserFromDatasetCommandHandler : IRequestHandler<RemoveUserFromDatasetCommand, DomainOperationResult>
+public sealed class RemoveUserFromDatasetCommandHandler : CommandHandler<RemoveUserFromDatasetCommand, DomainOperationResult>
 {
-    private readonly Context _context;
-
-    public RemoveUserFromDatasetCommandHandler(Context context)
+    public RemoveUserFromDatasetCommandHandler(Context contex, IPublishEndpoint publishEndpoint) : base(contex, publishEndpoint)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    public async Task<DomainOperationResult> Handle(RemoveUserFromDatasetCommand request, CancellationToken cancellationToken)
+    public override async Task<DomainOperationResult> Handle(RemoveUserFromDatasetCommand request, CancellationToken cancellationToken)
     {
         var dataset = await _context.Datasets.FindAsync(request.DatasetId, cancellationToken);
         if (dataset is null)
@@ -33,7 +31,7 @@ public sealed class RemoveUserFromDatasetCommandHandler : IRequestHandler<Remove
             return result;
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await SaveCommandHandlerChangesAsync(cancellationToken);
         return result;
     }
 }

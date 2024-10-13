@@ -1,23 +1,22 @@
 using DataServiceGrpc;
-using MediatR;
+using MassTransit;
+using OStats.API.Commands.Common;
 using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Domain.Common;
 using OStats.Infrastructure;
 
 namespace OStats.API.Commands;
 
-public sealed class IngestDataCommandHandler : IRequestHandler<IngestDataCommand, DomainOperationResult>
+public sealed class IngestDataCommandHandler : CommandHandler<IngestDataCommand, DomainOperationResult>
 {
-    private readonly Context _context;
     private readonly DataService.DataServiceClient _dataServiceClient;
 
-    public IngestDataCommandHandler(Context context, DataService.DataServiceClient dataServiceClient)
+    public IngestDataCommandHandler(Context context, IPublishEndpoint publishEndpoint, DataService.DataServiceClient dataServiceClient) : base(context, publishEndpoint)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
         _dataServiceClient = dataServiceClient ?? throw new ArgumentNullException(nameof(dataServiceClient));
     }
 
-    public async Task<DomainOperationResult> Handle(IngestDataCommand command, CancellationToken cancellationToken)
+    public override async Task<DomainOperationResult> Handle(IngestDataCommand command, CancellationToken cancellationToken)
     {
         var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
         if (user is null)
@@ -50,5 +49,4 @@ public sealed class IngestDataCommandHandler : IRequestHandler<IngestDataCommand
             ? DomainOperationResult.Success
             : DomainOperationResult.Failure("Failed to ingest data.");
     }
-
 }
