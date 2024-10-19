@@ -31,7 +31,7 @@ public class GrantedUserAccessToDatasetDomainEventConsumer : IConsumer<GrantedUs
             user?.Name ?? domainEvent.DatasetUserAccessLevel.UserId.ToString()
         );
 
-        var result = await _handler.Handle(new AddAggregateHistoryEntryCommand
+        await _handler.Handle(new AddAggregateHistoryEntryCommand
         {
             AggregateId = dataset?.Id ?? domainEvent.DatasetUserAccessLevel.DatasetId,
             AggregateType = nameof(Dataset),
