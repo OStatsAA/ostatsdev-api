@@ -1,5 +1,6 @@
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OStats.API.Commands;
 using OStats.API.Dtos;
 using OStats.Domain.Aggregates.ProjectAggregate;
@@ -24,7 +25,7 @@ public class UpdateProjectIntegrationTest : BaseIntegrationTest
         var editedTitle = "Edited Title";
         var editedDescription = "Edited description";
         var command = new UpdateProjectCommand(project.Id, user.AuthIdentity, editedTitle, project.LastUpdatedAt, editedDescription);
-        var (result, baseProjectDto) = await sender.Send(command);
+        var (result, baseProjectDto) = await serviceProvider.GetRequiredService<UpdateProjectCommandHandler>().Handle(command, default);
 
         using (new AssertionScope())
         {
@@ -32,7 +33,7 @@ public class UpdateProjectIntegrationTest : BaseIntegrationTest
             result.ErrorMessage.Should().BeNull();
 
             baseProjectDto.Should().NotBeNull().And.BeOfType<BaseProjectDto>();
-            baseProjectDto.CreatedAt.Should().Be(previousCreatedAtDatetime);
+            baseProjectDto!.CreatedAt.Should().Be(previousCreatedAtDatetime);
             baseProjectDto.LastUpdatedAt.Should().BeAfter(previousLastUpdatedAtDatetime);
             baseProjectDto.Title.Should().Be(editedTitle);
             baseProjectDto.Description.Should().Be(editedDescription);
@@ -52,7 +53,7 @@ public class UpdateProjectIntegrationTest : BaseIntegrationTest
         project.Title = "Bypassed edition";
         await context.SaveChangesAsync();
         var command = new UpdateProjectCommand(project.Id, user.AuthIdentity, editedTitle, previousLastUpdatedAtDatetime, editedDescription);
-        var (result, baseProjectDto) = await sender.Send(command);
+        var (result, baseProjectDto) = await serviceProvider.GetRequiredService<UpdateProjectCommandHandler>().Handle(command, default);
 
         using (new AssertionScope())
         {

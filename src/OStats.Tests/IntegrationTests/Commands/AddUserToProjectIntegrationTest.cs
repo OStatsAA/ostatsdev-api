@@ -1,5 +1,6 @@
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OStats.API.Commands;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.UserAggregate;
@@ -24,7 +25,7 @@ public class AddUserToProjectIntegrationTest : BaseIntegrationTest
         var access = AccessLevel.ReadOnly;
 
         var command = new AddUserToProjectCommand(owner.AuthIdentity, project.Id, user.Id, access);
-        var result = await sender.Send(command);
+        var result = await serviceProvider.GetRequiredService<AddUserToProjectCommandHandler>().Handle(command, default);
 
         using (new AssertionScope())
         {

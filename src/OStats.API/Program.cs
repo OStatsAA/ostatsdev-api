@@ -15,10 +15,7 @@ builder.Services.AddGrpcClient<DataService.DataServiceClient>(o =>
 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwagger();
-builder.Services.AddMediatR(cfg =>
-{
-    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
-});
+builder.Services.AddCommandHandlers();
 builder.Services.AddMessageBroker();
 
 var app = builder.Build();

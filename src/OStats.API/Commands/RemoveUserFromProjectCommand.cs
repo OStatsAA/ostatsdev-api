@@ -1,9 +1,6 @@
-using MediatR;
-using OStats.Domain.Common;
-
 namespace OStats.API.Commands;
 
-public sealed class RemoveUserFromProjectCommand : IRequest<DomainOperationResult>
+public sealed record RemoveUserFromProjectCommand
 {
     public string UserAuthId { get; set; }
     public Guid ProjectId { get; set; }

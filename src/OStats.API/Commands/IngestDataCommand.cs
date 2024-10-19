@@ -1,9 +1,6 @@
-using MediatR;
-using OStats.Domain.Common;
-
 namespace OStats.API.Commands;
 
-public sealed class IngestDataCommand : IRequest<DomainOperationResult>
+public sealed record IngestDataCommand
 {
     public Guid DatasetId { get; }
     public string UserAuthId { get; }

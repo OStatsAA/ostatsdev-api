@@ -1,9 +1,6 @@
-using MediatR;
-using OStats.Domain.Common;
-
 namespace OStats.API.Commands;
 
-public sealed class RemoveUserFromDatasetCommand : IRequest<DomainOperationResult>
+public sealed record RemoveUserFromDatasetCommand
 {
     public string UserAuthId { get; set; }
     public Guid DatasetId { get; set; }

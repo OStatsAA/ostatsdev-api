@@ -1,9 +1,6 @@
-using MediatR;
-using OStats.Domain.Common;
-
 namespace OStats.API.Commands;
 
-public sealed class UnlinkProjectToDatasetCommand : IRequest<DomainOperationResult>
+public sealed record UnlinkProjectToDatasetCommand
 {
     public string UserAuthId { get; }
     public Guid DatasetId { get; }

@@ -1,10 +1,6 @@
-using MediatR;
-using OStats.API.Dtos;
-using OStats.Domain.Common;
-
 namespace OStats.API.Commands;
 
-public sealed class UpdateDatasetCommand : CreateDatasetCommand, IRequest<ValueTuple<DomainOperationResult, BaseDatasetDto?>>
+public sealed record UpdateDatasetCommand : CreateDatasetCommand
 {
     public Guid Id { get; init; }
     public DateTime LastUpdatedAt { get; init; }

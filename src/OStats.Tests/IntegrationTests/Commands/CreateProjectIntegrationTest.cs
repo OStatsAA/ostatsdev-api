@@ -1,5 +1,6 @@
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OStats.API.Commands;
 using OStats.API.Dtos;
 
@@ -17,7 +18,7 @@ public class CreateProjectIntegrationTest : BaseIntegrationTest
         var beforeCommandTime = DateTime.UtcNow;
         var existingUser = await context.Users.FirstAsync();
         var command = new CreateProjectCommand(existingUser.AuthIdentity, "Test", "Test");
-        var (result, baseProjectDto) = await sender.Send(command);
+        var (result, baseProjectDto) = await serviceProvider.GetRequiredService<CreateProjectCommandHandler>().Handle(command, default);
         var afterCommandTime = DateTime.UtcNow;
 
         using (new AssertionScope())
@@ -26,7 +27,7 @@ public class CreateProjectIntegrationTest : BaseIntegrationTest
             result.ErrorMessage.Should().BeNull();
 
             baseProjectDto.Should().NotBeNull().And.BeOfType<BaseProjectDto>();
-            baseProjectDto.CreatedAt.Should().BeAfter(beforeCommandTime).And.BeBefore(afterCommandTime);
+            baseProjectDto!.CreatedAt.Should().BeAfter(beforeCommandTime).And.BeBefore(afterCommandTime);
             baseProjectDto.LastUpdatedAt.Should().BeAfter(beforeCommandTime).And.BeBefore(afterCommandTime);
         }
     }
@@ -35,7 +36,7 @@ public class CreateProjectIntegrationTest : BaseIntegrationTest
     public async Task Should_Fail_If_User_Does_Not_Exists()
     {
         var command = new CreateProjectCommand("Test", "test@test.com", "An authid that clearly doesnt exist");
-        var (result, baseProjectDto) = await sender.Send(command);
+        var (result, baseProjectDto) = await serviceProvider.GetRequiredService<CreateProjectCommandHandler>().Handle(command, default);
 
         using (new AssertionScope())
         {

@@ -1,10 +1,6 @@
-using MediatR;
-using OStats.API.Dtos;
-using OStats.Domain.Common;
-
 namespace OStats.API.Commands;
 
-public class CreateProjectCommand : IRequest<ValueTuple<DomainOperationResult, BaseProjectDto?>>
+public record CreateProjectCommand
 {
     public string UserAuthId { get; set; }
     public string Title { get; set; }

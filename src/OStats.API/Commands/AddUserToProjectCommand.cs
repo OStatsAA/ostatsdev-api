@@ -1,10 +1,8 @@
-using MediatR;
 using OStats.Domain.Aggregates.ProjectAggregate;
-using OStats.Domain.Common;
 
 namespace OStats.API.Commands;
 
-public sealed class AddUserToProjectCommand : IRequest<DomainOperationResult>
+public sealed record AddUserToProjectCommand
 {
     public string UserAuthId { get; set; }
     public Guid ProjectId { get; set; }
