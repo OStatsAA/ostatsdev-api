@@ -1,5 +1,6 @@
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OStats.API.Commands;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
@@ -23,7 +24,7 @@ public class DeleteProjectIntegrationTest : BaseIntegrationTest
         project.AddOrUpdateUserRole(user.Id, AccessLevel.Editor, ownerId);
         await context.SaveChangesAsync();
         var command = new DeleteProjectCommand(user.AuthIdentity, project.Id);
-        var result = await sender.Send(command);
+        var result = await serviceProvider.GetRequiredService<DeleteProjectCommandHandler>().Handle(command, default);
 
         using (new AssertionScope())
         {
@@ -41,7 +42,7 @@ public class DeleteProjectIntegrationTest : BaseIntegrationTest
         context.SaveChanges();
 
         var command = new DeleteProjectCommand(existingUser.AuthIdentity, project.Id);
-        var result = await sender.Send(command);
+        var result = await serviceProvider.GetRequiredService<DeleteProjectCommandHandler>().Handle(command, default);
 
         using (new AssertionScope())
         {

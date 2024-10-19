@@ -1,10 +1,6 @@
-using MediatR;
-using OStats.API.Dtos;
-using OStats.Domain.Common;
-
 namespace OStats.API.Commands;
 
-public sealed class UpdateProjectCommand : CreateProjectCommand, IRequest<ValueTuple<DomainOperationResult, BaseProjectDto?>>
+public sealed record UpdateProjectCommand : CreateProjectCommand
 {
     public Guid Id { get; init; }
     public DateTime LastUpdatedAt { get; init; }

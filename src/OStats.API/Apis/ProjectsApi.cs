@@ -1,4 +1,3 @@
-using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using OStats.API.Commands;
@@ -30,12 +29,12 @@ public static class ProjectsApi
     private static async Task<Results<Ok<BaseProjectDto>, BadRequest<string>>> CreateProjectAsync(
         [FromBody] CreateProjectDto createDto,
         HttpContext context,
-        [FromServices] IMediator mediator,
+        [FromServices] CreateProjectCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
         var userAuthId = context.GetUserAuthId();
         var command = new CreateProjectCommand(userAuthId, createDto.Title, createDto.Description);
-        var (result, baseProject) = await mediator.Send(command, cancellationToken);
+        var (result, baseProject) = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok(baseProject) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
@@ -60,23 +59,24 @@ public static class ProjectsApi
         Guid projectId,
         [FromBody] UpdateProjectDto updateDto,
         HttpContext context,
-        [FromServices] IMediator mediator,
+        [FromServices] UpdateProjectCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
         var userAuthId = context.GetUserAuthId();
         var command = new UpdateProjectCommand(projectId, userAuthId, updateDto.Title, updateDto.LastUpdatedAt, updateDto.Description);
-        var (result, baseProjectDto) = await mediator.Send(command, cancellationToken);
+        var (result, baseProjectDto) = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok(baseProjectDto) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
     private static async Task<Results<Ok, BadRequest<string>>> DeleteProjectAsync(
         Guid projectId,
         HttpContext context,
-        [FromServices] IMediator mediator)
+        [FromServices] DeleteProjectCommandHandler commandHandler,
+        CancellationToken cancellationToken)
     {
         var userAuthId = context.GetUserAuthId();
         var command = new DeleteProjectCommand(userAuthId, projectId);
-        var result = await mediator.Send(command);
+        var result = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
 
@@ -101,23 +101,25 @@ public static class ProjectsApi
         Guid projectId,
         [FromBody] AddUserToProjectDto addUserToProjectDto,
         HttpContext context,
-        [FromServices] IMediator mediator)
+        [FromServices] AddUserToProjectCommandHandler commandHandler,
+        CancellationToken cancellationToken)
     {
         var userAuthId = context.GetUserAuthId();
         var command = new AddUserToProjectCommand(userAuthId, projectId, addUserToProjectDto.UserId, addUserToProjectDto.AccessLevel);
-        var result = await mediator.Send(command);
+        var result = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
+
     private static async Task<Results<Ok, BadRequest<string>>> RemoveUserFromProjectHandler(
         Guid projectId,
         Guid userId,
         HttpContext context,
-        [FromServices] IMediator mediator,
+        [FromServices] RemoveUserFromProjectCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
         var userAuthId = context.GetUserAuthId();
         var command = new RemoveUserFromProjectCommand(userAuthId, projectId, userId);
-        var result = await mediator.Send(command, cancellationToken);
+        var result = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
 
@@ -125,12 +127,12 @@ public static class ProjectsApi
         Guid projectId,
         Guid datasetId,
         HttpContext context,
-        [FromServices] IMediator mediator,
+        [FromServices] LinkProjectToDatasetCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
         var userAuthId = context.GetUserAuthId();
         var command = new LinkProjectToDatasetCommand(userAuthId, datasetId, projectId);
-        var result = await mediator.Send(command, cancellationToken);
+        var result = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
 
@@ -138,12 +140,12 @@ public static class ProjectsApi
         Guid projectId,
         Guid datasetId,
         HttpContext context,
-        [FromServices] IMediator mediator,
+        [FromServices] UnlinkProjectToDatasetCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
         var userAuthId = context.GetUserAuthId();
         var command = new UnlinkProjectToDatasetCommand(userAuthId, datasetId, projectId);
-        var result = await mediator.Send(command, cancellationToken);
+        var result = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
 }

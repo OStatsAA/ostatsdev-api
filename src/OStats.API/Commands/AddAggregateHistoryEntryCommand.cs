@@ -1,8 +1,6 @@
-using MediatR;
-
 namespace OStats.API.Commands;
 
-public sealed record AddAggregateHistoryEntryCommand : IRequest<bool>
+public sealed record AddAggregateHistoryEntryCommand
 {
     public required Guid AggregateId { get; init; }
     public required string AggregateType { get; init; }

@@ -1,14 +1,32 @@
+using System.Reflection;
 using System.Security.Claims;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OStats.API.Commands.Common;
 using OStats.Infrastructure;
 
 namespace OStats.API.Extensions;
 
 public static class ServiceCollectionExtensions
 {
+    public static IServiceCollection AddCommandHandlers(this IServiceCollection services)
+    {
+        var commandHandlerType = typeof(CommandHandler<,>);
+        var commandHandlerTypeImplementations = Assembly
+            .GetExecutingAssembly()
+            .GetTypes()
+            .Where(t => t.BaseType != null && t.BaseType.IsGenericType && t.BaseType.GetGenericTypeDefinition() == commandHandlerType);
+
+        foreach (var handler in commandHandlerTypeImplementations)
+        {
+            services.AddTransient(handler);
+        }
+
+        return services;
+    }
+
     public static IServiceCollection AddJwtBearerAuthentication(this IServiceCollection services)
     {
         services

@@ -1,5 +1,4 @@
 using MassTransit;
-using MediatR;
 using OStats.Infrastructure;
 using OStats.Infrastructure.Extensions;
 
@@ -7,11 +6,10 @@ namespace OStats.API.Commands.Common;
 
 /// <summary>
 /// Abstract base class for handling commands in the application.
-/// Implements the <see cref="IRequestHandler{T, R}"/> interface from MediatR.
 /// </summary>
 /// <typeparam name="T">The type of the command.</typeparam>
 /// <typeparam name="R">The type of the result.</typeparam>
-public abstract class CommandHandler<T, R> : IRequestHandler<T, R> where T : IRequest<R>
+public abstract class CommandHandler<T, R>
 {
     /// <summary>
     /// Handles the command.

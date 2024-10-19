@@ -1,6 +1,5 @@
 using System.Text.Json;
 using MassTransit;
-using MediatR;
 using OStats.API.Commands;
 using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Infrastructure;
@@ -10,12 +9,12 @@ namespace OStats.API.Consumers;
 public class GrantedUserAccessToDatasetDomainEventConsumer : IConsumer<GrantedUserAccessToDatasetDomainEvent>
 {
     private readonly Context _context;
-    private readonly IMediator _mediator;
+    private readonly AddAggregateHistoryEntryCommandHandler _handler;
 
-    public GrantedUserAccessToDatasetDomainEventConsumer(Context context, IMediator mediator)
+    public GrantedUserAccessToDatasetDomainEventConsumer(Context context, AddAggregateHistoryEntryCommandHandler handler)
     {
-        _context = context;
-        _mediator = mediator;
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _handler = handler ?? throw new ArgumentNullException(nameof(handler));
     }
 
     public async Task Consume(ConsumeContext<GrantedUserAccessToDatasetDomainEvent> consumeContext)
@@ -32,7 +31,7 @@ public class GrantedUserAccessToDatasetDomainEventConsumer : IConsumer<GrantedUs
             user?.Name ?? domainEvent.DatasetUserAccessLevel.UserId.ToString()
         );
 
-        var result = await _mediator.Send(new AddAggregateHistoryEntryCommand
+        var result = await _handler.Handle(new AddAggregateHistoryEntryCommand
         {
             AggregateId = dataset?.Id ?? domainEvent.DatasetUserAccessLevel.DatasetId,
             AggregateType = nameof(Dataset),
@@ -41,6 +40,6 @@ public class GrantedUserAccessToDatasetDomainEventConsumer : IConsumer<GrantedUs
             EventData = JsonSerializer.Serialize(domainEvent),
             EventType = nameof(GrantedUserAccessToDatasetDomainEvent),
             TimeStamp = sentTime
-        });
+        }, default);
     }
 }

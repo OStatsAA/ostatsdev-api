@@ -1,5 +1,4 @@
 using MassTransit.Testing;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OStats.Domain.Aggregates.DatasetAggregate;
@@ -12,15 +11,15 @@ namespace OStats.Tests.IntegrationTests;
 public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppFactory>, IDisposable
 {
     private readonly IServiceScope _scope;
-    protected readonly ISender sender;
     protected readonly Context context;
+    protected readonly IServiceProvider serviceProvider;
     protected readonly HttpClient client;
     protected readonly ITestHarness queueHarness;
 
     protected BaseIntegrationTest(IntegrationTestWebAppFactory factory)
     {
         _scope = factory.Services.CreateScope();
-        sender = _scope.ServiceProvider.GetRequiredService<ISender>();
+        serviceProvider = _scope.ServiceProvider;
         context = _scope.ServiceProvider.GetRequiredService<Context>();
         queueHarness = _scope.ServiceProvider.GetTestHarness();
         client = factory.CreateClient();

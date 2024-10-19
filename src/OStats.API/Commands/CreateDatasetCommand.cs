@@ -1,10 +1,6 @@
-using MediatR;
-using OStats.API.Dtos;
-using OStats.Domain.Common;
-
 namespace OStats.API.Commands;
 
-public class CreateDatasetCommand : IRequest<ValueTuple<DomainOperationResult, BaseDatasetDto?>>
+public record CreateDatasetCommand
 {
     public string UserAuthId { get; set; }
     public string Title { get; set; }

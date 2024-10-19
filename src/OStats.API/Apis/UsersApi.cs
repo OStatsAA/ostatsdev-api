@@ -1,4 +1,3 @@
-using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using OStats.API.Commands;
@@ -35,7 +34,7 @@ public static class UsersApi
     private static async Task<Results<Ok<BaseUserDto>, BadRequest<string>>> CreateUserAsync(
         [FromBody] CreateUserDto createDto,
         HttpContext context,
-        [FromServices] IMediator mediator,
+        [FromServices] CreateUserCommandHandler commandHandler,
         Context dbContext,
         CancellationToken cancellationToken)
     {
@@ -47,7 +46,7 @@ public static class UsersApi
         }
 
         var command = new CreateUserCommand(createDto.Name, createDto.Email, userAuthId);
-        var (result, baseUserDto) = await mediator.Send(command, cancellationToken);
+        var (result, baseUserDto) = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok(baseUserDto) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
