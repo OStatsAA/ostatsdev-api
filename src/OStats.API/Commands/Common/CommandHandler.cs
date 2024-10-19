@@ -36,7 +36,7 @@ public abstract class CommandHandler<T, R>
     /// <param name="context">The database context.</param>
     /// <param name="publishEndpoint">The publish endpoint.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="context"/> or <paramref name="publishEndpoint"/> is null.</exception>
-    public CommandHandler(Context context, IPublishEndpoint publishEndpoint)
+    protected CommandHandler(Context context, IPublishEndpoint publishEndpoint)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _publishEndpoint = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
