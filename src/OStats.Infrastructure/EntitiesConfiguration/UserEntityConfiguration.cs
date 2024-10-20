@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate;
@@ -6,11 +5,11 @@ using OStats.Domain.Aggregates.UserAggregate;
 
 namespace OStats.Infrastructure.EntitiesConfiguration;
 
-sealed class UserEntityConfiguration : EntityConfiguration<User>, IEntityTypeConfiguration<User>
+internal sealed class UserEntityConfiguration : EntityConfiguration<User>
 {
-    public void Configure(EntityTypeBuilder<User> builder)
+    public override void Configure(EntityTypeBuilder<User> builder)
     {
-        BaseConfigure(builder);
+        base.Configure(builder);
 
         builder.Property(user => user.Name).HasMaxLength(128);
 

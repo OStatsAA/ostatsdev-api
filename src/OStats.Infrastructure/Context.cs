@@ -5,7 +5,6 @@ using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.UserAggregate;
 using OStats.Domain.Common;
-using OStats.Infrastructure.EntitiesConfiguration;
 
 namespace OStats.Infrastructure;
 
@@ -51,21 +50,8 @@ public sealed class Context : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // DatasetAggregate entities configuration
-        modelBuilder.ApplyConfiguration(new DatasetEntityConfiguration());
-        modelBuilder.ApplyConfiguration(new DatasetUserAccessLevelEntityConfiguration());
-
-        // ProjectAggregate entities configuration
-        modelBuilder.ApplyConfiguration(new ProjectEntityConfiguration());
-        modelBuilder.ApplyConfiguration(new RoleEntityConfiguration());
-        modelBuilder.ApplyConfiguration(new DatasetProjectLinkConfiguration());
-
-        // UserAggregate entities configuration
-        modelBuilder.ApplyConfiguration(new UserEntityConfiguration());
-
-        // History entities configuration
-        modelBuilder.ApplyConfiguration(new AggregateHistoryEntryConfiguration());
-
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(Context).Assembly);
+        
         // Apply Outbox pattern configuration
         modelBuilder.AddInboxStateEntity();
         modelBuilder.AddOutboxStateEntity();

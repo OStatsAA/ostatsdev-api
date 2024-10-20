@@ -4,9 +4,9 @@ using OStats.Domain.Common;
 
 namespace OStats.Infrastructure.EntitiesConfiguration;
 
-class EntityConfiguration<T> where T : Entity
+internal abstract class EntityConfiguration<T> : IEntityTypeConfiguration<T> where T : Entity
 {
-    public void BaseConfigure(EntityTypeBuilder<T> builder)
+    public virtual void Configure(EntityTypeBuilder<T> builder)
     {
         builder.HasKey(entity => entity.Id);
     }

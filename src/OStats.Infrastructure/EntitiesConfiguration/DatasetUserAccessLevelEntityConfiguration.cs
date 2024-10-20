@@ -1,14 +1,13 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OStats.Domain.Aggregates.DatasetAggregate;
 
 namespace OStats.Infrastructure.EntitiesConfiguration;
 
-sealed class DatasetUserAccessLevelEntityConfiguration : EntityConfiguration<DatasetUserAccessLevel>, IEntityTypeConfiguration<DatasetUserAccessLevel>
+internal sealed class DatasetUserAccessLevelEntityConfiguration : EntityConfiguration<DatasetUserAccessLevel>
 {
-    public void Configure(EntityTypeBuilder<DatasetUserAccessLevel> builder)
+    public override void Configure(EntityTypeBuilder<DatasetUserAccessLevel> builder)
     {
-        BaseConfigure(builder);
+        base.Configure(builder);
         builder.HasIndex(dsUserAccessLevel => dsUserAccessLevel.DatasetId);
         builder.HasIndex(dsUserAccessLevel => dsUserAccessLevel.UserId);
     }
