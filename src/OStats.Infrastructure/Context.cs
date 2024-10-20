@@ -1,5 +1,6 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.UserAggregate;
@@ -25,9 +26,11 @@ public sealed class Context : DbContext
     // History db sets
     public DbSet<AggregateHistoryEntry> AggregatesHistoryEntries { get; set; }
 
-    public Context() { }
-
-    public Context(DbContextOptions options) : base(options) { }
+    public Context(DbContextOptions options) : base(options) 
+    {
+        ChangeTracker.StateChanged += UpdateTimestamps;
+        ChangeTracker.Tracked += UpdateTimestamps;
+    }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -69,38 +72,22 @@ public sealed class Context : DbContext
         modelBuilder.AddOutboxMessageEntity();
     }
 
-    public override int SaveChanges()
+    private static void UpdateTimestamps(object? sender, EntityEntryEventArgs e)
     {
-        AddTimeStamps();
-        return base.SaveChanges();
-    }
-
-    public async Task<int> SaveChangesAsync()
-    {
-        AddTimeStamps();
-        return await base.SaveChangesAsync();
-    }
-
-    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
-    {
-        AddTimeStamps();
-        return await base.SaveChangesAsync(cancellationToken);
-    }
-
-    private void AddTimeStamps()
-    {
-        foreach (var entityEntry in ChangeTracker.Entries<Entity>().Where(entry => entry.State != EntityState.Unchanged))
+        if(e.Entry.Entity is not Entity entity)
         {
-            if (entityEntry.State == EntityState.Added)
-            {
-                entityEntry.Entity.CreatedAt = DateTime.UtcNow;
-                entityEntry.Entity.LastUpdatedAt = DateTime.UtcNow;
-                continue;
-            }
-            if (entityEntry.State == EntityState.Modified || entityEntry.State == EntityState.Deleted)
-            {
-                entityEntry.Entity.LastUpdatedAt = DateTime.UtcNow;
-            }
+            return;
+        }
+
+        switch (e.Entry.State)
+        {
+            case EntityState.Added:
+                entity.CreatedAt = DateTime.UtcNow;
+                entity.LastUpdatedAt = entity.CreatedAt;
+                break;
+            case EntityState.Modified or EntityState.Deleted:
+                entity.LastUpdatedAt = DateTime.UtcNow;
+                break;
         }
     }
 }
