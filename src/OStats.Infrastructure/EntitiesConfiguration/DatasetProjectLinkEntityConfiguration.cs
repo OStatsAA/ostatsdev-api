@@ -1,14 +1,13 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OStats.Domain.Aggregates.ProjectAggregate;
 
 namespace OStats.Infrastructure.EntitiesConfiguration;
 
-sealed class DatasetProjectLinkConfiguration : EntityConfiguration<DatasetProjectLink>, IEntityTypeConfiguration<DatasetProjectLink>
+sealed class DatasetProjectLinkConfiguration : EntityConfiguration<DatasetProjectLink>
 {
-    public void Configure(EntityTypeBuilder<DatasetProjectLink> builder)
+    public override void Configure(EntityTypeBuilder<DatasetProjectLink> builder)
     {
-        BaseConfigure(builder);
+        base.Configure(builder);
         builder.HasIndex(role => role.DatasetId);
         builder.HasIndex(role => role.ProjectId);
     }

@@ -1,14 +1,13 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OStats.Domain.Aggregates.ProjectAggregate;
 
 namespace OStats.Infrastructure.EntitiesConfiguration;
 
-sealed class RoleEntityConfiguration : EntityConfiguration<Role>, IEntityTypeConfiguration<Role>
+internal sealed class RoleEntityConfiguration : EntityConfiguration<Role>
 {
-    public void Configure(EntityTypeBuilder<Role> builder)
+    public override void Configure(EntityTypeBuilder<Role> builder)
     {
-        BaseConfigure(builder);
+        base.Configure(builder);
         builder.HasIndex(role => role.ProjectId);
         builder.HasIndex(role => role.UserId);
     }

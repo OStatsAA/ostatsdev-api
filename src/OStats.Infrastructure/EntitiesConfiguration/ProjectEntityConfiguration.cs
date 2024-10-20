@@ -4,11 +4,11 @@ using OStats.Domain.Aggregates.ProjectAggregate;
 
 namespace OStats.Infrastructure.EntitiesConfiguration;
 
-sealed class ProjectEntityConfiguration : EntityConfiguration<Project>, IEntityTypeConfiguration<Project>
+internal sealed class ProjectEntityConfiguration : EntityConfiguration<Project>
 {
-       public void Configure(EntityTypeBuilder<Project> builder)
+       public override void Configure(EntityTypeBuilder<Project> builder)
        {
-              BaseConfigure(builder);
+              base.Configure(builder);
 
               builder.Property(project => project.Title)
                      .HasMaxLength(256);

@@ -1,15 +1,14 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate;
 
 namespace OStats.Infrastructure.EntitiesConfiguration;
 
-sealed class DatasetEntityConfiguration : EntityConfiguration<Dataset>, IEntityTypeConfiguration<Dataset>
+sealed class DatasetEntityConfiguration : EntityConfiguration<Dataset>
 {
-       public void Configure(EntityTypeBuilder<Dataset> builder)
+       public override void Configure(EntityTypeBuilder<Dataset> builder)
        {
-              BaseConfigure(builder);
+              base.Configure(builder);
 
               builder.Property(dataset => dataset.Title)
                      .HasMaxLength(256);
