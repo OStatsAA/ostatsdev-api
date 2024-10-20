@@ -1,4 +1,5 @@
 using System.Data;
+using OStats.Domain.Aggregates.DatasetAggregate.Events;
 using OStats.Domain.Common;
 
 namespace OStats.Domain.Aggregates.DatasetAggregate;
@@ -8,6 +9,7 @@ public sealed class Dataset : AggregateRoot
     public string Title { get; set; }
     public string Source { get; set; }
     public string? Description { get; set; }
+    public bool IsPublic { get; private set; }
     private readonly List<DatasetUserAccessLevel> _datasetUsersAccessesLevels = new List<DatasetUserAccessLevel>();
     public IReadOnlyCollection<DatasetUserAccessLevel> DatasetUserAccessLevels => _datasetUsersAccessesLevels;
 
@@ -76,5 +78,23 @@ public sealed class Dataset : AggregateRoot
             .Where(userAccess => userAccess.UserId == userId)
             .Select(userAccess => userAccess.AccessLevel)
             .SingleOrDefault(DatasetAccessLevel.NoAccess);
+    }
+
+    public DomainOperationResult UpdateVisibility(Guid requestorId, bool isPublic)
+    {
+        if (IsPublic == isPublic)
+        {
+            var visibility = isPublic ? "public" : "private";
+            return DomainOperationResult.NoActionTaken($"Dataset is already {visibility}.");
+        }
+
+        if (GetUserAccessLevel(requestorId) < DatasetAccessLevel.Administrator)
+        {
+            return DomainOperationResult.Failure("Requestor does not have permission to update dataset visibility.");
+        }
+
+        IsPublic = isPublic;
+        _domainEvents.Add(new UpdatedDatasetVisibilityDomainEvent(Id, IsPublic, requestorId));
+        return DomainOperationResult.Success;
     }
 }
