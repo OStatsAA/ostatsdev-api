@@ -10,7 +10,7 @@ public sealed class Dataset : AggregateRoot
     public string Source { get; set; }
     public string? Description { get; set; }
     public bool IsPublic { get; private set; }
-    private readonly List<DatasetUserAccessLevel> _datasetUsersAccessesLevels = new List<DatasetUserAccessLevel>();
+    private readonly List<DatasetUserAccessLevel> _datasetUsersAccessesLevels = [];
     public IReadOnlyCollection<DatasetUserAccessLevel> DatasetUserAccessLevels => _datasetUsersAccessesLevels;
 
     private Dataset(string title, string source)

@@ -8,8 +8,8 @@ namespace OStats.Tests.IntegrationTests.Queries;
 public class PeopleSearchQueryIntegrationTest : BaseIntegrationTest
 {
     // https://www.name-generator.org.uk/quick/
-    protected readonly List<string> GeneratedNames = new()
-    {
+    protected readonly List<string> GeneratedNames =
+    [
         "Tyrese Castillo",
         "Brodie Castillo",
         "Helen Moss",
@@ -20,7 +20,7 @@ public class PeopleSearchQueryIntegrationTest : BaseIntegrationTest
         "Orlando Frazier",
         "Zaara Mcconnell",
         "Kane Barnes"
-    };
+    ];
 
     public PeopleSearchQueryIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
     {

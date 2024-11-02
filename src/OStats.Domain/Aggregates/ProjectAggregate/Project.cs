@@ -7,9 +7,9 @@ public sealed class Project : AggregateRoot
 {
     public string Title { get; set; }
     public string? Description { get; set; }
-    private readonly List<Role> _roles = new List<Role>();
+    private readonly List<Role> _roles = [];
     public IReadOnlyCollection<Role> Roles => _roles;
-    private readonly HashSet<DatasetProjectLink> _linkedDatasets = new HashSet<DatasetProjectLink>();
+    private readonly HashSet<DatasetProjectLink> _linkedDatasets = [];
     public IReadOnlyCollection<DatasetProjectLink> LinkedDatasets => _linkedDatasets;
 
     private Project(string title, string? description = null)
