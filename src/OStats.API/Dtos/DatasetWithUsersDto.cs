@@ -9,7 +9,7 @@ public record DatasetWithUsersDto : BaseDatasetDto
     public List<DatasetUserAccessLevelsDto> DatasetUserAccessLevels { get; init; }
 
     [JsonConstructor]
-    public DatasetWithUsersDto(Dataset dataset, List<User> users) : base(dataset.Id, dataset.CreatedAt, dataset.LastUpdatedAt, dataset.Title, dataset.Source, dataset.Description)
+    public DatasetWithUsersDto(Dataset dataset, List<User> users) : base(dataset)
     {
         DatasetUserAccessLevels = GetUserAccessLevelDto(dataset, users);
     }

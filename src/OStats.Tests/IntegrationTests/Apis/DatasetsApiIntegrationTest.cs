@@ -6,6 +6,7 @@ using MassTransit.Testing;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Dtos;
 using OStats.Domain.Aggregates.DatasetAggregate;
+using OStats.Domain.Aggregates.DatasetAggregate.Events;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.UserAggregate;
 using OStats.Domain.Common;
@@ -280,6 +281,40 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
         {
             response.IsSuccessStatusCode.Should().BeFalse();
             response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        }
+    }
+
+    [Fact]
+    public async Task Should_Update_Dataset_Visibility()
+    {
+        var validUser = await context.Users.FirstAsync();
+        var testDataset = new Dataset(validUser.Id, "Test Dataset", "Test Source", "Test Description");
+        await context.Datasets.AddAsync(testDataset);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var updateDto = new UpdateDatasetVisibilityDto(true);
+
+        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.PutAsJsonAsync($"{_baseUrl}/{testDataset.Id}/visibility", updateDto);
+
+        await Task.Delay(5 * 1000);
+
+        using (new AssertionScope())
+        {
+            response.IsSuccessStatusCode.Should().BeTrue();
+
+            var updatedDataset = await context.Datasets.SingleAsync(dataset => dataset.Id == testDataset.Id, default);
+            updatedDataset.IsPublic.Should().Be(updateDto.IsPublic);
+
+            var @event = await queueHarness.Published
+                .SelectAsync<IDomainEvent>(published => published.Context.Message is UpdatedDatasetVisibilityDomainEvent _event
+                                                        && _event.DatasetId == testDataset.Id)
+                .First();
+            @event.Should().NotBeNull();
+            @event.Context.Message.Should().BeOfType<UpdatedDatasetVisibilityDomainEvent>();
         }
     }
 }
