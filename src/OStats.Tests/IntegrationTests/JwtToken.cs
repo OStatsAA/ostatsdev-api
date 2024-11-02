@@ -5,7 +5,7 @@ namespace OStats.Tests.IntegrationTests;
 
 public class TestJwtToken
 {
-    public List<Claim> Claims { get; } = new();
+    public List<Claim> Claims { get; } = [];
     public int ExpiresInMinutes { get; set; } = 30;
 
     public TestJwtToken WithRole(string roleName)
