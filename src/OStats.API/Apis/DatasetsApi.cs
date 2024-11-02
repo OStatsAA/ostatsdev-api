@@ -22,6 +22,7 @@ public static class DatasetsApi
         app.MapDelete("/{datasetId:Guid}", DeleteDatasetHandler);
         app.MapPut("/{datasetId:Guid}", UpdateDatasetHandler).AddEndpointFilter<ValidationFilter<UpdateDatasetDto>>();
         app.MapGet("/{datasetId:Guid}/data", GetDataHandler);
+        app.MapPut("/{datasetId:Guid}/visibility", UpdateDatasetVisibilityHandler);
         app.MapPost("/{datasetId:Guid}/ingestdata", IngestDataHandler).AddEndpointFilter<ValidationFilter<IngestDataDto>>();
         app.MapGet("/{datasetId:Guid}/linkedprojects", GetLinkedProjectsHandler);
         app.MapPost("/{datasetId:Guid}/users", AddUserToDatasetHandler).AddEndpointFilter<ValidationFilter<AddUserToDatasetDto>>();
@@ -128,6 +129,24 @@ public static class DatasetsApi
         {
             yield return response.Body;
         }
+    }
+
+    private static async Task<Results<Ok, BadRequest<string>>> UpdateDatasetVisibilityHandler(
+        Guid datasetId,
+        [FromBody] UpdateDatasetVisibilityDto updateDto,
+        HttpContext context,
+        [FromServices] UpdateDatasetVisibilityCommandHandler commandHandler,
+        CancellationToken cancellationToken)
+    {
+        string userAuthId = context.GetUserAuthId() ?? "asdasd";
+        var command = new UpdateDatasetVisibilityCommand
+        {
+            DatasetId = datasetId,
+            UserAuthId = userAuthId,
+            IsPublic = updateDto.IsPublic
+        };
+        var result = await commandHandler.Handle(command, cancellationToken);
+        return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
 
     private static async Task<Results<Ok<List<DatasetProjectLinkDto>>, UnauthorizedHttpResult, BadRequest>> GetLinkedProjectsHandler(
