@@ -69,8 +69,8 @@ public static class ServiceCollectionExtensions
                 var host = Environment.GetEnvironmentVariable("RABBITMQ_DEFAULT_HOST");
                 cfg.Host(host, "/", h =>
                 {
-                    h.Username(Environment.GetEnvironmentVariable("RABBITMQ_DEFAULT_USER"));
-                    h.Password(Environment.GetEnvironmentVariable("RABBITMQ_DEFAULT_PASS"));
+                    h.Username(Environment.GetEnvironmentVariable("RABBITMQ_DEFAULT_USER") ?? throw new ArgumentNullException("RABBITMQ_DEFAULT_USER"));
+                    h.Password(Environment.GetEnvironmentVariable("RABBITMQ_DEFAULT_PASS") ?? throw new ArgumentNullException("RABBITMQ_DEFAULT_PASS"));
                 });
             });
         });
