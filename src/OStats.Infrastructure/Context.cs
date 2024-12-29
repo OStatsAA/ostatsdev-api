@@ -11,19 +11,19 @@ namespace OStats.Infrastructure;
 public sealed class Context : DbContext
 {
     // DatasetAggregate db sets
-    public DbSet<Dataset> Datasets { get; set; }
-    public DbSet<DatasetUserAccessLevel> DatasetsUsersAccessLevels { get; set; }
+    public required DbSet<Dataset> Datasets { get; set; }
+    public required DbSet<DatasetUserAccessLevel> DatasetsUsersAccessLevels { get; set; }
 
     // ProjectAggregate db sets
-    public DbSet<Project> Projects { get; set; }
-    public DbSet<Role> Roles { get; set; }
-    public DbSet<DatasetProjectLink> DatasetsProjectsLinks { get; set; }
+    public required DbSet<Project> Projects { get; set; }
+    public required DbSet<Role> Roles { get; set; }
+    public required DbSet<DatasetProjectLink> DatasetsProjectsLinks { get; set; }
 
     // UserAggregate db sets
-    public DbSet<User> Users { get; set; }
+    public required DbSet<User> Users { get; set; }
 
     // History db sets
-    public DbSet<AggregateHistoryEntry> AggregatesHistoryEntries { get; set; }
+    public required DbSet<AggregateHistoryEntry> AggregatesHistoryEntries { get; set; }
 
     public Context(DbContextOptions options) : base(options) 
     {
