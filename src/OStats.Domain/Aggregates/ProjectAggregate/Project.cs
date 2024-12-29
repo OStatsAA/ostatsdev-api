@@ -1,21 +1,21 @@
 using OStats.Domain.Common;
 using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
+using OStats.Domain.Aggregates.ProjectAggregate.Events;
 
 namespace OStats.Domain.Aggregates.ProjectAggregate;
 
 public sealed class Project : AggregateRoot
 {
-    public string Title { get; set; }
-    public string? Description { get; set; }
+    public string Title { get; private set; }
+    public string Description { get; private set; } = string.Empty;
     private readonly List<Role> _roles = [];
     public IReadOnlyCollection<Role> Roles => _roles;
     private readonly HashSet<DatasetProjectLink> _linkedDatasets = [];
     public IReadOnlyCollection<DatasetProjectLink> LinkedDatasets => _linkedDatasets;
 
-    private Project(string title, string? description = null)
+    private Project(string title)
     {
         Title = title;
-        Description = description;
     }
 
     public Project(Guid ownerId, string title)
@@ -31,12 +31,52 @@ public sealed class Project : AggregateRoot
         _roles.Add(new Role(Id, ownerId, AccessLevel.Owner));
     }
 
+    public DomainOperationResult IsAllowedTo(Role requestorRole, AccessLevel requiredAccessLevel)
+    {
+        if (requestorRole is null)
+        {
+            return DomainOperationResult.InvalidUserRole();
+        }
+
+        return requestorRole switch
+        {
+            { ProjectId: var projectId, AccessLevel: var accessLevel } when projectId == Id && accessLevel >= requiredAccessLevel => DomainOperationResult.Success,
+            { ProjectId: var projectId } when projectId != Id => DomainOperationResult.InvalidUserRole(),
+            { AccessLevel: var accessLevel } when accessLevel < requiredAccessLevel => DomainOperationResult.Unauthorized(),
+            _ => DomainOperationResult.InvalidUserRole()
+        };
+    }
+
+    public DomainOperationResult SetTitle(string title, Role requestorRole)
+    {
+        if (IsAllowedTo(requestorRole, AccessLevel.Editor) is var result && !result.Succeeded)
+        {
+            return result;
+        }
+
+        _domainEvents.Add(new TitleUpdate { ProjectId = Id, RequestorId = requestorRole.UserId, OldTitle = Title, Title = title });
+        Title = title;
+        return result;
+    }
+
+    public DomainOperationResult SetDescription(string description, Role requestorRole)
+    {
+        if (IsAllowedTo(requestorRole, AccessLevel.Editor) is var result && !result.Succeeded)
+        {
+            return result;
+        }
+
+        _domainEvents.Add(new DescriptionUpdate { ProjectId = Id, RequestorId = requestorRole.UserId, OldDescription = Description, Description = description });
+        Description = description;
+        return result;
+    }
+
     public DomainOperationResult AddOrUpdateUserRole(Guid userId, AccessLevel accessLevel, Guid requestorId)
     {
-        var requestorRole = _roles.GetUserRole(requestorId);
-        if (requestorRole is null || requestorRole.AccessLevel < AccessLevel.Administrator)
+        var requestorRole = _roles.GetUserRole(requestorId)!;
+        if (IsAllowedTo(requestorRole, AccessLevel.Administrator) is var result && !result.Succeeded)
         {
-            return DomainOperationResult.Failure("Requestor does not have permission to add or update user role.");
+            return result;
         }
 
         var userRole = _roles.GetUserRole(userId);
@@ -54,10 +94,10 @@ public sealed class Project : AggregateRoot
 
     public DomainOperationResult RemoveUserRole(Guid userId, Guid requestorId)
     {
-        var requestorRole = _roles.GetUserRole(requestorId);
-        if (requestorRole is null || requestorRole.AccessLevel < AccessLevel.Administrator)
+        var requestorRole = _roles.GetUserRole(requestorId)!;
+        if (IsAllowedTo(requestorRole, AccessLevel.Administrator) is var result && !result.Succeeded)
         {
-            return DomainOperationResult.Failure("Requestor does not have permission to remove user role.");
+            return result;
         }
 
         var userRole = _roles.GetUserRole(userId);
@@ -77,10 +117,10 @@ public sealed class Project : AggregateRoot
 
     public DomainOperationResult LinkDataset(Guid datasetId, Guid requestorId)
     {
-        var requestorRole = _roles.GetUserRole(requestorId);
-        if (requestorRole is null || requestorRole.AccessLevel < AccessLevel.Editor)
+        var requestorRole = _roles.GetUserRole(requestorId)!;
+        if (IsAllowedTo(requestorRole, AccessLevel.Editor) is var result && !result.Succeeded)
         {
-            return DomainOperationResult.Failure("Requestor does not have permission to link dataset.");
+            return result;
         }
 
         if (_linkedDatasets.Any(link => link.DatasetId == datasetId))
@@ -94,10 +134,10 @@ public sealed class Project : AggregateRoot
 
     public DomainOperationResult UnlinkDataset(Guid datasetId, Guid requestorId)
     {
-        var requestorRole = _roles.GetUserRole(requestorId);
-        if (requestorRole is null || requestorRole.AccessLevel < AccessLevel.Editor)
+        var requestorRole = _roles.GetUserRole(requestorId)!;
+        if (IsAllowedTo(requestorRole, AccessLevel.Editor) is var result && !result.Succeeded)
         {
-            return DomainOperationResult.Failure("Requestor does not have permission to unlink dataset.");
+            return result;
         }
 
         var removed = _linkedDatasets.RemoveWhere(link => link.DatasetId == datasetId) > 0;
@@ -105,9 +145,7 @@ public sealed class Project : AggregateRoot
         {
             return DomainOperationResult.Success;
         }
-        else
-        {
-            return DomainOperationResult.Failure("Dataset is not linked to this project.");
-        }
+
+        return DomainOperationResult.Failure("Dataset is not linked to this project.");
     }
 }

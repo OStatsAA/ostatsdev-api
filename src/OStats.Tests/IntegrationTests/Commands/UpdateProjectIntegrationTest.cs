@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OStats.API.Commands;
 using OStats.API.Dtos;
 using OStats.Domain.Aggregates.ProjectAggregate;
+using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
 
 namespace OStats.Tests.IntegrationTests.Commands;
 
@@ -50,7 +51,7 @@ public class UpdateProjectIntegrationTest : BaseIntegrationTest
         var previousLastUpdatedAtDatetime = project.LastUpdatedAt;
         var editedTitle = "Edited Title";
         var editedDescription = "Edited description";
-        project.Title = "Bypassed edition";
+        project.SetTitle("Bypassed edition", project.Roles.GetUserRole(user.Id)!);
         await context.SaveChangesAsync();
         var command = new UpdateProjectCommand(project.Id, user.AuthIdentity, editedTitle, previousLastUpdatedAtDatetime, editedDescription);
         var (result, baseProjectDto) = await serviceProvider.GetRequiredService<UpdateProjectCommandHandler>().Handle(command, default);

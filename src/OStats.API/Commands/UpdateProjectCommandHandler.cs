@@ -1,7 +1,6 @@
 using MassTransit;
 using OStats.API.Commands.Common;
 using OStats.API.Dtos;
-using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
 using OStats.Domain.Common;
 using OStats.Infrastructure;
@@ -33,14 +32,14 @@ public sealed class UpdateProjectCommandHandler : CommandHandler<UpdateProjectCo
             return (DomainOperationResult.Failure("User not found."), null);
         }
 
-        var minimumAccessLevelRequired = AccessLevel.Editor;
-        if (!project.Roles.IsUserAtLeast(user.Id, minimumAccessLevelRequired))
+        var userRole = project.Roles.GetUserRole(user.Id);
+        if (userRole is null)
         {
-            return (DomainOperationResult.Failure("User does not have the required access level."), null);
+            return (DomainOperationResult.InvalidUserRole("User does not have a role in this project."), null);
         }
 
-        project.Title = command.Title;
-        project.Description = command.Description;
+        project.SetTitle(command.Title, userRole);
+        project.SetDescription(command.Description, userRole);
 
         await SaveCommandHandlerChangesAsync(cancellationToken);
 
