@@ -92,7 +92,7 @@ public sealed class Project : AggregateRoot
     }
 
     public DomainOperationResult RemoveUserRole(Guid userId, Guid requestorId)
-    {;
+    {
         if (IsAllowedTo(_roles.GetUserRole(requestorId)!, AccessLevel.Administrator) is var result && !result.Succeeded)
         {
             return result;
