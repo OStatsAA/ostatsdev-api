@@ -73,8 +73,7 @@ public sealed class Project : AggregateRoot
 
     public DomainOperationResult AddOrUpdateUserRole(Guid userId, AccessLevel accessLevel, Guid requestorId)
     {
-        var requestorRole = _roles.GetUserRole(requestorId)!;
-        if (IsAllowedTo(requestorRole, AccessLevel.Administrator) is var result && !result.Succeeded)
+        if (IsAllowedTo(_roles.GetUserRole(requestorId)!, AccessLevel.Administrator) is var result && !result.Succeeded)
         {
             return result;
         }
@@ -93,9 +92,8 @@ public sealed class Project : AggregateRoot
     }
 
     public DomainOperationResult RemoveUserRole(Guid userId, Guid requestorId)
-    {
-        var requestorRole = _roles.GetUserRole(requestorId)!;
-        if (IsAllowedTo(requestorRole, AccessLevel.Administrator) is var result && !result.Succeeded)
+    {;
+        if (IsAllowedTo(_roles.GetUserRole(requestorId)!, AccessLevel.Administrator) is var result && !result.Succeeded)
         {
             return result;
         }
