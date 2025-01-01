@@ -9,5 +9,11 @@ internal abstract class EntityConfiguration<T> : IEntityTypeConfiguration<T> whe
     public virtual void Configure(EntityTypeBuilder<T> builder)
     {
         builder.HasKey(entity => entity.Id);
+        builder.Property(entity => entity.CreatedAt).IsRequired();
+        builder.Property(entity => entity.LastUpdatedAt).IsRequired();
+        
+        builder.Property(entity => entity.IsDeleted).IsRequired().HasDefaultValue(false);
+        builder.HasIndex(entity => entity.IsDeleted).HasFilter("\"IsDeleted\" = false");
+        builder.HasQueryFilter(entity => !entity.IsDeleted);
     }
 }

@@ -1,3 +1,7 @@
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("OStats.Infrastructure")]
+
 namespace OStats.Domain.Common;
 
 public abstract class Entity
@@ -15,6 +19,7 @@ public abstract class Entity
         }
     }
 
-    public DateTime CreatedAt { get; set; }
-    public DateTime LastUpdatedAt { get; set; }
+    public DateTime CreatedAt { get; internal set; }
+    public DateTime LastUpdatedAt { get; internal set; }
+    public bool IsDeleted { get; internal set; } = false;
 }
