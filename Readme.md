@@ -23,11 +23,11 @@ source scripts/get_test_coverage_report.sh
 Generate migration
 
 ```text
-dotnet ef migrations add <MIGRATION_NAME> --project src/OStats.Infrastructure/
+dotnet ef migrations add AddSoftDelete --project src/OStats.Infrastructure/ --startup-project src/OStats.API/
 ```
 
 Generate idempotent script
 
 ```text
-dotnet ef migrations script --idempotent --output=./migration.sql --project src/OStats.Infrastructure/
+dotnet ef migrations script --idempotent --output=./migration.sql --project src/OStats.Infrastructure/ --startup-project src/OStats.API/
 ```
