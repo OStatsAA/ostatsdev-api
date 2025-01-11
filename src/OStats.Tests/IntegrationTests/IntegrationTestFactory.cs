@@ -1,3 +1,6 @@
+using DataServiceGrpc;
+using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Containers;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
@@ -17,6 +20,11 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
 {
     protected readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder()
         .WithImage("postgres")
+        .Build();
+    
+    protected readonly IContainer _dataServiceContainer = new ContainerBuilder()
+        .WithImage("ghcr.io/ostatsaa/data-service:main")
+        .WithEnvironment("ENVIRONMENT", "DEVELOPMENT") //as in https://github.com/OStatsAA/data-service/blob/main/dataservice/config.py
         .Build();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -45,6 +53,12 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             services.AddMassTransitTestHarness(x =>
             {
                 x.AddConsumers(typeof(Program).Assembly);
+            });
+
+            _dataServiceContainer.StartAsync().Wait();
+            services.AddGrpcClient<DataService.DataServiceClient>(o =>
+            {
+                o.Address = new Uri($"http://{_dataServiceContainer.IpAddress}:50051");
             });
 
             services.Configure<JwtBearerOptions>(

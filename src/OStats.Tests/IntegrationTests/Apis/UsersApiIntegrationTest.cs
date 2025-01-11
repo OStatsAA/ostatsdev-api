@@ -1,8 +1,10 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions.Execution;
+using MassTransit.Testing;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Dtos;
+using OStats.Domain.Aggregates.UserAggregate.Events;
 
 namespace OStats.Tests.IntegrationTests.Apis;
 
@@ -140,6 +142,31 @@ public class UsersApiIntegrationTest : BaseIntegrationTest
         {
             response.IsSuccessStatusCode.Should().BeTrue();
             userDatasets.Should().NotBeNullOrEmpty();
+        }
+    }
+
+    [Fact]
+    public async Task Should_Delete_User()
+    {
+        var user = await context.Users.FirstAsync();
+
+        var token = JwtTokenProvider.GenerateTokenForAuthId(user.AuthIdentity);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.DeleteAsync($"{_base_url}/{user.Id}");
+
+        await Task.Delay(5 * 1000);
+
+        using (new AssertionScope())
+        {
+            response.IsSuccessStatusCode.Should().BeTrue();
+            var isDeleted = !await context.Users.AnyAsync(u => u.Id == user.Id);
+            isDeleted.Should().BeTrue();
+
+            var _event = await queueHarness.Published.SelectAsync<DeletedUserDomainEvent>(_event => _event.Context.Message.UserId == user.Id).FirstOrDefault();
+            _event.Should().NotBeNull();
+            var consumed = await queueHarness.Consumed.Any<DeletedUserDomainEvent>(_event => _event.Context.Message.UserId == user.Id);
+            consumed.Should().BeTrue();
         }
     }
 }

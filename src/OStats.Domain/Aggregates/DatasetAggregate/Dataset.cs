@@ -97,4 +97,16 @@ public sealed class Dataset : AggregateRoot
         _domainEvents.Add(new UpdatedDatasetVisibilityDomainEvent(Id, IsPublic, requestorId));
         return DomainOperationResult.Success;
     }
+
+    public DomainOperationResult Delete(Guid requestorId)
+    {
+        if (GetUserAccessLevel(requestorId) < DatasetAccessLevel.Owner)
+        {
+            return DomainOperationResult.Failure("Requestor does not have permission to delete dataset.");
+        }
+
+        _domainEvents.Add(new DeletedDatasetDomainEvent { DatasetId = Id, RequestorId = requestorId });
+        IsDeleted = true;
+        return DomainOperationResult.Success;
+    }
 }

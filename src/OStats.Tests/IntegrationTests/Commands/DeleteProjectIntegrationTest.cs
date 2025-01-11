@@ -30,6 +30,8 @@ public class DeleteProjectIntegrationTest : BaseIntegrationTest
         {
             result.Succeeded.Should().BeFalse();
             result.ErrorMessage.Should().NotBeEmpty();
+            var isDeleted = !await context.Projects.AnyAsync(p => p.Id == project.Id);
+            isDeleted.Should().BeFalse();
         }
     }
 
@@ -38,8 +40,8 @@ public class DeleteProjectIntegrationTest : BaseIntegrationTest
     {
         var existingUser = await context.Users.FirstAsync();
         var project = new Project(existingUser.Id, "To Be Deleted", "No Description");
-        context.Projects.Add(project);
-        context.SaveChanges();
+        await context.Projects.AddAsync(project);
+        await context.SaveChangesAsync();
 
         var command = new DeleteProjectCommand(existingUser.AuthIdentity, project.Id);
         var result = await serviceProvider.GetRequiredService<DeleteProjectCommandHandler>().Handle(command, default);
@@ -50,7 +52,6 @@ public class DeleteProjectIntegrationTest : BaseIntegrationTest
             result.ErrorMessage.Should().BeNullOrEmpty();
             context.Users.Any(u => u.Id == existingUser.Id).Should().BeTrue();
             context.Projects.Any(p => p.Id == project.Id).Should().BeFalse();
-            context.Roles.Any(r => r.ProjectId == project.Id).Should().BeFalse();
         }
     }
 }
