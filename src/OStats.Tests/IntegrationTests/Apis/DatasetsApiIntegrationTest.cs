@@ -117,12 +117,18 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
 
         var response = await client.DeleteAsync($"{_baseUrl}/{dataset.Id}");
 
+        await Task.Delay(5 * 1000);
+
         using (new AssertionScope())
         {
             response.IsSuccessStatusCode.Should().BeTrue();
+            var isDeleted = !await context.Datasets.AnyAsync(d => d.Id == dataset.Id);
+            isDeleted.Should().BeTrue();
 
-            var isDeleted = await context.Datasets.AnyAsync(d => d.Id == dataset.Id);
-            isDeleted.Should().BeFalse();
+            var _event = await queueHarness.Published.SelectAsync<DeletedDatasetDomainEvent>(_event => _event.Context.Message.DatasetId == dataset.Id).FirstOrDefault();
+            _event.Should().NotBeNull();
+            var consumed = await queueHarness.Consumed.Any<DeletedDatasetDomainEvent>(_event => _event.Context.Message.DatasetId == dataset.Id);
+            consumed.Should().BeTrue();
         }
     }
 

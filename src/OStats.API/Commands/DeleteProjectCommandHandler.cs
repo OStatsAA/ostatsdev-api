@@ -1,7 +1,5 @@
 using MassTransit;
 using OStats.API.Commands.Common;
-using OStats.Domain.Aggregates.ProjectAggregate;
-using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
 using OStats.Domain.Common;
 using OStats.Infrastructure;
 
@@ -27,13 +25,12 @@ public sealed class DeleteProjectCommandHandler : CommandHandler<DeleteProjectCo
             return DomainOperationResult.Failure("Project not found.");
         }
 
-        var isUserOwner = project.Roles.IsUser(user.Id, AccessLevel.Owner);
-        if (!isUserOwner)
+        var result = project.Delete(user.Id);
+        if (!result.Succeeded)
         {
-            return DomainOperationResult.Failure("User does not have permission to delete this project.");
+            return result;
         }
-
-        _context.Remove(project);
+        
         await SaveCommandHandlerChangesAsync(cancellationToken);
 
         return DomainOperationResult.Success;

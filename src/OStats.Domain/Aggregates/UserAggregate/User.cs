@@ -1,7 +1,7 @@
+using OStats.Domain.Aggregates.UserAggregate.Events;
 using OStats.Domain.Common;
 
 namespace OStats.Domain.Aggregates.UserAggregate;
-
 
 public sealed class User : AggregateRoot
 {
@@ -13,5 +13,22 @@ public sealed class User : AggregateRoot
         Name = name;
         Email = email;
         AuthIdentity = authIdentity;
+    }
+
+    public DomainOperationResult Delete(Guid requestorId)
+    {
+        if (IsDeleted)
+        {
+            return DomainOperationResult.NoActionTaken("User is already deleted");
+        }
+
+        if (requestorId != Id)
+        {
+            return DomainOperationResult.Unauthorized("Only the user can delete their account");
+        }
+
+        _domainEvents.Add(new DeletedUserDomainEvent { UserId = Id, RequestorId = requestorId });
+        IsDeleted = true;
+        return DomainOperationResult.Success;
     }
 }

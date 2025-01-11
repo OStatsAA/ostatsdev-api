@@ -18,8 +18,21 @@ public static class UsersApi
         app.MapGet("/{userId:Guid}", GetUserByIdAsync);
         app.MapGet("/{userId:Guid}/projects", GetUserProjectsAsync);
         app.MapGet("/{userId:Guid}/datasets", GetUserDatasetsHandler);
+        app.MapDelete("/{userId:Guid}", DeleteUserHandler);
 
         return app;
+    }
+
+    private static async Task<Results<Ok, BadRequest<string>>> DeleteUserHandler(
+        [FromRoute] Guid userId,
+        HttpContext context,
+        [FromServices] DeleteUserCommandHandler commandHandler,
+        CancellationToken cancellationToken)
+    {
+        var userAuthId = context.GetUserAuthId();
+        var command = new DeleteUserCommand { UserId = userId, UserAuthId = userAuthId };
+        var result = await commandHandler.Handle(command, cancellationToken);
+        return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
 
     private static async Task<Ok<List<BaseUserDto>>> PeopleSearchHandler(

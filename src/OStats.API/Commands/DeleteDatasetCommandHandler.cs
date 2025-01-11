@@ -26,12 +26,7 @@ public sealed class DeleteDatasetCommandHandler : CommandHandler<DeleteDatasetCo
             return DomainOperationResult.Failure("Dataset not found.");
         }
 
-        if (dataset.GetUserAccessLevel(user.Id) < DatasetAccessLevel.Owner)
-        {
-            return DomainOperationResult.Failure("User does not have permission to delete this dataset.");
-        }
-
-        _context.Remove(dataset);
+        dataset.Delete(user.Id);
         await SaveCommandHandlerChangesAsync(cancellationToken);
 
         return DomainOperationResult.Success;

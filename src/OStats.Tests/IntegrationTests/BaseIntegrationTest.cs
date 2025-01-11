@@ -25,6 +25,7 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
         client = factory.CreateClient();
 
         SetDatabaseInitialState();
+        queueHarness.Start();
     }
 
     private void SetDatabaseInitialState()

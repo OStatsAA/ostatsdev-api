@@ -2,11 +2,14 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions.Execution;
+using MassTransit.Testing;
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Dtos;
 using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate;
+using OStats.Domain.Aggregates.ProjectAggregate.Events;
 using OStats.Domain.Aggregates.UserAggregate;
+using OStats.Domain.Common;
 
 namespace OStats.Tests.IntegrationTests.Apis;
 
@@ -202,12 +205,19 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var response = await client.DeleteAsync($"{_base_url}/{project.Id}");
-        var isDeleted = await context.Projects.AnyAsync(p => p.Id == project.Id);
+
+        await Task.Delay(5 * 1000);
 
         using (new AssertionScope())
         {
             response.IsSuccessStatusCode.Should().BeTrue();
-            isDeleted.Should().BeFalse();
+            var isDeleted = !await context.Projects.AnyAsync(p => p.Id == project.Id);
+            isDeleted.Should().BeTrue();
+
+            var _event = await queueHarness.Published.SelectAsync<DeletedProjectDomainEvent>(_event => _event.Context.Message.ProjectId == project.Id).FirstOrDefault();
+            _event.Should().NotBeNull();
+            var consumed = await queueHarness.Consumed.Any<DeletedProjectDomainEvent>(_event => _event.Context.Message.ProjectId == project.Id);
+            consumed.Should().BeTrue();
         }
     }
 

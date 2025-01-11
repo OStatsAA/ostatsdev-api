@@ -104,6 +104,8 @@ public sealed class Project : AggregateRoot
             return DomainOperationResult.Failure("User does not have a role in this project.");
         }
 
+        userRole.IsDeleted = true;
+
         _roles.Remove(userRole);
         return DomainOperationResult.Success;
     }
@@ -145,5 +147,18 @@ public sealed class Project : AggregateRoot
         }
 
         return DomainOperationResult.Failure("Dataset is not linked to this project.");
+    }
+
+    public DomainOperationResult Delete(Guid requestorId)
+    {
+        var requestorRole = _roles.GetUserRole(requestorId)!;
+        if (IsAllowedTo(requestorRole, AccessLevel.Owner) is var result && !result.Succeeded)
+        {
+            return result;
+        }
+
+        _domainEvents.Add(new DeletedProjectDomainEvent { ProjectId = Id, RequestorId = requestorId });
+        IsDeleted = true;
+        return DomainOperationResult.Success;
     }
 }
