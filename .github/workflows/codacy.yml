@@ -25,6 +25,9 @@ on:
 permissions:
   contents: read
 
+env:
+  REGISTRY: ghcr.io
+
 jobs:
   codacy-security-scan:
     permissions:
