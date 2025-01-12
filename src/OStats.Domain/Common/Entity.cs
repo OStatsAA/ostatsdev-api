@@ -21,5 +21,5 @@ public abstract class Entity
 
     public DateTime CreatedAt { get; internal set; }
     public DateTime LastUpdatedAt { get; internal set; }
-    public bool IsDeleted { get; internal set; } = false;
+    public bool IsDeleted { get; internal set; }
 }

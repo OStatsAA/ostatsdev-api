@@ -49,7 +49,7 @@ public sealed class CleanupDeletedUserResourcesCommandHandler : CommandHandler<C
     {
         return _context.Datasets
             .Where(_ => _context.DatasetsUsersAccessLevels.Any(accessLevel => accessLevel.UserId == userId && accessLevel.AccessLevel == DatasetAccessLevel.Owner))
-            .Join(_context.DatasetsUsersAccessLevels, dataset => dataset.Id, accessLevel => accessLevel.DatasetId, (dataset, accessLevel) => dataset)
+            .Join(_context.DatasetsUsersAccessLevels, dataset => dataset.Id, accessLevel => accessLevel.DatasetId, (dataset, _) => dataset)
             .GroupBy(dataset => dataset.Id)
             .Where(group => group.Count() == 1)
             .SelectMany(group => group.ToList())
@@ -60,7 +60,7 @@ public sealed class CleanupDeletedUserResourcesCommandHandler : CommandHandler<C
     {
         return _context.Projects
             .Where(_ => _context.Roles.Any(role => role.UserId == userId && role.AccessLevel == AccessLevel.Owner))
-            .Join(_context.Roles, project => project.Id, role => role.ProjectId, (project, role) => project)
+            .Join(_context.Roles, project => project.Id, role => role.ProjectId, (project, _) => project)
             .GroupBy(project => project.Id)
             .Where(group => group.Count() == 1)
             .SelectMany(group => group.ToList())
