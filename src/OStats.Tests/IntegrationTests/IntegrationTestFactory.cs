@@ -24,7 +24,10 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
     
     protected readonly IContainer _dataServiceContainer = new ContainerBuilder()
         .WithImage("ghcr.io/ostatsaa/data-service:main")
-        .WithEnvironment("ENVIRONMENT", "DEVELOPMENT") //as in https://github.com/OStatsAA/data-service/blob/main/dataservice/config.py
+        .WithEnvironment("ENVIRONMENT", "DEVELOPMENT")  //as in https://github.com/OStatsAA/data-service/blob/main/dataservice/config.py
+        .WithExposedPort(50051)
+        .WithPortBinding(50051, true)
+        .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(50051))
         .Build();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -55,10 +58,10 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
                 x.AddConsumers(typeof(Program).Assembly);
             });
 
-            _dataServiceContainer.StartAsync().Wait();
             services.AddGrpcClient<DataService.DataServiceClient>(o =>
             {
-                o.Address = new Uri($"http://{_dataServiceContainer.IpAddress}:50051");
+                var uri = new UriBuilder("http", _dataServiceContainer.Hostname, _dataServiceContainer.GetMappedPublicPort(50051));
+                o.Address = uri.Uri;
             });
 
             services.Configure<JwtBearerOptions>(
@@ -80,11 +83,13 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
     public async Task InitializeAsync()
     {
         await _dbContainer.StartAsync();
+        await _dataServiceContainer.StartAsync();
     }
 
     public async new Task DisposeAsync()
     {
         await _dbContainer.DisposeAsync();
+        await _dataServiceContainer.DisposeAsync();
         await base.DisposeAsync();
     }
 }
