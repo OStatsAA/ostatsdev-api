@@ -1,3 +1,5 @@
+.vscode/
+
 *.coverage_report
 coverage.zip
 
