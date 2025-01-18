@@ -66,7 +66,7 @@
 					"request": "launch",
 					"preLaunchTask": "build",
 					// If you have changed target frameworks, make sure to update the program path.
-					"program": "${workspaceFolder}/src/OStats.API/bin/Debug/net8.0/OStats.API.dll",
+					"program": "${workspaceFolder}/src/OStats.API/bin/Debug/net9.0/OStats.API.dll",
 					"args": [],
 					"cwd": "${workspaceFolder}/src/OStats.API",
 					"stopAtEntry": false,
