@@ -54,7 +54,7 @@ public sealed class Project : AggregateRoot
             return result;
         }
 
-        _domainEvents.Add(new TitleUpdate { ProjectId = Id, RequestorId = requestorRole.UserId, OldTitle = Title, Title = title });
+        _domainEvents.Add(new TitleUpdateDomainEvent { ProjectId = Id, RequestorId = requestorRole.UserId, OldTitle = Title, Title = title });
         Title = title;
         return result;
     }
@@ -66,7 +66,7 @@ public sealed class Project : AggregateRoot
             return result;
         }
 
-        _domainEvents.Add(new DescriptionUpdate { ProjectId = Id, RequestorId = requestorRole.UserId, OldDescription = Description, Description = description });
+        _domainEvents.Add(new DescriptionUpdateDomainEvent { ProjectId = Id, RequestorId = requestorRole.UserId, OldDescription = Description, Description = description });
         Description = description;
         return result;
     }
