@@ -82,7 +82,7 @@ public class ProjectTest
         project.SetTitle(newTitle, project.GetUserRole(ownerId)!);
 
         project.Title.Should().Be(newTitle);
-        project.DomainEvents.Should().ContainSingle(domainEvent => domainEvent is TitleUpdate);
+        project.DomainEvents.Should().ContainSingle(domainEvent => domainEvent is TitleUpdateDomainEvent);
     }
 
     [Fact]
@@ -109,7 +109,7 @@ public class ProjectTest
         project.SetDescription(newDescription, project.GetUserRole(ownerId)!);
 
         project.Description.Should().Be(newDescription);
-        project.DomainEvents.Should().ContainSingle(domainEvent => domainEvent is DescriptionUpdate);
+        project.DomainEvents.Should().ContainSingle(domainEvent => domainEvent is DescriptionUpdateDomainEvent);
     }
 
     [Fact]
