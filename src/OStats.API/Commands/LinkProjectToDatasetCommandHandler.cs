@@ -13,12 +13,6 @@ public sealed class LinkProjectToDatasetCommandHandler : CommandHandler<LinkProj
 
     public override async Task<DomainOperationResult> Handle(LinkProjectToDatasetCommand command, CancellationToken cancellationToken)
     {
-        var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
-        if (user is null)
-        {
-            return DomainOperationResult.Failure("User not found.");
-        }
-
         var project = await _context.Projects.FindAsync(command.ProjectId, cancellationToken);
         if (project is null)
         {
@@ -31,7 +25,7 @@ public sealed class LinkProjectToDatasetCommandHandler : CommandHandler<LinkProj
             return DomainOperationResult.Failure("Dataset not found.");
         }
 
-        var result = project.LinkDataset(dataset.Id, user.Id);
+        var result = project.LinkDataset(dataset.Id, command.RequestorUserId);
 
         if (!result.Succeeded)
         {

@@ -2,12 +2,12 @@ namespace OStats.API.Commands;
 
 public sealed record DeleteDatasetCommand
 {
-    public string UserAuthId { get; }
+    public Guid RequestorUserId { get; }
     public Guid DatasetId { get; }
 
-    public DeleteDatasetCommand(string userAuthId, Guid datasetId)
+    public DeleteDatasetCommand(Guid requestorUserId, Guid datasetId)
     {
-        UserAuthId = userAuthId;
+        RequestorUserId = requestorUserId;
         DatasetId = datasetId;
     }
 }

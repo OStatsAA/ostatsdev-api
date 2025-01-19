@@ -15,13 +15,7 @@ public sealed class CreateDatasetCommandHandler : CommandHandler<CreateDatasetCo
 
     public override async Task<ValueTuple<DomainOperationResult, BaseDatasetDto?>> Handle(CreateDatasetCommand command, CancellationToken cancellationToken)
     {
-        var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
-        if (user is null)
-        {
-            return (DomainOperationResult.Failure("User not found."), null);
-        }
-
-        var dataset = new Dataset(user.Id, command.Title, command.Source, command.Description);
+        var dataset = new Dataset(command.RequestorUserId, command.Title, command.Source, command.Description);
         await _context.AddAsync(dataset, cancellationToken);
         await SaveCommandHandlerChangesAsync(cancellationToken);
 

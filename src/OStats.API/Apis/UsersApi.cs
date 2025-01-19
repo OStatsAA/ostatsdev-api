@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using OStats.API.Commands;
+using OStats.API.Common;
 using OStats.API.Dtos;
 using OStats.API.Extensions;
 using OStats.API.Filters;
+using OStats.API.Middlewares;
 using OStats.API.Queries;
 using OStats.Infrastructure;
 
@@ -14,7 +16,9 @@ public static class UsersApi
     public static RouteGroupBuilder MapUsersApi(this RouteGroupBuilder app)
     {
         app.MapGet("/", PeopleSearchHandler);
-        app.MapPost("/", CreateUserAsync).AddEndpointFilter<ValidationFilter<CreateUserDto>>();
+        app.MapPost("/", CreateUserAsync)
+            .WithMetadata(UserContextMiddleware.ByPassUserContextMiddleware)
+            .AddEndpointFilter<ValidationFilter<CreateUserDto>>();
         app.MapGet("/{userId:Guid}", GetUserByIdAsync);
         app.MapGet("/{userId:Guid}/projects", GetUserProjectsAsync);
         app.MapGet("/{userId:Guid}/datasets", GetUserDatasetsHandler);
@@ -25,12 +29,12 @@ public static class UsersApi
 
     private static async Task<Results<Ok, BadRequest<string>>> DeleteUserHandler(
         [FromRoute] Guid userId,
-        HttpContext context,
+        [FromServices] UserContext userContext,
         [FromServices] DeleteUserCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.GetUserAuthId();
-        var command = new DeleteUserCommand { UserId = userId, UserAuthId = userAuthId };
+        var requestorId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var command = new DeleteUserCommand { UserId = userId, RequestorUserId = requestorId };
         var result = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
@@ -46,12 +50,12 @@ public static class UsersApi
 
     private static async Task<Results<Ok<BaseUserDto>, BadRequest<string>>> CreateUserAsync(
         [FromBody] CreateUserDto createDto,
-        HttpContext context,
+        HttpContext httpContext,
         [FromServices] CreateUserCommandHandler commandHandler,
         Context dbContext,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.GetUserAuthId();
+        var userAuthId = httpContext.GetUserAuthId();
         var user = await UserQueries.GetUserByAuthIdAsync(dbContext, userAuthId, cancellationToken);
         if (user is not null)
         {
@@ -74,23 +78,23 @@ public static class UsersApi
 
     private static async Task<Ok<List<UserProjectDto>>> GetUserProjectsAsync(
         [FromRoute] Guid userId,
-        HttpContext httpContext,
+        [FromServices] UserContext userContext,
         Context dbContext,
         CancellationToken cancellationToken)
     {
-        var userAuthId = httpContext.GetUserAuthId();
-        var userProjects = await UserQueries.GetUserProjectsAsync(dbContext, userAuthId, userId, cancellationToken);
+        var requestorId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var userProjects = await UserQueries.GetUserProjectsAsync(dbContext, requestorId, userId, cancellationToken);
         return TypedResults.Ok(userProjects);
     }
 
     private static async Task<Ok<List<UserDatasetDto>>> GetUserDatasetsHandler(
         [FromRoute] Guid userId,
-        HttpContext context,
+        [FromServices] UserContext userContext,
         Context dbContext,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.GetUserAuthId();
-        var userDatasets = await UserQueries.GetUserDatasetsAsync(dbContext, userAuthId, userId, cancellationToken);
+        var requestorUserId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var userDatasets = await UserQueries.GetUserDatasetsAsync(dbContext, requestorUserId, userId, cancellationToken);
         return TypedResults.Ok(userDatasets);
     }
 }

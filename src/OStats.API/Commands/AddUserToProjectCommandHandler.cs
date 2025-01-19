@@ -11,21 +11,15 @@ public sealed class AddUserToProjectCommandHandler : CommandHandler<AddUserToPro
     {
     }
 
-    public override async Task<DomainOperationResult> Handle(AddUserToProjectCommand request, CancellationToken cancellationToken)
+    public override async Task<DomainOperationResult> Handle(AddUserToProjectCommand command, CancellationToken cancellationToken)
     {
-        var project = await _context.Projects.FindAsync(request.ProjectId, cancellationToken);
+        var project = await _context.Projects.FindAsync(command.ProjectId, cancellationToken);
         if (project is null)
         {
             return DomainOperationResult.Failure("Project not found");
         }
 
-        var requestor = await _context.Users.FindByAuthIdentityAsync(request.UserAuthId, cancellationToken);
-        if (requestor is null)
-        {
-            return DomainOperationResult.Failure("Requestor not found");
-        }
-
-        var result = project.AddOrUpdateUserRole(request.UserId, request.AccessLevel, requestor.Id);
+        var result = project.AddOrUpdateUserRole(command.UserId, command.AccessLevel, command.RequestorUserId);
         if (!result.Succeeded)
         {
             return result;

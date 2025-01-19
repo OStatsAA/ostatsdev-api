@@ -2,13 +2,13 @@ namespace OStats.API.Commands;
 
 public sealed record RemoveUserFromProjectCommand
 {
-    public string UserAuthId { get; set; }
+    public Guid RequestorUserId { get; set; }
     public Guid ProjectId { get; set; }
     public Guid UserId { get; set; }
 
-    public RemoveUserFromProjectCommand(string userAuthId, Guid projectId, Guid userId)
+    public RemoveUserFromProjectCommand(Guid requestorUserId, Guid projectId, Guid userId)
     {
-        UserAuthId = userAuthId;
+        RequestorUserId = requestorUserId;
         ProjectId = projectId;
         UserId = userId;
     }

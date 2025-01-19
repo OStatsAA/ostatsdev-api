@@ -11,21 +11,15 @@ public sealed class UpdateDatasetVisibilityCommandHandler : CommandHandler<Updat
     {
     }
 
-    public override async Task<DomainOperationResult> Handle(UpdateDatasetVisibilityCommand request, CancellationToken cancellationToken)
+    public override async Task<DomainOperationResult> Handle(UpdateDatasetVisibilityCommand command, CancellationToken cancellationToken)
     {
-        var dataset = await _context.Datasets.FindAsync(request.DatasetId, cancellationToken);
+        var dataset = await _context.Datasets.FindAsync([command.DatasetId], cancellationToken);
         if (dataset is null)
         {
             return DomainOperationResult.Failure("Dataset not found.");
         }
 
-        var requestor = await _context.Users.FindByAuthIdentityAsync(request.UserAuthId, cancellationToken);
-        if (requestor is null)
-        {
-            return DomainOperationResult.Failure("Requestor not found.");
-        }
-
-        var result = dataset.UpdateVisibility(requestor.Id, request.IsPublic);
+        var result = dataset.UpdateVisibility(command.RequestorUserId, command.IsPublic);
         if (!result.Succeeded)
         {
             return result;

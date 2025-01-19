@@ -15,7 +15,7 @@ public sealed class UpdateDatasetCommandHandler : CommandHandler<UpdateDatasetCo
 
     public override async Task<ValueTuple<DomainOperationResult, BaseDatasetDto?>> Handle(UpdateDatasetCommand command, CancellationToken cancellationToken)
     {
-        var dataset = await _context.Datasets.FindAsync(command.Id, cancellationToken);
+        var dataset = await _context.Datasets.FindAsync([command.Id], cancellationToken);
         if (dataset is null)
         {
             return (DomainOperationResult.Failure("Dataset not found."), null);
@@ -26,7 +26,7 @@ public sealed class UpdateDatasetCommandHandler : CommandHandler<UpdateDatasetCo
             return (DomainOperationResult.Failure("Project has changed since command was submited."), null);
         }
 
-        var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
+        var user = await _context.Users.FindAsync([command.RequestorUserId], cancellationToken);
         if (user is null)
         {
             return (DomainOperationResult.Failure("User not found."), null);

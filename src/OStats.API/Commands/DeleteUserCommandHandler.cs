@@ -13,19 +13,13 @@ public sealed class DeleteUserCommandHandler : CommandHandler<DeleteUserCommand,
 
     public override async Task<DomainOperationResult> Handle(DeleteUserCommand command, CancellationToken cancellationToken)
     {
-        var requestor = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
-        if (requestor is null)
-        {
-            return DomainOperationResult.Failure("Requestor not found.");
-        }
-
         var toBeDeletedUser = await _context.Users.FindAsync(command.UserId, cancellationToken);
         if (toBeDeletedUser is null)
         {
             return DomainOperationResult.Failure("User not found.");
         }
 
-        var result = toBeDeletedUser.Delete(requestor.Id);
+        var result = toBeDeletedUser.Delete(command.RequestorUserId);
         if (!result.Succeeded)
         {
             return result;

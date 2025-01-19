@@ -8,7 +8,7 @@ namespace OStats.API.Queries;
 
 public static class DatasetQueries
 {
-    public static Task<Dataset?> GetDatasetByIdAsync(Context context, string userAuthId, Guid datasetId, CancellationToken cancellationToken)
+    public static Task<Dataset?> GetDatasetByIdAsync(Context context, Guid requestorUserId, Guid datasetId, CancellationToken cancellationToken)
     {
         return context.DatasetsUsersAccessLevels
             .Join(
@@ -22,7 +22,7 @@ public static class DatasetQueries
                 user => user.Id,
                 (datasetAndUserId, user) => new { datasetAndUserId, user })
             .Where(joined => joined.datasetAndUserId.dataset.Id == datasetId &&
-                                joined.user.AuthIdentity == userAuthId)
+                                joined.user.Id == requestorUserId)
             .Select(joined => joined.datasetAndUserId.dataset)
             .AsNoTracking()
             .SingleOrDefaultAsync(cancellationToken);
@@ -60,13 +60,13 @@ public static class DatasetQueries
             .ToListAsync(cancellationToken);
     }
 
-    public static Task<DatasetAccessLevel> GetUserDatasetAccessLevelAsync(Context context, string userAuthId, Guid datasetId, CancellationToken cancellationToken)
+    public static Task<DatasetAccessLevel> GetUserDatasetAccessLevelAsync(Context context, Guid requestorUserId, Guid datasetId, CancellationToken cancellationToken)
     {
-        return GetUserDatasetAccessLevel(context, userAuthId, datasetId).WaitAsync(cancellationToken);
+        return GetUserDatasetAccessLevel(context, requestorUserId, datasetId).WaitAsync(cancellationToken);
     }
 
-    private static readonly Func<Context, string, Guid, Task<DatasetAccessLevel>> GetUserDatasetAccessLevel = EF.CompileAsyncQuery(
-        (Context context, string userAuthId, Guid datasetId) =>
+    private static readonly Func<Context, Guid, Guid, Task<DatasetAccessLevel>> GetUserDatasetAccessLevel = EF.CompileAsyncQuery(
+        (Context context, Guid requestorUserId, Guid datasetId) =>
             context.DatasetsUsersAccessLevels
                 .Join(
                     context.Users.IgnoreAutoIncludes(),
@@ -74,7 +74,7 @@ public static class DatasetQueries
                     user => user.Id,
                     (access, user) => new { access, user })
                 .AsNoTracking()
-                .Where(join => join.user.AuthIdentity == userAuthId &&
+                .Where(join => join.user.Id == requestorUserId &&
                             join.access.DatasetId == datasetId)
                 .Select(join => join.access.AccessLevel)
                 .SingleOrDefault()

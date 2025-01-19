@@ -15,7 +15,7 @@ public sealed class CreateProjectCommandHandler : CommandHandler<CreateProjectCo
 
     public override async Task<ValueTuple<DomainOperationResult, BaseProjectDto?>> Handle(CreateProjectCommand command, CancellationToken cancellationToken)
     {
-        var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
+        var user = await _context.Users.FindAsync([command.RequestorUserId], cancellationToken);
         if (user is null)
         {
             return (DomainOperationResult.Failure("User not found."), null);

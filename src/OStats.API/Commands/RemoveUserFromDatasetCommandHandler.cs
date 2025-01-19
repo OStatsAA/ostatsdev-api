@@ -11,21 +11,15 @@ public sealed class RemoveUserFromDatasetCommandHandler : CommandHandler<RemoveU
     {
     }
 
-    public override async Task<DomainOperationResult> Handle(RemoveUserFromDatasetCommand request, CancellationToken cancellationToken)
+    public override async Task<DomainOperationResult> Handle(RemoveUserFromDatasetCommand command, CancellationToken cancellationToken)
     {
-        var dataset = await _context.Datasets.FindAsync(request.DatasetId, cancellationToken);
+        var dataset = await _context.Datasets.FindAsync(command.DatasetId, cancellationToken);
         if (dataset is null)
         {
             return DomainOperationResult.Failure("Dataset not found.");
         }
 
-        var requestor = await _context.Users.FindByAuthIdentityAsync(request.UserAuthId, cancellationToken);
-        if (requestor is null)
-        {
-            return DomainOperationResult.Failure("Requestor not found.");
-        }
-
-        var result = dataset.RemoveUserAccess(request.UserId, requestor.Id);
+        var result = dataset.RemoveUserAccess(command.UserId, command.RequestorUserId);
         if (!result.Succeeded)
         {
             return result;

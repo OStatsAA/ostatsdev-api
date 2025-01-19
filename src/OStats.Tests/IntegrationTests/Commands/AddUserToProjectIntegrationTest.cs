@@ -24,7 +24,7 @@ public class AddUserToProjectIntegrationTest : BaseIntegrationTest
         await context.SaveChangesAsync();
         var access = AccessLevel.ReadOnly;
 
-        var command = new AddUserToProjectCommand(owner.AuthIdentity, project.Id, user.Id, access);
+        var command = new AddUserToProjectCommand(owner.Id, project.Id, user.Id, access);
         var result = await serviceProvider.GetRequiredService<AddUserToProjectCommandHandler>().Handle(command, default);
 
         using (new AssertionScope())

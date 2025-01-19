@@ -23,7 +23,7 @@ public class DeleteProjectIntegrationTest : BaseIntegrationTest
         await context.AddAsync(user);
         project.AddOrUpdateUserRole(user.Id, AccessLevel.Editor, ownerId);
         await context.SaveChangesAsync();
-        var command = new DeleteProjectCommand(user.AuthIdentity, project.Id);
+        var command = new DeleteProjectCommand(user.Id, project.Id);
         var result = await serviceProvider.GetRequiredService<DeleteProjectCommandHandler>().Handle(command, default);
 
         using (new AssertionScope())
@@ -43,7 +43,7 @@ public class DeleteProjectIntegrationTest : BaseIntegrationTest
         await context.Projects.AddAsync(project);
         await context.SaveChangesAsync();
 
-        var command = new DeleteProjectCommand(existingUser.AuthIdentity, project.Id);
+        var command = new DeleteProjectCommand(existingUser.Id, project.Id);
         var result = await serviceProvider.GetRequiredService<DeleteProjectCommandHandler>().Handle(command, default);
 
         using (new AssertionScope())

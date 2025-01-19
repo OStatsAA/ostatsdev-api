@@ -13,19 +13,13 @@ public sealed class DeleteProjectCommandHandler : CommandHandler<DeleteProjectCo
 
     public override async Task<DomainOperationResult> Handle(DeleteProjectCommand command, CancellationToken cancellationToken)
     {
-        var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
-        if (user is null)
-        {
-            return DomainOperationResult.Failure("User not found.");
-        }
-
-        var project = await _context.Projects.FindAsync(command.ProjectId, cancellationToken);
+        var project = await _context.Projects.FindAsync([command.ProjectId], cancellationToken);
         if (project is null)
         {
             return DomainOperationResult.Failure("Project not found.");
         }
 
-        var result = project.Delete(user.Id);
+        var result = project.Delete(command.RequestorUserId);
         if (!result.Succeeded)
         {
             return result;

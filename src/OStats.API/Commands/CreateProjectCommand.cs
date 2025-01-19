@@ -2,13 +2,13 @@ namespace OStats.API.Commands;
 
 public record CreateProjectCommand
 {
-    public string UserAuthId { get; set; }
+    public Guid RequestorUserId { get; set; }
     public string Title { get; set; }
     public string Description { get; set; }
 
-    public CreateProjectCommand(string userAuthId, string title, string? description)
+    public CreateProjectCommand(Guid requestorUserId, string title, string? description)
     {
-        UserAuthId = userAuthId;
+        RequestorUserId = requestorUserId;
         Title = title;
         Description = description ?? string.Empty;
     }

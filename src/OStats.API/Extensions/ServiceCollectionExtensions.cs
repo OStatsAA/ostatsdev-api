@@ -5,12 +5,20 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OStats.API.Commands.Common;
+using OStats.API.Common;
 using OStats.Infrastructure;
 
 namespace OStats.API.Extensions;
 
 public static class ServiceCollectionExtensions
 {
+    public static IServiceCollection AddUserContext(this IServiceCollection services)
+    {
+        services.AddHttpContextAccessor();
+        services.AddScoped<UserContext>();
+        return services;
+    }
+
     public static IServiceCollection AddCommandHandlers(this IServiceCollection services)
     {
         var commandHandlerType = typeof(CommandHandler<,>);
