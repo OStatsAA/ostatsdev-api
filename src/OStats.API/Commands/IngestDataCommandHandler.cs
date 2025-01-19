@@ -18,12 +18,6 @@ public sealed class IngestDataCommandHandler : CommandHandler<IngestDataCommand,
 
     public override async Task<DomainOperationResult> Handle(IngestDataCommand command, CancellationToken cancellationToken)
     {
-        var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
-        if (user is null)
-        {
-            return DomainOperationResult.Failure("User not found.");
-        }
-
         var dataset = await _context.Datasets.FindAsync(command.DatasetId, cancellationToken);
         if (dataset is null)
         {
@@ -31,7 +25,7 @@ public sealed class IngestDataCommandHandler : CommandHandler<IngestDataCommand,
         }
 
         var minimumAccessLevelRequired = DatasetAccessLevel.Editor;
-        if (dataset.GetUserAccessLevel(user.Id) < minimumAccessLevelRequired)
+        if (dataset.GetUserAccessLevel(command.RequestorUserId) < minimumAccessLevelRequired)
         {
             return DomainOperationResult.Failure("User does not have the required access level.");
         }

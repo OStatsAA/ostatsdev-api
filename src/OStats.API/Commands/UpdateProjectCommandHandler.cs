@@ -15,7 +15,7 @@ public sealed class UpdateProjectCommandHandler : CommandHandler<UpdateProjectCo
 
     public override async Task<ValueTuple<DomainOperationResult, BaseProjectDto?>> Handle(UpdateProjectCommand command, CancellationToken cancellationToken)
     {
-        var project = await _context.Projects.FindAsync(command.Id, cancellationToken);
+        var project = await _context.Projects.FindAsync([command.Id], cancellationToken);
         if (project is null)
         {
             return (DomainOperationResult.Failure("Project not found."), null);
@@ -26,7 +26,7 @@ public sealed class UpdateProjectCommandHandler : CommandHandler<UpdateProjectCo
             return (DomainOperationResult.Failure("Project has changed since command was submited."), null);
         }
 
-        var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
+        var user = await _context.Users.FindAsync([command.RequestorUserId], cancellationToken);
         if (user is null)
         {
             return (DomainOperationResult.Failure("User not found."), null);

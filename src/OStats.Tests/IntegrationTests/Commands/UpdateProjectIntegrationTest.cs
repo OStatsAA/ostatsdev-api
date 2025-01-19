@@ -25,7 +25,7 @@ public class UpdateProjectIntegrationTest : BaseIntegrationTest
         var previousLastUpdatedAtDatetime = project.LastUpdatedAt;
         var editedTitle = "Edited Title";
         var editedDescription = "Edited description";
-        var command = new UpdateProjectCommand(project.Id, user.AuthIdentity, editedTitle, project.LastUpdatedAt, editedDescription);
+        var command = new UpdateProjectCommand(project.Id, user.Id, editedTitle, project.LastUpdatedAt, editedDescription);
         var (result, baseProjectDto) = await serviceProvider.GetRequiredService<UpdateProjectCommandHandler>().Handle(command, default);
 
         using (new AssertionScope())
@@ -53,7 +53,7 @@ public class UpdateProjectIntegrationTest : BaseIntegrationTest
         var editedDescription = "Edited description";
         project.SetTitle("Bypassed edition", project.Roles.GetUserRole(user.Id)!);
         await context.SaveChangesAsync();
-        var command = new UpdateProjectCommand(project.Id, user.AuthIdentity, editedTitle, previousLastUpdatedAtDatetime, editedDescription);
+        var command = new UpdateProjectCommand(project.Id, user.Id, editedTitle, previousLastUpdatedAtDatetime, editedDescription);
         var (result, baseProjectDto) = await serviceProvider.GetRequiredService<UpdateProjectCommandHandler>().Handle(command, default);
 
         using (new AssertionScope())

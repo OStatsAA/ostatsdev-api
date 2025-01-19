@@ -36,7 +36,7 @@ public class UserDatasetsWithAccessQueryIntegrationTest : BaseIntegrationTest
 
         await context.SaveChangesAsync();
 
-        var queriedUserDatasets = await UserQueries.GetUserDatasetsAsync(context, user.AuthIdentity, user.Id, default);
+        var queriedUserDatasets = await UserQueries.GetUserDatasetsAsync(context, user.Id, user.Id, default);
 
         queriedUserDatasets.Should().AllBeOfType<UserDatasetDto>();
         queriedUserDatasets.Should().HaveCount(2);

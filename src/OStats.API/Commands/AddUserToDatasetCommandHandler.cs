@@ -19,19 +19,13 @@ public sealed class AddUserToDatasetCommandHandler : CommandHandler<AddUserToDat
             return DomainOperationResult.Failure("Dataset not found.");
         }
 
-        var requestor = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
-        if (requestor is null)
-        {
-            return DomainOperationResult.Failure("Requestor not found.");
-        }
-
         var user = await _context.Users.FindAsync(command.UserId, cancellationToken);
         if (user is null)
         {
             return DomainOperationResult.Failure("User not found.");
         }
 
-        var result = dataset.GrantUserAccess(command.UserId, command.AccessLevel, requestor.Id);
+        var result = dataset.GrantUserAccess(command.UserId, command.AccessLevel, command.RequestorUserId);
         if (!result.Succeeded)
         {
             return result;

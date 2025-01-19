@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using OStats.API.Commands;
+using OStats.API.Common;
 using OStats.API.Dtos;
 using OStats.API.Extensions;
 using OStats.API.Filters;
@@ -28,24 +29,24 @@ public static class ProjectsApi
 
     private static async Task<Results<Ok<BaseProjectDto>, BadRequest<string>>> CreateProjectAsync(
         [FromBody] CreateProjectDto createDto,
-        HttpContext context,
+        [FromServices] UserContext userContext,
         [FromServices] CreateProjectCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.GetUserAuthId();
-        var command = new CreateProjectCommand(userAuthId, createDto.Title, createDto.Description);
+        var userId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var command = new CreateProjectCommand(userId, createDto.Title, createDto.Description);
         var (result, baseProject) = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok(baseProject) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
     private static async Task<Results<Ok<ProjectDto>, NotFound>> GetProjectByIdAsync(
         Guid projectId,
-        HttpContext httpContext,
+        [FromServices] UserContext userContext,
         Context dbContext,
         CancellationToken cancellationToken)
     {
-        var userAuthId = httpContext.GetUserAuthId();
-        var project = await ProjectQueries.GetProjectByIdAsync(dbContext, userAuthId, projectId, cancellationToken);
+        var userId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var project = await ProjectQueries.GetProjectByIdAsync(dbContext, userId, projectId, cancellationToken);
         if (project is null)
         {
             return TypedResults.NotFound();
@@ -58,36 +59,35 @@ public static class ProjectsApi
     private static async Task<Results<Ok<BaseProjectDto>, BadRequest<string>>> UpdateProjectAsync(
         Guid projectId,
         [FromBody] UpdateProjectDto updateDto,
-        HttpContext context,
+        [FromServices] UserContext userContext,
         [FromServices] UpdateProjectCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.GetUserAuthId();
-        var command = new UpdateProjectCommand(projectId, userAuthId, updateDto.Title, updateDto.LastUpdatedAt, updateDto.Description);
+        var userId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var command = new UpdateProjectCommand(projectId, userId, updateDto.Title, updateDto.LastUpdatedAt, updateDto.Description);
         var (result, baseProjectDto) = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok(baseProjectDto) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
     private static async Task<Results<Ok, BadRequest<string>>> DeleteProjectAsync(
         Guid projectId,
-        HttpContext context,
+        [FromServices] UserContext userContext,
         [FromServices] DeleteProjectCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.GetUserAuthId();
-        var command = new DeleteProjectCommand(userAuthId, projectId);
+        var userId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var command = new DeleteProjectCommand(userId, projectId);
         var result = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
 
     private static async Task<Results<Ok<List<ProjectUserAndRoleDto>>, BadRequest>> GetProjectUsersAndRolesAsync(
         Guid projectId,
-        HttpContext httpContext,
+        [FromServices] UserContext userContext,
         Context dbContext,
         CancellationToken cancellationToken)
     {
-        var userAuthId = httpContext.GetUserAuthId();
-        var user = await dbContext.Users.FindByAuthIdentityAsync(userAuthId, cancellationToken);
+        var user = await userContext.GetCurrentUserAsync(cancellationToken);
         if (user is null)
         {
             return TypedResults.BadRequest();
@@ -100,12 +100,12 @@ public static class ProjectsApi
     private static async Task<Results<Ok, BadRequest<string>>> AddUserToProjectHandler(
         Guid projectId,
         [FromBody] AddUserToProjectDto addUserToProjectDto,
-        HttpContext context,
+        [FromServices] UserContext userContext,
         [FromServices] AddUserToProjectCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.GetUserAuthId();
-        var command = new AddUserToProjectCommand(userAuthId, projectId, addUserToProjectDto.UserId, addUserToProjectDto.AccessLevel);
+        var userId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var command = new AddUserToProjectCommand(userId, projectId, addUserToProjectDto.UserId, addUserToProjectDto.AccessLevel);
         var result = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
@@ -113,12 +113,12 @@ public static class ProjectsApi
     private static async Task<Results<Ok, BadRequest<string>>> RemoveUserFromProjectHandler(
         Guid projectId,
         Guid userId,
-        HttpContext context,
+        [FromServices] UserContext userContext,
         [FromServices] RemoveUserFromProjectCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.GetUserAuthId();
-        var command = new RemoveUserFromProjectCommand(userAuthId, projectId, userId);
+        var requestorId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var command = new RemoveUserFromProjectCommand(requestorId, projectId, userId);
         var result = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
@@ -126,12 +126,12 @@ public static class ProjectsApi
     private static async Task<Results<Ok, BadRequest<string>>> LinkProjectToDatasetHandler(
         Guid projectId,
         Guid datasetId,
-        HttpContext context,
+        [FromServices] UserContext userContext,
         [FromServices] LinkProjectToDatasetCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.GetUserAuthId();
-        var command = new LinkProjectToDatasetCommand(userAuthId, datasetId, projectId);
+        var userId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var command = new LinkProjectToDatasetCommand(userId, datasetId, projectId);
         var result = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
@@ -139,12 +139,12 @@ public static class ProjectsApi
     private static async Task<Results<Ok, BadRequest<string>>> UnlinkProjectToDatasetHandler(
         Guid projectId,
         Guid datasetId,
-        HttpContext context,
+        [FromServices] UserContext userContext,
         [FromServices] UnlinkProjectToDatasetCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.GetUserAuthId();
-        var command = new UnlinkProjectToDatasetCommand(userAuthId, datasetId, projectId);
+        var userId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var command = new UnlinkProjectToDatasetCommand(userId, datasetId, projectId);
         var result = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }

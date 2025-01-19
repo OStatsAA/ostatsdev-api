@@ -14,19 +14,13 @@ public sealed class DeleteDatasetCommandHandler : CommandHandler<DeleteDatasetCo
 
     public override async Task<DomainOperationResult> Handle(DeleteDatasetCommand command, CancellationToken cancellationToken)
     {
-        var user = await _context.Users.FindByAuthIdentityAsync(command.UserAuthId, cancellationToken);
-        if (user is null)
-        {
-            return DomainOperationResult.Failure("User not found.");
-        }
-
         var dataset = await _context.Datasets.FindAsync(command.DatasetId, cancellationToken);
         if (dataset is null)
         {
             return DomainOperationResult.Failure("Dataset not found.");
         }
 
-        dataset.Delete(user.Id);
+        dataset.Delete(command.RequestorUserId);
         await SaveCommandHandlerChangesAsync(cancellationToken);
 
         return DomainOperationResult.Success;

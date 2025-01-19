@@ -11,22 +11,15 @@ public sealed class RemoveUserFromProjectCommandHandler : CommandHandler<RemoveU
     {
     }
 
-    public override async Task<DomainOperationResult> Handle(RemoveUserFromProjectCommand request, CancellationToken cancellationToken)
+    public override async Task<DomainOperationResult> Handle(RemoveUserFromProjectCommand command, CancellationToken cancellationToken)
     {
-
-        var requestor = await _context.Users.FindByAuthIdentityAsync(request.UserAuthId, cancellationToken);
-        if (requestor is null)
-        {
-            return DomainOperationResult.Failure("Requestor not found.");
-        }
-
-        var project = await _context.Projects.FindAsync(request.ProjectId);
+        var project = await _context.Projects.FindAsync([command.ProjectId], cancellationToken);
         if (project is null)
         {
             return DomainOperationResult.Failure("Project not found.");
         }
 
-        var result = project.RemoveUserRole(request.UserId, requestor.Id);
+        var result = project.RemoveUserRole(command.UserId, command.RequestorUserId);
 
         if (!result.Succeeded)
         {

@@ -16,7 +16,7 @@ public static class UserQueries
             .ToListAsync(cancellationToken);
     }
 
-    public static Task<List<UserProjectDto>> GetUserProjectsAsync(Context context, string userAuthId, Guid userId, CancellationToken cancellationToken)
+    public static Task<List<UserProjectDto>> GetUserProjectsAsync(Context context, Guid requestorUserId, Guid userId, CancellationToken cancellationToken)
     {
         return context.Roles
             .Join(
@@ -29,7 +29,7 @@ public static class UserQueries
                 roleAndUser => roleAndUser.role.ProjectId,
                 project => project.Id,
                 (roleAndUser, project) => new { project, roleAndUser })
-            .Where(join => join.roleAndUser.user.AuthIdentity == userAuthId &&
+            .Where(join => join.roleAndUser.user.Id == requestorUserId &&
                            join.roleAndUser.user.Id == userId)
             .Select(join => new UserProjectDto(join.project, join.roleAndUser.role))
             .AsNoTracking()
@@ -64,7 +64,7 @@ public static class UserQueries
                 .SingleOrDefault()
     );
 
-    public static Task<List<UserDatasetDto>> GetUserDatasetsAsync(Context context, string userAuthId, Guid userId, CancellationToken cancellationToken)
+    public static Task<List<UserDatasetDto>> GetUserDatasetsAsync(Context context, Guid requestorUserId, Guid userId, CancellationToken cancellationToken)
     {
         return context.DatasetsUsersAccessLevels
             .Join(
@@ -78,7 +78,7 @@ public static class UserQueries
                 user => user.Id,
                 (datasetAndUserId, user) => new { datasetAndUserId, user })
             .Where(joined => joined.datasetAndUserId.userAccess.UserId == userId &&
-                                joined.user.AuthIdentity == userAuthId)
+                                joined.user.Id == requestorUserId)
             .Select(join => new UserDatasetDto(join.datasetAndUserId.dataset, join.datasetAndUserId.userAccess))
             .AsNoTracking()
             .ToListAsync(cancellationToken);

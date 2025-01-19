@@ -2,12 +2,12 @@ namespace OStats.API.Commands;
 
 public sealed record UnlinkProjectToDatasetCommand
 {
-    public string UserAuthId { get; }
+    public Guid RequestorUserId { get; }
     public Guid DatasetId { get; }
     public Guid ProjectId { get; }
-    public UnlinkProjectToDatasetCommand(string userAuthId, Guid datasetId, Guid projectId)
+    public UnlinkProjectToDatasetCommand(Guid requestorUserId, Guid datasetId, Guid projectId)
     {
-        UserAuthId = userAuthId;
+        RequestorUserId = requestorUserId;
         DatasetId = datasetId;
         ProjectId = projectId;
     }

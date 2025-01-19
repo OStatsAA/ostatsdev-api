@@ -4,8 +4,8 @@ using Grpc.Core;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using OStats.API.Commands;
+using OStats.API.Common;
 using OStats.API.Dtos;
-using OStats.API.Extensions;
 using OStats.API.Filters;
 using OStats.API.Queries;
 using OStats.Domain.Aggregates.DatasetAggregate;
@@ -33,24 +33,24 @@ public static class DatasetsApi
 
     private static async Task<Results<Ok<BaseDatasetDto>, BadRequest<string>>> CreateDatasetHandler(
         [FromBody] CreateDatasetDto createDto,
-        HttpContext context,
+        [FromServices] UserContext userContext,
         [FromServices] CreateDatasetCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.GetUserAuthId();
-        var command = new CreateDatasetCommand(userAuthId, createDto.Title, createDto.Source, createDto.Description);
+        var userId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var command = new CreateDatasetCommand(userId, createDto.Title, createDto.Source, createDto.Description);
         var (result, baseDatasetDto) = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok(baseDatasetDto) : TypedResults.BadRequest(result.ErrorMessage);
     }
 
     private static async Task<Results<Ok<DatasetWithUsersDto>, NotFound>> GetDatasetByIdHandler(
         Guid datasetId,
-        HttpContext httpContext,
+        [FromServices] UserContext userContext,
         Context dbContext,
         CancellationToken cancellationToken)
     {
-        var userAuthId = httpContext.GetUserAuthId();
-        var dataset = await DatasetQueries.GetDatasetByIdAsync(dbContext, userAuthId, datasetId, cancellationToken);
+        var requestorUserId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var dataset = await DatasetQueries.GetDatasetByIdAsync(dbContext, requestorUserId, datasetId, cancellationToken);
         if (dataset is null)
         {
             return TypedResults.NotFound();
@@ -62,12 +62,12 @@ public static class DatasetsApi
 
     private static async Task<Results<Ok, BadRequest<string>>> DeleteDatasetHandler(
         Guid datasetId,
-        HttpContext context,
+        [FromServices] UserContext userContext,
         [FromServices] DeleteDatasetCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.GetUserAuthId();
-        var command = new DeleteDatasetCommand(userAuthId, datasetId);
+        var userId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var command = new DeleteDatasetCommand(userId, datasetId);
         var result = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
@@ -75,12 +75,12 @@ public static class DatasetsApi
     private static async Task<Results<Ok<BaseDatasetDto>, BadRequest<string>>> UpdateDatasetHandler(
         Guid datasetId,
         [FromBody] UpdateDatasetDto updateDto,
-        HttpContext context,
+        [FromServices] UserContext userContext,
         [FromServices] UpdateDatasetCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.GetUserAuthId();
-        var command = new UpdateDatasetCommand(datasetId, userAuthId, updateDto.Title, updateDto.Source, updateDto.LastUpdatedAt, updateDto.Description);
+        var userId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var command = new UpdateDatasetCommand(datasetId, userId, updateDto.Title, updateDto.Source, updateDto.LastUpdatedAt, updateDto.Description);
         var (result, baseDatasetDto) = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok(baseDatasetDto) : TypedResults.BadRequest(result.ErrorMessage);
     }
@@ -88,24 +88,25 @@ public static class DatasetsApi
     private static async Task<Results<Ok, BadRequest<string>>> IngestDataHandler(
         Guid datasetId,
         [FromBody] IngestDataDto ingestDataDto,
-        HttpContext context,
+        [FromServices] UserContext userContext,
         [FromServices] IngestDataCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.GetUserAuthId();
-        var command = new IngestDataCommand(userAuthId, datasetId, ingestDataDto.Bucket, ingestDataDto.FileName);
+        var userId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var command = new IngestDataCommand(userId, datasetId, ingestDataDto.Bucket, ingestDataDto.FileName);
         var result = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
 
     private static async IAsyncEnumerable<dynamic> GetDataHandler(
         Guid datasetId,
+        [FromServices] UserContext userContext,
         HttpContext context,
         Context dbContext,
         [FromServices] DataService.DataServiceClient _dataServiceClient,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var user = await dbContext.Users.FindByAuthIdentityAsync(context.GetUserAuthId(), cancellationToken);
+        var user = await userContext.GetCurrentUserAsync(cancellationToken);
         if (user is null)
         {
             yield return context.Response.StatusCode = StatusCodes.Status401Unauthorized;
@@ -134,15 +135,14 @@ public static class DatasetsApi
     private static async Task<Results<Ok, BadRequest<string>>> UpdateDatasetVisibilityHandler(
         Guid datasetId,
         [FromBody] UpdateDatasetVisibilityDto updateDto,
-        HttpContext context,
+        [FromServices] UserContext userContext,
         [FromServices] UpdateDatasetVisibilityCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
-        string userAuthId = context.GetUserAuthId() ?? "asdasd";
         var command = new UpdateDatasetVisibilityCommand
         {
             DatasetId = datasetId,
-            UserAuthId = userAuthId,
+            RequestorUserId = await userContext.GetCurrentUserIdAsync(cancellationToken),
             IsPublic = updateDto.IsPublic
         };
         var result = await commandHandler.Handle(command, cancellationToken);
@@ -151,12 +151,12 @@ public static class DatasetsApi
 
     private static async Task<Results<Ok<List<DatasetProjectLinkDto>>, UnauthorizedHttpResult, BadRequest>> GetLinkedProjectsHandler(
         Guid datasetId,
-        HttpContext httpContext,
+        [FromServices] UserContext userContext,
         Context dbContext,
         CancellationToken cancellationToken)
     {
-        var userAuthId = httpContext.GetUserAuthId();
-        var userAccessLevel = await DatasetQueries.GetUserDatasetAccessLevelAsync(dbContext, userAuthId, datasetId, cancellationToken);
+        var userId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var userAccessLevel = await DatasetQueries.GetUserDatasetAccessLevelAsync(dbContext, userId, datasetId, cancellationToken);
         if (userAccessLevel < DatasetAccessLevel.ReadOnly)
         {
             return TypedResults.Unauthorized();
@@ -169,12 +169,12 @@ public static class DatasetsApi
     private static async Task<Results<Ok, BadRequest<string>>> AddUserToDatasetHandler(
         Guid datasetId,
         [FromBody] AddUserToDatasetDto addUserToDatasetDto,
-        HttpContext context,
+        [FromServices] UserContext userContext,
         [FromServices] AddUserToDatasetCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.GetUserAuthId();
-        var command = new AddUserToDatasetCommand(userAuthId, datasetId, addUserToDatasetDto.UserId, addUserToDatasetDto.AccessLevel);
+        var userId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var command = new AddUserToDatasetCommand(userId, datasetId, addUserToDatasetDto.UserId, addUserToDatasetDto.AccessLevel);
         var result = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }
@@ -182,12 +182,12 @@ public static class DatasetsApi
     private static async Task<Results<Ok, BadRequest<string>>> RemoveUserFromDatasetHandler(
         Guid datasetId,
         Guid userId,
-        HttpContext context,
+        [FromServices] UserContext userContext,
         [FromServices] RemoveUserFromDatasetCommandHandler commandHandler,
         CancellationToken cancellationToken)
     {
-        var userAuthId = context.GetUserAuthId();
-        var command = new RemoveUserFromDatasetCommand(userAuthId, datasetId, userId);
+        var requestorId = await userContext.GetCurrentUserIdAsync(cancellationToken);
+        var command = new RemoveUserFromDatasetCommand(requestorId, datasetId, userId);
         var result = await commandHandler.Handle(command, cancellationToken);
         return result.Succeeded ? TypedResults.Ok() : TypedResults.BadRequest(result.ErrorMessage);
     }

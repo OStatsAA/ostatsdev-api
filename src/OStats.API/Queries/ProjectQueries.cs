@@ -8,13 +8,13 @@ namespace OStats.API.Queries;
 
 public static class ProjectQueries
 {
-    public static Task<Project?> GetProjectByIdAsync(Context context, string userAuthId, Guid projectId, CancellationToken cancellationToken)
+    public static Task<Project?> GetProjectByIdAsync(Context context, Guid requestorUserId, Guid projectId, CancellationToken cancellationToken)
     {
-        return GetProjectById(context, userAuthId, projectId).WaitAsync(cancellationToken);
+        return GetProjectById(context, requestorUserId, projectId).WaitAsync(cancellationToken);
     }
 
-    private static readonly Func<Context, string, Guid, Task<Project?>> GetProjectById = EF.CompileAsyncQuery(
-        (Context context, string userAuthId, Guid projectId) =>
+    private static readonly Func<Context, Guid, Guid, Task<Project?>> GetProjectById = EF.CompileAsyncQuery(
+        (Context context, Guid requestorUserId, Guid projectId) =>
             context.Projects
                 .Join(
                     context.Roles,
@@ -25,8 +25,8 @@ public static class ProjectQueries
                     context.Users,
                     projectAndUserId => projectAndUserId.UserId,
                     user => user.Id,
-                    (projectAndUserId, user) => new { projectAndUserId.project, user.AuthIdentity })
-                .Where(join => join.project.Id == projectId && join.AuthIdentity == userAuthId)
+                    (projectAndUserId, user) => new { projectAndUserId.project, user.Id })
+                .Where(join => join.project.Id == projectId && join.Id == requestorUserId)
                 .Select(join => join.project)
                 .AsNoTracking()
                 .SingleOrDefault()

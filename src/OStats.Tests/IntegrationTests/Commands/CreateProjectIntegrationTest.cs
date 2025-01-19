@@ -17,7 +17,7 @@ public class CreateProjectIntegrationTest : BaseIntegrationTest
     {
         var beforeCommandTime = DateTime.UtcNow;
         var existingUser = await context.Users.FirstAsync();
-        var command = new CreateProjectCommand(existingUser.AuthIdentity, "Test", "Test");
+        var command = new CreateProjectCommand(existingUser.Id, "Test", "Test");
         var (result, baseProjectDto) = await serviceProvider.GetRequiredService<CreateProjectCommandHandler>().Handle(command, default);
         var afterCommandTime = DateTime.UtcNow;
 
@@ -33,9 +33,10 @@ public class CreateProjectIntegrationTest : BaseIntegrationTest
     }
 
     [Fact]
-    public async Task Should_Fail_If_User_Does_Not_Exists()
+    public async Task Should_Throw_If_User_Does_Not_Exists()
     {
-        var command = new CreateProjectCommand("Test", "test@test.com", "An authid that clearly doesnt exist");
+        var command = new CreateProjectCommand(Guid.NewGuid(), "test@test.com", "An authid that clearly doesnt exist");
+
         var (result, baseProjectDto) = await serviceProvider.GetRequiredService<CreateProjectCommandHandler>().Handle(command, default);
 
         using (new AssertionScope())

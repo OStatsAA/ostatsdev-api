@@ -3,13 +3,13 @@ namespace OStats.API.Commands;
 public sealed record IngestDataCommand
 {
     public Guid DatasetId { get; }
-    public string UserAuthId { get; }
+    public Guid RequestorUserId { get; }
     public string Bucket { get; }
     public string FileName { get; }
 
-    public IngestDataCommand(string userAuthId, Guid datasetId, string bucket, string fileName)
+    public IngestDataCommand(Guid requestorUserId, Guid datasetId, string bucket, string fileName)
     {
-        UserAuthId = userAuthId;
+        RequestorUserId = requestorUserId;
         DatasetId = datasetId;
         Bucket = bucket;
         FileName = fileName;
