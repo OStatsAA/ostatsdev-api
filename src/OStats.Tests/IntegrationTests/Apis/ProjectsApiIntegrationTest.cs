@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions.Execution;
 using MassTransit.Testing;
@@ -9,7 +8,6 @@ using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate.Events;
 using OStats.Domain.Aggregates.UserAggregate;
-using OStats.Domain.Common;
 
 namespace OStats.Tests.IntegrationTests.Apis;
 
@@ -33,10 +31,9 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
     [Fact]
     public async Task Should_Create_Project()
     {
-        var token = JwtTokenProvider.GenerateTokenForAuthId("test_auth_identity");
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.PostAsJsonAsync(_base_url, new CreateProjectDto { Title = "Test Project" });
+        var response = await client
+            .WithJwtBearerTokenForUser(await context.Users.FirstAsync())
+            .PostAsJsonAsync(_base_url, new CreateProjectDto { Title = "Test Project" });
 
         using (new AssertionScope())
         {
@@ -59,10 +56,9 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
     [MemberData(nameof(InvalidCreateProjectDtos))]
     public async Task Should_Not_Create_With_Invalid_Input(CreateProjectDto createProjectDto)
     {
-        var token = JwtTokenProvider.GenerateTokenForAuthId("test_auth_identity");
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.PostAsJsonAsync(_base_url, createProjectDto);
+        var response = await client
+            .WithJwtBearerTokenForUser(await context.Users.FirstAsync())
+            .PostAsJsonAsync(_base_url, createProjectDto);
 
         using (new AssertionScope())
         {
@@ -73,10 +69,9 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
     [Fact]
     public async Task Should_Fail_If_Invalid_User()
     {
-        var token = JwtTokenProvider.GenerateTokenForInvalidUser();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.PostAsJsonAsync(_base_url, new CreateProjectDto { Title = "Test Project" });
+        var response = await client
+            .WithInvalidJwtBearerToken()
+            .PostAsJsonAsync(_base_url, new CreateProjectDto { Title = "Test Project" });
 
         using (new AssertionScope())
         {
@@ -94,10 +89,9 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
         await context.Projects.AddAsync(project);
         await context.SaveChangesAsync();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.GetAsync($"{_base_url}/{project.Id}");
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .GetAsync($"{_base_url}/{project.Id}");
 
         using (new AssertionScope())
         {
@@ -112,10 +106,10 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
     public async Task Should_Fail_If_Not_Found()
     {
         var validUser = await context.Users.FirstAsync();
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var response = await client.GetAsync($"{_base_url}/{Guid.NewGuid()}");
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .GetAsync($"{_base_url}/{Guid.NewGuid()}");
 
         using (new AssertionScope())
         {
@@ -133,15 +127,14 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.PutAsJsonAsync($"{_base_url}/{project.Id}", new UpdateProjectDto
-        {
-            Title = "Updated Project",
-            Description = "Updated Description",
-            LastUpdatedAt = project.LastUpdatedAt
-        });
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .PutAsJsonAsync($"{_base_url}/{project.Id}", new UpdateProjectDto
+            {
+                Title = "Updated Project",
+                Description = "Updated Description",
+                LastUpdatedAt = project.LastUpdatedAt
+            });
 
         using (new AssertionScope())
         {
@@ -170,15 +163,14 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.PutAsJsonAsync($"{_base_url}/{project.Id}", new UpdateProjectDto
-        {
-            Title = "Updated Project",
-            Description = "Updated Description",
-            LastUpdatedAt = DateTime.Now.AddMinutes(-5)
-        });
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .PutAsJsonAsync($"{_base_url}/{project.Id}", new UpdateProjectDto
+            {
+                Title = "Updated Project",
+                Description = "Updated Description",
+                LastUpdatedAt = DateTime.Now.AddMinutes(-5)
+            });
 
         using (new AssertionScope())
         {
@@ -201,10 +193,9 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.DeleteAsync($"{_base_url}/{project.Id}");
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .DeleteAsync($"{_base_url}/{project.Id}");
 
         await Task.Delay(5 * 1000);
 
@@ -234,10 +225,9 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.PostAsync($"{_base_url}/{project.Id}/linkdataset/{dataset.Id}", null);
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .PostAsync($"{_base_url}/{project.Id}/linkdataset/{dataset.Id}", null);
 
         using (new AssertionScope())
         {
@@ -265,14 +255,13 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
         var link = new DatasetProjectLink(dataset.Id, project.Id);
         await context.DatasetsProjectsLinks.AddAsync(link);
         await context.SaveChangesAsync();
 
-        var response = await client.DeleteAsync($"{_base_url}/{project.Id}/linkdataset/{dataset.Id}");
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .DeleteAsync($"{_base_url}/{project.Id}/linkdataset/{dataset.Id}");
 
         using (new AssertionScope())
         {
@@ -296,10 +285,9 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.GetAsync($"{_base_url}/{project.Id}/users");
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .GetAsync($"{_base_url}/{project.Id}/users");
 
         using (new AssertionScope())
         {
@@ -324,10 +312,9 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(owner.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.PostAsJsonAsync(
+        var response = await client
+            .WithJwtBearerTokenForUser(owner)
+            .PostAsJsonAsync(
             $"{_base_url}/{project.Id}/users",
             new AddUserToProjectDto { UserId = other.Id, AccessLevel = AccessLevel.Editor });
 
@@ -357,10 +344,9 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(owner.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.DeleteAsync($"{_base_url}/{project.Id}/users/{other.Id}");
+        var response = await client
+            .WithJwtBearerTokenForUser(owner)
+            .DeleteAsync($"{_base_url}/{project.Id}/users/{other.Id}");
 
         using (new AssertionScope())
         {

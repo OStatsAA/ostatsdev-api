@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions.Execution;
 using MassTransit.Testing;
@@ -58,10 +57,9 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
             Description = "Test Description"
         };
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId("test_auth_identity");
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.PostAsJsonAsync(_baseUrl, createDto);
+        var response = await client
+            .WithJwtBearerTokenForUser(await context.Users.FirstAsync())
+            .PostAsJsonAsync(_baseUrl, createDto);
 
         using (new AssertionScope())
         {
@@ -86,10 +84,9 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
         var validUserProjectsCount = await context.Roles.Where(r => r.UserId == validUser.Id).CountAsync();
         context.ChangeTracker.Clear();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.PostAsJsonAsync(_baseUrl, createDto);
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .PostAsJsonAsync(_baseUrl, createDto);
 
         using (new AssertionScope())
         {
@@ -100,8 +97,20 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
         }
     }
 
+    [Fact]
+    public async Task Should_Return_Not_Found_For_Datasets_That_Do_Not_Exist()
+    {
+        var validUser = await context.Users.FirstAsync();
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .GetAsync($"{_baseUrl}/{Guid.NewGuid()}");
 
-    //TODO: get dataset by id
+        using (new AssertionScope())
+        {
+            response.IsSuccessStatusCode.Should().BeFalse();
+            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+    }
 
     [Fact]
     public async Task Should_Delete_Dataset()
@@ -112,10 +121,9 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.DeleteAsync($"{_baseUrl}/{dataset.Id}");
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .DeleteAsync($"{_baseUrl}/{dataset.Id}");
 
         await Task.Delay(5 * 1000);
 
@@ -149,10 +157,9 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
             LastUpdatedAt = dataset.LastUpdatedAt
         };
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.PutAsJsonAsync($"{_baseUrl}/{dataset.Id}", updateDto);
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .PutAsJsonAsync($"{_baseUrl}/{dataset.Id}", updateDto);
         var baseDataset = await response.Content.ReadFromJsonAsync<BaseDatasetDto>();
 
         using (new AssertionScope())
@@ -185,12 +192,11 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.PostAsJsonAsync(
-            $"{_baseUrl}/{dataset.Id}/users",
-            new AddUserToDatasetDto { UserId = other.Id, AccessLevel = DatasetAccessLevel.ReadOnly });
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .PostAsJsonAsync(
+                $"{_baseUrl}/{dataset.Id}/users",
+                new AddUserToDatasetDto { UserId = other.Id, AccessLevel = DatasetAccessLevel.ReadOnly });
 
         await Task.Delay(5 * 1000);
 
@@ -230,10 +236,9 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.DeleteAsync($"{_baseUrl}/{dataset.Id}/users/{other.Id}");
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .DeleteAsync($"{_baseUrl}/{dataset.Id}/users/{other.Id}");
 
         using (new AssertionScope())
         {
@@ -260,10 +265,9 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.GetAsync($"{_baseUrl}/{dataset.Id}/linkedprojects");
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .GetAsync($"{_baseUrl}/{dataset.Id}/linkedprojects");
         var links = await response.Content.ReadFromJsonAsync<List<object>>();
 
         using (new AssertionScope())
@@ -278,10 +282,10 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
     public async Task Should_Fail_To_Query_If_User_Is_Not_Valid()
     {
         var dataset = await context.Datasets.FirstAsync();
-        var token = JwtTokenProvider.GenerateTokenForInvalidUser();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var response = await client.GetAsync($"{_baseUrl}/{dataset.Id}/data");
+        var response = await client
+            .WithInvalidJwtBearerToken()
+            .GetAsync($"{_baseUrl}/{dataset.Id}/data");
 
         using (new AssertionScope())
         {
@@ -301,10 +305,9 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
 
         var updateDto = new UpdateDatasetVisibilityDto(true);
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.PutAsJsonAsync($"{_baseUrl}/{testDataset.Id}/visibility", updateDto);
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .PutAsJsonAsync($"{_baseUrl}/{testDataset.Id}/visibility", updateDto);
 
         await Task.Delay(5 * 1000);
 
@@ -321,6 +324,22 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
                 .First();
             @event.Should().NotBeNull();
             @event.Context.Message.Should().BeOfType<UpdatedDatasetVisibilityDomainEvent>();
+        }
+    }
+
+    [Fact]
+    public async Task Should_Fail_To_Ingest_Data_If_Dataset_Does_Not_Exists()
+    {
+        var validUser = await context.Users.FirstAsync();
+        var datasetId = Guid.NewGuid();
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .PostAsJsonAsync($"{_baseUrl}/{datasetId}/ingestdata", new IngestDataDto { Bucket="bucket", FileName="file" });
+
+        using (new AssertionScope())
+        {
+            response.IsSuccessStatusCode.Should().BeFalse();
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
     }
 }

@@ -40,22 +40,11 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
                 options.Registrations.Clear();
             });
 
-            var descriptorType = typeof(DbContextOptions<Context>);
-            var descriptor = services.SingleOrDefault(s => s.ServiceType == descriptorType);
+            ConfigureDatabaseContext(services);
 
-            if (descriptor is not null)
+            services.AddMassTransitTestHarness(config =>
             {
-                services.Remove(descriptor);
-            }
-
-            services.AddDbContext<Context>(options =>
-            {
-                options.UseNpgsql(_dbContainer.GetConnectionString());
-            });
-
-            services.AddMassTransitTestHarness(x =>
-            {
-                x.AddConsumers(typeof(Program).Assembly);
+                config.AddConsumers(typeof(Program).Assembly);
             });
 
             services.AddGrpcClient<DataService.DataServiceClient>(o =>
@@ -77,6 +66,24 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
                     options.Configuration.SigningKeys.Add(JwtTokenProvider.SecurityKey);
                 }
             );
+        });
+    }
+
+    private void ConfigureDatabaseContext(IServiceCollection services)
+    {
+        var descriptorType = typeof(DbContextOptions<Context>);
+        var descriptor = services.SingleOrDefault(s => s.ServiceType == descriptorType);
+
+        if (descriptor is not null)
+        {
+            services.Remove(descriptor);
+        }
+
+        services.AddDbContext<Context>(options =>
+        {
+            options
+                .UseNpgsql(_dbContainer.GetConnectionString())
+                .UseAsyncSeeding(DatabaseSeeding.SeedAsync);
         });
     }
 

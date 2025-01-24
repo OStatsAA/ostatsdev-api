@@ -1,4 +1,3 @@
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions.Execution;
 using MassTransit.Testing;
@@ -35,10 +34,9 @@ public class UsersApiIntegrationTest : BaseIntegrationTest
     {
         var validUser = await context.Users.FirstAsync();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.GetAsync($"{_base_url}?search={validUser.Name}");
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .GetAsync($"{_base_url}?search={validUser.Name}");
         var results = await response.Content.ReadFromJsonAsync<List<BaseUserDto>>();
 
         using (new AssertionScope())
@@ -54,10 +52,9 @@ public class UsersApiIntegrationTest : BaseIntegrationTest
     {
         var validUser = await context.Users.FirstAsync();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.GetAsync($"{_base_url}/{validUser.Id}");
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .GetAsync($"{_base_url}/{validUser.Id}");
         var result = await response.Content.ReadFromJsonAsync<BaseUserDto>();
 
         using (new AssertionScope())
@@ -77,10 +74,9 @@ public class UsersApiIntegrationTest : BaseIntegrationTest
             Email = "test@test.com"
         };
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId("test|user_create_test");
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.PostAsJsonAsync(_base_url, userDto);
+        var response = await client
+            .WithJwtBearerTokenForAuthId("test|user_create_test")
+            .PostAsJsonAsync(_base_url, userDto);
         var result = await response.Content.ReadFromJsonAsync<BaseUserDto>();
 
         using (new AssertionScope())
@@ -98,10 +94,9 @@ public class UsersApiIntegrationTest : BaseIntegrationTest
     {
         var validUser = await context.Users.FirstAsync();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.PostAsJsonAsync(_base_url, userDto);
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .PostAsJsonAsync(_base_url, userDto);
 
         using (new AssertionScope())
         {
@@ -114,10 +109,9 @@ public class UsersApiIntegrationTest : BaseIntegrationTest
     {
         var validUser = await context.Users.FirstAsync();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.GetAsync($"{_base_url}/{validUser.Id}/projects");
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .GetAsync($"{_base_url}/{validUser.Id}/projects");
         var userProjects = await response.Content.ReadFromJsonAsync<IEnumerable<object>>();
 
         using (new AssertionScope())
@@ -132,10 +126,9 @@ public class UsersApiIntegrationTest : BaseIntegrationTest
     {
         var validUser = await context.Users.FirstAsync();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(validUser.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.GetAsync($"{_base_url}/{validUser.Id}/datasets");
+        var response = await client
+            .WithJwtBearerTokenForUser(validUser)
+            .GetAsync($"{_base_url}/{validUser.Id}/datasets");
         var userDatasets = await response.Content.ReadFromJsonAsync<IEnumerable<object>>();
 
         using (new AssertionScope())
@@ -150,10 +143,9 @@ public class UsersApiIntegrationTest : BaseIntegrationTest
     {
         var user = await context.Users.FirstAsync();
 
-        var token = JwtTokenProvider.GenerateTokenForAuthId(user.AuthIdentity);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await client.DeleteAsync($"{_base_url}/{user.Id}");
+        var response = await client
+            .WithJwtBearerTokenForUser(user)
+            .DeleteAsync($"{_base_url}/{user.Id}");
 
         await Task.Delay(5 * 1000);
 
