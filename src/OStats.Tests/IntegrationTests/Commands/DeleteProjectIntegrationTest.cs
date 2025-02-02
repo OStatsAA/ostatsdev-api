@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OStats.API.Commands;
 using OStats.Domain.Aggregates.ProjectAggregate;
-using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
 using OStats.Domain.Aggregates.UserAggregate;
+using OStats.Infrastructure;
 
 namespace OStats.Tests.IntegrationTests.Commands;
 
@@ -18,10 +18,11 @@ public class DeleteProjectIntegrationTest : BaseIntegrationTest
     public async Task Should_Fail_If_User_Is_Not_Owner()
     {
         var project = await context.Projects.FirstAsync();
-        var ownerId = project.Roles.GetUsersIdsByAccessLevel(AccessLevel.Owner).First();
+        var ownerRole = await context.Roles.FindProjectOwnerAsync(project.Id, CancellationToken.None);
         var user = new User("Test User", "test@test.com", "test_user_authid");
         await context.AddAsync(user);
-        project.AddOrUpdateUserRole(user.Id, AccessLevel.Editor, ownerId);
+        var (_, userRole) = project.CreateUserRole(user.Id, AccessLevel.Editor, ownerRole);
+        await context.AddAsync(userRole!);
         await context.SaveChangesAsync();
         var command = new DeleteProjectCommand(user.Id, project.Id);
         var result = await serviceProvider.GetRequiredService<DeleteProjectCommandHandler>().Handle(command, default);
@@ -39,8 +40,9 @@ public class DeleteProjectIntegrationTest : BaseIntegrationTest
     public async Task Should_Remove_Project_From_Database()
     {
         var existingUser = await context.Users.FirstAsync();
-        var project = new Project(existingUser.Id, "To Be Deleted", "No Description");
+        var project = Project.Create("To Be Deleted", "No Description", existingUser.Id, out var existingUserRole);
         await context.Projects.AddAsync(project);
+        await context.Roles.AddAsync(existingUserRole);
         await context.SaveChangesAsync();
 
         var command = new DeleteProjectCommand(existingUser.Id, project.Id);

@@ -259,9 +259,10 @@ public class DatasetsApiIntegrationTest : BaseIntegrationTest
         var validUser = await context.Users.FirstAsync();
         var dataset = new Dataset(validUser.Id, "Test Dataset", "Source");
         await context.Datasets.AddAsync(dataset);
-        var project = new Project(validUser.Id, "Test Project");
+        var project = Project.Create("Test Project", string.Empty, validUser.Id, out var userRole);
         await context.Projects.AddAsync(project);
-        project.LinkDataset(dataset.Id, validUser.Id);
+        await context.Roles.AddAsync(userRole);
+        project.LinkDataset(dataset.Id, userRole);
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 

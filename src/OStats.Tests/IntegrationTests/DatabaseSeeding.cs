@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using OStats.Domain.Aggregates.DatasetAggregate;
 using OStats.Domain.Aggregates.ProjectAggregate;
 using OStats.Domain.Aggregates.UserAggregate;
+using OStats.Infrastructure;
 
 namespace OStats.Tests.IntegrationTests;
 
@@ -30,8 +31,9 @@ public static class DatabaseSeeding
     public static async Task SeedProjectsAsync(DbContext context, CancellationToken cancellationToken)
     {
         var user = await context.Set<User>().FirstAsync(cancellationToken);
-        var project = new Project(user.Id, "Test", "Test");
+        var project = Project.Create("Test", "Test", user.Id, out var userRole);
         await context.Set<Project>().AddAsync(project, cancellationToken);
+        await context.Set<Role>().AddAsync(userRole, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
@@ -47,8 +49,9 @@ public static class DatabaseSeeding
     {
         var user = await context.Set<User>().FirstAsync(cancellationToken);
         var project = await context.Set<Project>().FirstAsync(cancellationToken);
+        var userRole = await context.Set<Role>().FindProjectOwnerAsync(project.Id, cancellationToken);
         var dataset = await context.Set<Dataset>().FirstAsync(cancellationToken);
-        project.LinkDataset(dataset.Id, user.Id);
+        project.LinkDataset(dataset.Id, userRole);
         await context.SaveChangesAsync(cancellationToken);
     }
 }

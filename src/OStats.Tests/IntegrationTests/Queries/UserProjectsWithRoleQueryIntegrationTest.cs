@@ -17,21 +17,23 @@ public class UserProjectsWithRoleQueryIntegrationTest : BaseIntegrationTest
     {
         var owner = await context.Users.FirstAsync();
         var projects = new[]{
-            new Project(owner.Id, "Project1", "Test"),
-            new Project(owner.Id, "Project2", "Test"),
-            new Project(owner.Id, "Project3", "Test"),
+            Project.Create("Project1", "Test", owner.Id, out var ownerRole0),
+            Project.Create("Project2", "Test", owner.Id, out var ownerRole1),
+            Project.Create("Project3", "Test", owner.Id, out var ownerRole2),
         };
         await context.AddRangeAsync(projects);
+        await context.AddRangeAsync([ownerRole0, ownerRole1, ownerRole2]);
 
         var user = new User("User", "user@test.com", "auth_id_user");
         await context.AddAsync(user);
 
         var userProjectsIds = new List<Guid>(2);
-        foreach (var userProject in projects.Take(2).AsEnumerable())
-        {
-            userProject.AddOrUpdateUserRole(user.Id, AccessLevel.ReadOnly, owner.Id);
-            userProjectsIds.Add(userProject.Id);
-        }
+        var (_, userReadOnly0) = projects[0].CreateUserRole(user.Id, AccessLevel.ReadOnly, ownerRole0);
+        await context.AddAsync(userReadOnly0!);
+        userProjectsIds.Add(projects[0].Id);
+        var (_, userReadOnly1) = projects[1].CreateUserRole(user.Id, AccessLevel.ReadOnly, ownerRole1);
+        await context.AddAsync(userReadOnly1!);
+        userProjectsIds.Add(projects[1].Id);
 
         await context.SaveChangesAsync();
 

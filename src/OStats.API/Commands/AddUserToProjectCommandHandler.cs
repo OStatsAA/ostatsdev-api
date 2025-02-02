@@ -19,12 +19,33 @@ public sealed class AddUserToProjectCommandHandler : CommandHandler<AddUserToPro
             return DomainOperationResult.Failure("Project not found");
         }
 
-        var result = project.AddOrUpdateUserRole(command.UserId, command.AccessLevel, command.RequestorUserId);
-        if (!result.Succeeded)
+        var roles = await _context.Roles.FindByProjectIdAndUsersIdsAsync(command.ProjectId, [command.RequestorId, command.UserId], cancellationToken);
+        if (roles.TryGetValue(command.RequestorId, out var requestorRole) is false)
+        {
+            return DomainOperationResult.InvalidUserRole();
+        }
+
+        if (roles.TryGetValue(command.UserId, out var userRole) is true && userRole.AccessLevel == command.AccessLevel)
+        {
+            return DomainOperationResult.NoActionTaken($"User is already in the project with {userRole.AccessLevel} level.");
+        }
+
+        DomainOperationResult result;
+        if (userRole is not null)
+        {
+            result = project.UpdateUserRole(ref userRole, command.AccessLevel, requestorRole);
+        }
+        else
+        {
+            (result, userRole) = project.CreateUserRole(command.UserId, command.AccessLevel, requestorRole);
+        }
+
+        if (!result.Succeeded || userRole is null)
         {
             return result;
         }
 
+        await _context.AddAsync(userRole, cancellationToken);
         await SaveCommandHandlerChangesAsync(cancellationToken);
         return result;
     }

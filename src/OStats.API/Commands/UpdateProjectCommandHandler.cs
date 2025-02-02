@@ -1,7 +1,6 @@
 using MassTransit;
 using OStats.API.Commands.Common;
 using OStats.API.Dtos;
-using OStats.Domain.Aggregates.ProjectAggregate.Extensions;
 using OStats.Domain.Common;
 using OStats.Infrastructure;
 
@@ -32,7 +31,7 @@ public sealed class UpdateProjectCommandHandler : CommandHandler<UpdateProjectCo
             return (DomainOperationResult.Failure("User not found."), null);
         }
 
-        var userRole = project.Roles.GetUserRole(user.Id);
+        var userRole = await _context.Roles.FindByProjectIdAndUserIdAsync(project.Id, user.Id, cancellationToken);
         if (userRole is null)
         {
             return (DomainOperationResult.InvalidUserRole("User does not have a role in this project."), null);

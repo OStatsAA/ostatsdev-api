@@ -21,11 +21,11 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
 
     public static IEnumerable<object[]> InvalidCreateProjectDtos()
     {
-        return new List<object[]>
-        {
-            new object[] { new CreateProjectDto { Title = "" } },
-            new object[] { new CreateProjectDto { Title = new string('a', 257) } },
-        };
+        return
+        [
+            [new CreateProjectDto { Title = "" }],
+            [new CreateProjectDto { Title = new string('a', 257) }],
+        ];
     }
 
     [Fact]
@@ -85,8 +85,9 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
     public async Task Should_Get_Project_By_Id()
     {
         var validUser = await context.Users.FirstAsync();
-        var project = new Project(validUser.Id, "Test Project", "Test Description");
+        var project = Project.Create("Test Project", "Test Description", validUser.Id, out var requestorRole);
         await context.Projects.AddAsync(project);
+        await context.Roles.AddAsync(requestorRole);
         await context.SaveChangesAsync();
 
         var response = await client
@@ -122,8 +123,9 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
     public async Task Should_Update_Project()
     {
         var validUser = await context.Users.FirstAsync();
-        var project = new Project(validUser.Id, "Test Project", "Test Description");
+        var project = Project.Create("Test Project", "Test Description", validUser.Id, out var requestorRole);
         await context.Projects.AddAsync(project);
+        await context.Roles.AddAsync(requestorRole);
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
@@ -158,8 +160,9 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
     public async Task Should_Fail_If_Update_With_Invalid_Last_Updated_At()
     {
         var validUser = await context.Users.FirstAsync();
-        var project = new Project(validUser.Id, "Test Project", "Test Description");
+        var project = Project.Create("Test Project", "Test Description", validUser.Id, out var requestorRole);
         await context.Projects.AddAsync(project);
+        await context.Roles.AddAsync(requestorRole);
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
@@ -188,8 +191,9 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
     public async Task Should_Delete_Project()
     {
         var validUser = await context.Users.FirstAsync();
-        var project = new Project(validUser.Id, "Test Project", "Test Description");
+        var project = Project.Create("Test Project", "Test Description", validUser.Id, out var requestorRole);
         await context.Projects.AddAsync(project);
+        await context.Roles.AddAsync(requestorRole);
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
@@ -216,9 +220,9 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
     public async Task Should_Link_Datasets_To_Project()
     {
         var validUser = await context.Users.FirstAsync();
-        var project = new Project(validUser.Id, "Test Project", "Test Description");
+        var project = Project.Create("Test Project", "Test Description", validUser.Id, out var requestorRole);
         await context.Projects.AddAsync(project);
-
+        await context.Roles.AddAsync(requestorRole);
         var dataset = new Dataset(validUser.Id, "Test Dataset", "Test Description");
         await context.Datasets.AddAsync(dataset);
 
@@ -246,9 +250,9 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
     public async Task Should_Unlink_Datasets_From_Project()
     {
         var validUser = await context.Users.FirstAsync();
-        var project = new Project(validUser.Id, "Test Project", "Test Description");
+        var project = Project.Create("Test Project", "Test Description", validUser.Id, out var requestorRole);
         await context.Projects.AddAsync(project);
-
+        await context.Roles.AddAsync(requestorRole);
         var dataset = new Dataset(validUser.Id, "Test Dataset", "Test Description");
         await context.Datasets.AddAsync(dataset);
 
@@ -280,8 +284,9 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
     public async Task Should_Get_Project_Users_And_Roles()
     {
         var validUser = await context.Users.FirstAsync();
-        var project = new Project(validUser.Id, "Test Project", "Test Description");
+        var project = Project.Create("Test Project", "Test Description", validUser.Id, out var requestorRole);
         await context.Projects.AddAsync(project);
+        await context.Roles.AddAsync(requestorRole);
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
@@ -303,9 +308,9 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
     public async Task Should_Add_User_To_Project()
     {
         var owner = await context.Users.FirstAsync();
-        var project = new Project(owner.Id, "Test Project", "Test Description");
+        var project = Project.Create("Test Project", "Test Description", owner.Id, out var requestorRole);
         await context.Projects.AddAsync(project);
-
+        await context.Roles.AddAsync(requestorRole);
         var other = new User("Other User", "other@other.com", "other_auth_identity");
         await context.Users.AddAsync(other);
         
@@ -334,13 +339,15 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
     public async Task Should_Remove_User_From_Project()
     {
         var owner = await context.Users.FirstAsync();
-        var project = new Project(owner.Id, "Test Project", "Test Description");
-        await context.Projects.AddAsync(project);
+        var project = Project.Create("Test Project", "Test Description", owner.Id, out var ownerRole);
+        await context.AddAsync(project);
+        await context.AddAsync(ownerRole);
 
         var other = new User("Other User TBD", "other@other.com", "other_auth_identity_tbd");
         await context.Users.AddAsync(other);
 
-        project.AddOrUpdateUserRole(other.Id, AccessLevel.Editor, owner.Id);
+        var (_, otherUserRole) = project.CreateUserRole(other.Id, AccessLevel.Editor, ownerRole);
+        await context.AddAsync(otherUserRole!);
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
@@ -352,10 +359,10 @@ public class ProjectsApiIntegrationTest : BaseIntegrationTest
         {
             response.IsSuccessStatusCode.Should().BeTrue();
 
-            var otherUserRole = await context.Roles
+            var persistedRole = await context.Roles
                 .FirstOrDefaultAsync(role => role.ProjectId == project.Id && role.UserId == other.Id);
 
-            otherUserRole.Should().BeNull();
+            persistedRole.Should().BeNull();
         }
     }
 }

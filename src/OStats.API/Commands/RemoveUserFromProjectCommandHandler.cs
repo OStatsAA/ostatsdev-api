@@ -19,7 +19,18 @@ public sealed class RemoveUserFromProjectCommandHandler : CommandHandler<RemoveU
             return DomainOperationResult.Failure("Project not found.");
         }
 
-        var result = project.RemoveUserRole(command.UserId, command.RequestorUserId);
+        var roles = await _context.Roles.FindByProjectIdAndUsersIdsAsync(project.Id, [command.UserId, command.RequestorId], cancellationToken);
+        if (roles.TryGetValue(command.RequestorId, out var requestorRole) is false)
+        {
+            return DomainOperationResult.InvalidUserRole();
+        }
+
+        if (roles.TryGetValue(command.UserId, out var userRole) is false)
+        {
+            return DomainOperationResult.InvalidUserRole();
+        }
+
+        var result = project.DeleteUserRole(ref userRole, requestorRole);
 
         if (!result.Succeeded)
         {

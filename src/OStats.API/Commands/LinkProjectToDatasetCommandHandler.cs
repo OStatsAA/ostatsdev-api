@@ -25,7 +25,14 @@ public sealed class LinkProjectToDatasetCommandHandler : CommandHandler<LinkProj
             return DomainOperationResult.Failure("Dataset not found.");
         }
 
-        var result = project.LinkDataset(dataset.Id, command.RequestorUserId);
+        var requestorRole = await _context.Roles
+            .FindByProjectIdAndUserIdAsync(command.ProjectId, command.RequestorUserId, cancellationToken);
+        if (requestorRole is null)
+        {
+            return DomainOperationResult.InvalidUserRole();
+        }
+
+        var result = project.LinkDataset(dataset.Id, requestorRole);
 
         if (!result.Succeeded)
         {

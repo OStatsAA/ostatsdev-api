@@ -21,9 +21,10 @@ public sealed class CreateProjectCommandHandler : CommandHandler<CreateProjectCo
             return (DomainOperationResult.Failure("User not found."), null);
         }
 
-        var project = new Project(user.Id, command.Title, command.Description);
+        var project = Project.Create(command.Title, command.Description, user.Id, out var requestorRole);
 
         await _context.AddAsync(project);
+        await _context.AddAsync(requestorRole);
         await SaveCommandHandlerChangesAsync(cancellationToken);
 
         return (DomainOperationResult.Success, new BaseProjectDto(project));

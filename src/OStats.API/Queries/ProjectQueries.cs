@@ -46,9 +46,14 @@ public static class ProjectQueries
             .ToListAsync(cancellationToken);
     }
 
-    public static Task<List<ProjectUserAndRoleDto>> GetProjectUsersAndRolesAsync(Context context, Guid userId, Guid projectId, CancellationToken cancellationToken)
+    public static async Task<List<ProjectUserAndRoleDto>> GetProjectUsersAndRolesAsync(Context context, Guid userId, Guid projectId, CancellationToken cancellationToken)
     {
-        return context.Projects
+        if(!await context.Roles.AnyAsync( role => role.UserId == userId && role.AccessLevel != AccessLevel.NoAccess && role.ProjectId == projectId))
+        {
+            return [];
+        }
+
+        return await context.Projects
             .Join(
                 context.Roles,
                 project => project.Id,
@@ -59,9 +64,8 @@ public static class ProjectQueries
                 projectAndRole => projectAndRole.role.UserId,
                 user => user.Id,
                 (projectAndRole, user) => new { projectAndRole.project, projectAndRole.role, user })
-            .Where(join => join.project.Id == projectId &&
-                           join.project.Roles.Any(role => role.UserId == userId))
-            .Select(join => new ProjectUserAndRoleDto(join.user, join.role))
+            .Where(join => join.project.Id == projectId)
+            .Select(join => new ProjectUserAndRoleDto(join.user, join.role.AccessLevel))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
     }

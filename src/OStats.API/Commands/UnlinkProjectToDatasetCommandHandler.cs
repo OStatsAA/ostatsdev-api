@@ -25,7 +25,13 @@ public sealed class UnlinkProjectToDatasetCommandHandler : CommandHandler<Unlink
             return DomainOperationResult.Failure("Dataset not found.");
         }
 
-        var result = project.UnlinkDataset(dataset.Id, command.RequestorUserId);
+        var requestorRole = await _context.Roles.FindByProjectIdAndUserIdAsync(project.Id, command.RequestorUserId, cancellationToken);
+        if (requestorRole is null)
+        {
+            return DomainOperationResult.InvalidUserRole();
+        }
+
+        var result = project.UnlinkDataset(dataset.Id, requestorRole);
         if (!result.Succeeded)
         {
             return result;

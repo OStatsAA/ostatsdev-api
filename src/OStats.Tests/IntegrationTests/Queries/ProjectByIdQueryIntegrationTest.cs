@@ -16,8 +16,9 @@ public class ProjectByIdQueryIntegrationTest : BaseIntegrationTest
     public async Task Should_Get_Project_By_Id()
     {
         var user = await context.Users.FirstAsync();
-        var project = new Project(user.Id, "Test", "Test description");
-        await context.Projects.AddAsync(project);
+        var project = Project.Create("Test", "Test description", user.Id, out var userRole);
+        await context.AddAsync(project);
+        await context.AddAsync(userRole);
         await context.SaveChangesAsync();
 
         var queriedProject = await ProjectQueries.GetProjectByIdAsync(context, user.Id, project.Id, default);
@@ -33,8 +34,9 @@ public class ProjectByIdQueryIntegrationTest : BaseIntegrationTest
     public async Task Shoud_Fail_If_User_Has_No_Access()
     {
         var user = await context.Users.FirstAsync();
-        var project = new Project(user.Id, "Test", "Test description");
-        await context.Projects.AddAsync(project);
+        var project = Project.Create("Test", "Test description", user.Id, out var userRole);
+        await context.AddAsync(project);
+        await context.AddAsync(userRole);
         await context.SaveChangesAsync();
 
         var unauthorized = new User("Name", "name@email.com", "unauthorized_authid");

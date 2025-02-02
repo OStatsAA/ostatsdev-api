@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OStats.API.Queries;
 using OStats.Domain.Aggregates.DatasetAggregate;
+using OStats.Infrastructure;
 
 namespace OStats.Tests.IntegrationTests.Queries;
 
@@ -17,7 +18,8 @@ public class DatasetLinkedProjectsQueryIntegrationTest : BaseIntegrationTest
         var dataset = new Dataset(owner.Id, "Title", "Source");
         await context.AddAsync(dataset);
         var project = await context.Projects.FirstAsync();
-        project.LinkDataset(dataset.Id, owner.Id);
+        var ownerRole = await context.Roles.FindProjectOwnerAsync(project.Id, default);
+        project.LinkDataset(dataset.Id, ownerRole);
         await context.SaveChangesAsync();
 
         var queriedDatasetProjectLinks = await DatasetQueries.GetDatasetLinkedProjectsAsync(context, dataset.Id, default);

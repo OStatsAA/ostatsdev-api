@@ -17,8 +17,10 @@ public class ProjectUsersAndRolesQueryIntegrationTest : BaseIntegrationTest
     public async Task Should_Get_Project_Users_And_Roles()
     {
         var owner = await context.Users.FirstAsync();
-        var project = new Project(owner.Id, "Test", "Test description");
+        var project = Project.Create("Test", "Test description", owner.Id, out var ownerRole);
         await context.Projects.AddAsync(project);
+        await context.Roles.AddAsync(ownerRole);
+        
         var editors = new[]{
             new User("Editor1", "1@test.com", "auth_id_editor1"),
             new User("Editor2", "1@test.com", "auth_id_editor2"),
@@ -26,7 +28,8 @@ public class ProjectUsersAndRolesQueryIntegrationTest : BaseIntegrationTest
         await context.AddRangeAsync(editors);
         foreach (var editor in editors)
         {
-            project.AddOrUpdateUserRole(editor.Id, AccessLevel.Editor, owner.Id);
+            var (_, editorRole) = project.CreateUserRole(editor.Id, AccessLevel.Editor, ownerRole);
+            await context.Roles.AddAsync(editorRole!);
         }
         var readers = new[]{
             new User("Reader1", "1@test.com", "auth_id_reader1"),
@@ -35,7 +38,8 @@ public class ProjectUsersAndRolesQueryIntegrationTest : BaseIntegrationTest
         await context.AddRangeAsync(readers);
         foreach (var reader in readers)
         {
-            project.AddOrUpdateUserRole(reader.Id, AccessLevel.ReadOnly, owner.Id);
+            var (_, readerRole) = project.CreateUserRole(reader.Id, AccessLevel.ReadOnly, ownerRole);
+            await context.Roles.AddAsync(readerRole!);
         }
 
         await context.SaveChangesAsync();

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using OStats.API.Commands;
 using OStats.API.Common;
 using OStats.API.Dtos;
-using OStats.API.Extensions;
 using OStats.API.Filters;
 using OStats.API.Queries;
 using OStats.Infrastructure;

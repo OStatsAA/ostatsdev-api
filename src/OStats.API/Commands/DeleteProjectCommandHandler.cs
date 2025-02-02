@@ -19,14 +19,20 @@ public sealed class DeleteProjectCommandHandler : CommandHandler<DeleteProjectCo
             return DomainOperationResult.Failure("Project not found.");
         }
 
-        var result = project.Delete(command.RequestorUserId);
+        var requestorRole = await _context.Roles
+            .FindByProjectIdAndUserIdAsync(command.ProjectId, command.RequestorId, cancellationToken);
+        if (requestorRole is null)
+        {
+            return DomainOperationResult.InvalidUserRole();
+        }
+
+        var result = project.Delete(requestorRole);
         if (!result.Succeeded)
         {
             return result;
         }
         
         await SaveCommandHandlerChangesAsync(cancellationToken);
-
         return DomainOperationResult.Success;
     }
 }

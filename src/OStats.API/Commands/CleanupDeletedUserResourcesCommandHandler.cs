@@ -15,8 +15,9 @@ public sealed class CleanupDeletedUserResourcesCommandHandler : CommandHandler<C
 
     public override async Task<DomainOperationResult> Handle(CleanupDeletedUserResourcesCommand command, CancellationToken cancellationToken)
     {
-        var user = await _context.Users.IgnoreQueryFilters().SingleOrDefaultAsync(_user => _user.Id == command.UserId, cancellationToken);
-
+        var user = await _context.Users
+            .IgnoreQueryFilters()
+            .SingleOrDefaultAsync(_user => _user.Id == command.UserId, cancellationToken);
         if (user is null)
         {
             return DomainOperationResult.NoActionTaken("User is already deleted from database");
@@ -33,14 +34,9 @@ public sealed class CleanupDeletedUserResourcesCommandHandler : CommandHandler<C
             dataset.Delete(user.Id);
         }
 
-        List<Project> projectsSingleOwnedByUser = await GetProjectsOwnedOnlyByDeletedUserAsync(user.Id, cancellationToken);
-        foreach (var project in projectsSingleOwnedByUser)
-        {
-            project.Delete(user.Id);
-        }
+        await DeleteProjectsOwnedOnlyByDeletedUserAsync(user.Id, cancellationToken);
 
         _context.Remove(user);
-
         await SaveCommandHandlerChangesAsync(cancellationToken);
         return DomainOperationResult.Success;
     }
@@ -56,14 +52,16 @@ public sealed class CleanupDeletedUserResourcesCommandHandler : CommandHandler<C
             .ToListAsync(cancellationToken);
     }
 
-    private Task<List<Project>> GetProjectsOwnedOnlyByDeletedUserAsync(Guid userId, CancellationToken cancellationToken)
+    private async Task DeleteProjectsOwnedOnlyByDeletedUserAsync(Guid userId, CancellationToken cancellationToken)
     {
-        return _context.Projects
+        var projectsAndRolesJoin = await _context.Projects
             .Where(_ => _context.Roles.Any(role => role.UserId == userId && role.AccessLevel == AccessLevel.Owner))
-            .Join(_context.Roles, project => project.Id, role => role.ProjectId, (project, _) => project)
-            .GroupBy(project => project.Id)
+            .Join(_context.Roles, project => project.Id, role => role.ProjectId, (project, role) => new {project, role })
+            .GroupBy(join => join.project.Id)
             .Where(group => group.Count() == 1)
             .SelectMany(group => group.ToList())
             .ToListAsync(cancellationToken);
+        
+        projectsAndRolesJoin.ForEach(join => join.project.Delete(join.role));
     }
 }

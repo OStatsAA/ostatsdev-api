@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OStats.Domain.Aggregates.ProjectAggregate;
 
@@ -16,7 +15,7 @@ internal sealed class ProjectEntityConfiguration : EntityConfiguration<Project>
               builder.Property(project => project.Description)
                      .HasMaxLength(2048);
 
-              builder.HasMany(project => project.Roles)
+              builder.HasMany<Role>()
                      .WithOne()
                      .HasForeignKey(role => role.ProjectId)
                      .IsRequired();
@@ -26,7 +25,6 @@ internal sealed class ProjectEntityConfiguration : EntityConfiguration<Project>
                      .HasForeignKey(link => link.ProjectId)
                      .IsRequired();
 
-              builder.Navigation(project => project.Roles).AutoInclude();
               builder.Navigation(project => project.LinkedDatasets).AutoInclude();
        }
 }
